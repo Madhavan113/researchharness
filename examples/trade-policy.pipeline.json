@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "name": "trade-policy-example",
+  "description": "Hand-configured public-source smoke test based on September 7, 2026 research. Agent discovery produces a separate proposal and configuration.",
+  "data_dir": "../.researchharness/trade-policy",
+  "sources": [
+    {
+      "id": "china-sanctions-market",
+      "name": "China sanctions contract and books",
+      "connector": "polymarket",
+      "url": "https://gamma-api.polymarket.com/events",
+      "parameters": [
+        {"name": "slug", "value": "us-imposes-new-sanctions-on-china-by-september-30"}
+      ],
+      "include_orderbooks": true,
+      "poll_interval_seconds": 900
+    },
+    {
+      "id": "trade-agreement-markets",
+      "name": "Kalshi recurring U.S. trade agreement series",
+      "connector": "kalshi",
+      "url": "https://external-api.kalshi.com/trade-api/v2/markets",
+      "parameters": [
+        {"name": "series_ticker", "value": "KXNEWDEAL"},
+        {"name": "limit", "value": "100"}
+      ],
+      "pagination": {"mode": "cursor", "next_pointer": "/cursor", "cursor_parameter": "cursor"},
+      "include_orderbooks": true,
+      "poll_interval_seconds": 900
+    },
+    {
+      "id": "ofac-site-feed",
+      "name": "OFAC site feed, including sanctions-program pages",
+      "connector": "rss",
+      "url": "https://ofac.treasury.gov/rss.xml",
+      "poll_interval_seconds": 3600
+    }
+  ]
+}

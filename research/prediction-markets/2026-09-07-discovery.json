@@ -1,0 +1,217 @@
+{
+  "artifact_type": "selected_public_api_observations",
+  "research_date": "2026-09-07",
+  "compiled_at": "2026-09-07T19:13:02.225660+00:00",
+  "scope": "Small exploratory sample of individual contracts and displayed order books; not a complete market inventory, forecast, or execution record.",
+  "units": {
+    "price": "USD per contract/share with a standard USD 1 binary payout",
+    "size": "contracts/shares",
+    "purchase_cost": "USD before fees"
+  },
+  "markets": [
+    {
+      "label": "China sanctions through September 2026",
+      "venue": "Polymarket global",
+      "source_url": "https://gamma-api.polymarket.com/markets?slug=us-imposes-new-sanctions-on-china-by-september-30",
+      "retrieved_at": "2026-09-07T19:08:24.234117+00:00",
+      "metadata": {
+        "id": "3889223",
+        "question": "US imposes new sanctions on China by September 30?",
+        "slug": "us-imposes-new-sanctions-on-china-by-september-30",
+        "active": true,
+        "closed": false,
+        "acceptingOrders": true,
+        "startDate": "2026-08-25T23:27:47Z",
+        "endDate": "2026-10-01T03:59:00Z",
+        "feesEnabled": true
+      },
+      "order_book": {
+        "source_url": "https://clob.polymarket.com/book?token_id=105425111194544039980470333358379917468824066510918239679048155202166456870094",
+        "retrieved_at": "2026-09-07T19:09:29.800095+00:00",
+        "venue_timestamp": "1788808162160",
+        "best_yes_bid": {
+          "price": "0.07",
+          "size": "555.39"
+        },
+        "best_yes_ask": {
+          "price": "0.08",
+          "size": "5"
+        },
+        "best_yes_ask_purchase_cost_usd_before_fees": "0.40",
+        "first_five_yes_bids": [
+          {
+            "price": "0.07",
+            "size": "555.39"
+          },
+          {
+            "price": "0.06",
+            "size": "130"
+          },
+          {
+            "price": "0.05",
+            "size": "1120"
+          },
+          {
+            "price": "0.04",
+            "size": "20"
+          },
+          {
+            "price": "0.03",
+            "size": "913.17"
+          }
+        ],
+        "first_five_yes_asks": [
+          {
+            "price": "0.08",
+            "size": "5"
+          },
+          {
+            "price": "0.09",
+            "size": "186.45"
+          },
+          {
+            "price": "0.1",
+            "size": "60"
+          },
+          {
+            "price": "0.14",
+            "size": "42.24"
+          },
+          {
+            "price": "0.15",
+            "size": "28.65"
+          }
+        ],
+        "minimum_order_size": "5",
+        "tick_size": "0.01"
+      }
+    },
+    {
+      "label": "Cuba trade agreement before January 2027",
+      "venue": "Kalshi",
+      "source_url": "https://external-api.kalshi.com/trade-api/v2/markets?event_ticker=KXTRADEDEALCUBA-27&limit=100",
+      "retrieved_at": "2026-09-07T19:08:24.228874+00:00",
+      "metadata": {
+        "ticker": "KXTRADEDEALCUBA-27-B270101",
+        "title": "Will Trump announce a trade deal with Cuba before Jan 1, 2027?",
+        "status": "active",
+        "open_time": "2026-03-17T14:00:00Z",
+        "close_time": "2027-01-01T04:59:00Z",
+        "expected_expiration_time": "2027-01-01T15:00:00Z",
+        "liquidity_dollars": "0.0000"
+      },
+      "order_book": {
+        "source_url": "https://external-api.kalshi.com/trade-api/v2/markets/KXTRADEDEALCUBA-27-B270101/orderbook?depth=10",
+        "retrieved_at": "2026-09-07T19:09:29.725155+00:00",
+        "best_yes_bid": {
+          "price": "0.1100",
+          "size": "19.53"
+        },
+        "best_yes_ask": {
+          "price": "0.1500",
+          "size": "103.43"
+        },
+        "best_yes_ask_purchase_cost_usd_before_fees": "15.514500",
+        "first_five_yes_asks": [
+          {
+            "price": "0.1500",
+            "size": "103.43"
+          },
+          {
+            "price": "0.1700",
+            "size": "24.00"
+          },
+          {
+            "price": "0.1800",
+            "size": "500.00"
+          },
+          {
+            "price": "0.2500",
+            "size": "2000.00"
+          },
+          {
+            "price": "0.4500",
+            "size": "6.57"
+          }
+        ],
+        "derivation": "Yes asks are 1 minus the complementary No bids; quantities are inherited from those bids."
+      }
+    },
+    {
+      "label": "New U.S. trade deal before October 2026",
+      "venue": "Kalshi",
+      "source_url": "https://external-api.kalshi.com/trade-api/v2/markets?series_ticker=KXNEWDEAL&status=open&limit=100",
+      "retrieved_at": "2026-09-07T19:08:24.228392+00:00",
+      "metadata": {
+        "ticker": "KXNEWDEAL-OCT01",
+        "title": "When will Trump announce a new trade deal?",
+        "status": "active",
+        "open_time": "2026-09-01T14:00:00Z",
+        "close_time": "2026-10-01T03:59:00Z",
+        "yes_bid_dollars": "0.8500",
+        "yes_ask_dollars": "0.9400",
+        "volume_fp": "100.00",
+        "liquidity_dollars": "0.0000"
+      }
+    },
+    {
+      "label": "Historical Chinese Boeing purchase announcement",
+      "venue": "Polymarket global",
+      "source_url": "https://gamma-api.polymarket.com/events?slug=trump-xi-summit-what-will-china-announce-by-may-22",
+      "retrieved_at": "2026-09-07T19:09:29.754665+00:00",
+      "metadata": {
+        "id": "2233159",
+        "question": "Will China announce a Boeing aircraft purchase by May 22?",
+        "slug": "will-china-announce-a-boeing-aircraft-purchase-by-may-22-385",
+        "active": true,
+        "closed": true,
+        "acceptingOrders": false,
+        "endDate": "2026-05-22T00:00:00Z",
+        "umaResolutionStatus": "resolved"
+      },
+      "deadline_review": {
+        "rule_deadline_normalized": "2026-05-22T23:59:00-04:00",
+        "basis": "Analyst extraction from the description received in this API response, using America/New_York for the stated ET timezone.",
+        "finding": "The rule-text deadline differs from the endDate metadata."
+      }
+    }
+  ],
+  "limited_searches": [
+    {
+      "source_url": "https://gamma-api.polymarket.com/public-search?q=arms+sales&limit_per_type=20",
+      "retrieved_at": "2026-09-07T19:09:29.906993+00:00",
+      "query_scope": "Keyword search: arms sales",
+      "pagination": {
+        "hasMore": false,
+        "totalResults": 1
+      },
+      "returned_event_slugs": [
+        "trump-xi-summit-what-will-trump-announce-by-may-22"
+      ]
+    },
+    {
+      "source_url": "https://gamma-api.polymarket.com/public-search?q=export&limit_per_type=20",
+      "retrieved_at": "2026-09-07T19:09:30.007477+00:00",
+      "query_scope": "Keyword search: export",
+      "pagination": {
+        "hasMore": false,
+        "totalResults": 5
+      },
+      "returned_event_slugs": [
+        "will-china-lift-rare-earths-export-ban-by-december-31",
+        "which-bills-will-become-law-in-2026",
+        "trump-xi-summit-what-will-trump-announce-by-may-22",
+        "trump-xi-summit-what-will-china-announce-by-may-22",
+        "what-will-on-semiconductor-say-during-their-next-earnings-call"
+      ]
+    }
+  ],
+  "limitations": [
+    "Snapshots from different endpoints were retrieved at different times.",
+    "Displayed orders can change or be cancelled before an order reaches the venue.",
+    "No fees, fill probabilities, or return forecasts were calculated.",
+    "Only selected numerical and status fields are preserved; full contract rules must be retrieved and versioned for a production workflow.",
+    "The sampled Kalshi generic liquidity field was zero despite visible orders.",
+    "These global Polymarket observations do not establish listing availability on Polymarket US."
+  ]
+}

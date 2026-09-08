@@ -1,0 +1,7 @@
+{
+  "id": "ofac-site-feed",
+  "name": "OFAC site feed, including sanctions-program pages",
+  "connector": "rss",
+  "url": "https://ofac.treasury.gov/rss.xml",
+  "poll_interval_seconds": 3600
+}
