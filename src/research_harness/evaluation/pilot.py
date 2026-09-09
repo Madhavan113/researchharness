@@ -39,8 +39,13 @@ from research_harness.evaluation.controller import (
     run_case,
 )
 from research_harness.evaluation.dispatch_budget import DispatchBudget, DispatchPolicy
-from research_harness.evaluation.runtime_executor import RuntimeExecutionError, RuntimeExecutor
+from research_harness.evaluation.runtime_executor import (
+    RuntimeExecutionError,
+    RuntimeExecutor,
+    task_strategy_session,
+)
 from research_harness.integrations.model_gateway import ResponsesGateway
+from research_harness.strategies.config import StrategyBundle
 from research_harness.util import canonical_json, digest, timestamp, write_json
 
 DISCOVERY_FUNCTIONS = {
@@ -104,6 +109,7 @@ def prepare_pilot(
     ledger_path: Path,
     instructions: str,
     config: PilotConfig,
+    strategy: StrategyBundle | None = None,
 ) -> Path:
     """Freeze a pilot without dispatching; reuse this ledger across source revisions."""
     config = PilotConfig.model_validate(config)
@@ -136,6 +142,7 @@ def prepare_pilot(
             output,
             instructions=instructions,
             config=config.comparison.model_copy(update={"budget_control": control}),
+            strategy=strategy,
         )
         witness = output / "budget-initial.json"
         write_json(witness, ledger.snapshot())
@@ -375,6 +382,7 @@ class BudgetedRuntimeExecutor:
                 else None
             )
             try:
+                strategy = task_strategy_session(task)
                 gateway = ResponsesGateway(
                     task.output / "gateway",
                     model=task.config.model,
@@ -385,6 +393,7 @@ class BudgetedRuntimeExecutor:
                     allowed_function_names=allowed,
                     binding=task.gateway_binding,
                     dispatch_budget=budget,
+                    **({"strategy": strategy} if strategy is not None else {}),
                 )
                 with gateway:
                     runtime = RuntimeExecutor(
@@ -445,6 +454,8 @@ class BudgetedRuntimeExecutor:
                 reconciliation,
                 starting_budget,
                 checkpoint,
+                task.output / "strategy",
+                task.output / "runtime" / "code-strategy",
             )
             if path is not None and path.exists()
         )
@@ -532,6 +543,11 @@ def recover_pilot_case(output: Path, arm: str, case_id: str, *, reason: str) -> 
             for name in ("budget-start.json", "budget-checkpoint.json")
             if (path := case_root / name).is_file()
         ]
+        attachments.extend(
+            path
+            for path in (case_root / "strategy", case_root / "runtime" / "code-strategy")
+            if path.exists()
+        )
         if archive.is_file():
             case = load_benchmark(output / "benchmark/manifest.json").cases[case_id]
             budget = DispatchBudget(
@@ -628,6 +644,7 @@ def main(argv: list[str] | None = None):
     prepare.add_argument("--instructions", type=Path, required=True)
     prepare.add_argument("--ledger", type=Path, required=True)
     prepare.add_argument("--out", type=Path, required=True)
+    prepare.add_argument("--strategy", type=Path, help="Manifest of the isolated code strategy")
     run = commands.add_parser("run-case")
     run.add_argument("output", type=Path)
     run.add_argument("arm", choices=ARMS)
@@ -649,6 +666,7 @@ def main(argv: list[str] | None = None):
                 ledger_path=args.ledger,
                 instructions=args.instructions.read_text(),
                 config=PilotConfig.model_validate_json(args.config.read_bytes()),
+                strategy=StrategyBundle.load(args.strategy) if args.strategy else None,
             )
         )
     elif args.command == "run-case":

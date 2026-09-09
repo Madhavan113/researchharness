@@ -18,6 +18,10 @@ from pathlib import Path, PurePosixPath
 from typing import Any
 
 from research_harness.execution import DiscoverySettings, GatewayBinding
+from research_harness.strategies.config import StrategyBundle, StrategyConfig
+from research_harness.strategies.context import POLICY as CONTEXT_POLICY
+from research_harness.strategies.context import apply_context_decision, context_payload
+from research_harness.strategies.session import verify_event
 from research_harness.util import canonical_json, digest
 
 _ADAPTER = "controlled-responses-gateway"
@@ -489,6 +493,125 @@ def _verify_forwarded(
     )
 
 
+def _verify_context(
+    contents: dict[str, bytes],
+    result: dict,
+    record: dict,
+    binding: GatewayBinding,
+    strategy: dict | None,
+    expected_files: set[str],
+) -> dict | None:
+    prefix = record["id"] + "/"
+    enabled = strategy is not None and strategy["config"]["context"]
+    has_projection = "projected_sha256" in record
+    context_fields = {
+        "projected_sha256",
+        "context_projection_sha256",
+        "context_operation_id",
+        "context_projection_pending",
+    }
+    if not enabled:
+        _require(not (context_fields & record.keys()), "Unexpected context projection evidence")
+        return None
+    if "context_operation_id" in record:
+        _require(
+            record["context_operation_id"] == f"context:{binding.execution_id}:{record['id']}",
+            "Context event belongs to another request or execution",
+        )
+        _require(
+            type(record.get("context_projection_pending")) is bool, "Missing context pending marker"
+        )
+    if not has_projection:
+        _require(
+            record.get("reserved_attempt_number") is None and not record["dispatch_started"],
+            "Context-enabled request dispatched without a verified projection",
+        )
+        _require(
+            "context_projection_sha256" not in record, "Incomplete context projection metadata"
+        )
+        _require(
+            record.get("context_projection_pending") is not False,
+            "Missing completed context projection",
+        )
+        return None
+    _require(
+        record.get("context_projection_pending") is False, "Completed projection is still pending"
+    )
+    expected_files.update({prefix + "projected.json", prefix + "context-projection.json"})
+    projected_raw, proof_raw = (
+        contents[prefix + name] for name in ("projected.json", "context-projection.json")
+    )
+    _require(
+        digest(projected_raw) == record["projected_sha256"]
+        and digest(proof_raw) == record.get("context_projection_sha256"),
+        "Context projection hash mismatch",
+    )
+    proof = _dict(_json(proof_raw), "Context projection proof")
+    _require(
+        set(proof)
+        == {
+            "schema_version",
+            "policy",
+            "binding",
+            "operation_id",
+            "strategy_sha256",
+            "incoming_sha256",
+            "projected_sha256",
+            "event_files",
+        },
+        "Unexpected context proof fields",
+    )
+    _require(
+        type(proof["schema_version"]) is int
+        and proof["schema_version"] == 1
+        and proof["policy"] == CONTEXT_POLICY
+        and _same(proof["binding"], binding.model_dump(mode="json"))
+        and proof["operation_id"] == record.get("context_operation_id")
+        and proof["strategy_sha256"] == strategy["strategy_sha256"]
+        and proof["incoming_sha256"] == record["incoming_sha256"]
+        and proof["projected_sha256"] == record["projected_sha256"],
+        "Context proof binding mismatch",
+    )
+    event_files = _dict(proof["event_files"], "Context event inventory")
+    for name, value in event_files.items():
+        path = prefix + "strategy-event/" + name
+        _require(
+            path in contents and digest(contents[path]) == value, "Context event file hash mismatch"
+        )
+        expected_files.add(path)
+    event_path = Path(result["files"][prefix + "strategy-event/record.json"]["path"]).parent
+    config = StrategyConfig.model_validate(strategy["config"])
+    bundle = StrategyBundle(
+        event_path / "strategy.json",
+        event_path / "execution/input/strategy.py",
+        config,
+        strategy["strategy_sha256"],
+    )
+    event = verify_event(event_path, bundle)
+    _require(
+        _same(event_files, {**event["files"], "record.json": event["record_sha256"]}),
+        "Context event inventory differs from isolated evidence",
+    )
+    incoming = _dict(_json(contents[prefix + "incoming.json"]), "Original context request")
+    worker_input = event["input"]
+    _require(
+        set(worker_input) == {"schema_version", "kind", "payload", "state"}
+        and type(worker_input["schema_version"]) is int
+        and worker_input["schema_version"] == 1
+        and worker_input["kind"] == event["record"].get("kind") == "context"
+        and event["record"].get("operation_id") == proof["operation_id"]
+        and event["record"].get("source_sha256") == config.source_sha256
+        and _same(worker_input["payload"], context_payload(incoming)),
+        "Context candidate input binding mismatch",
+    )
+    projected = _dict(_json(projected_raw), "Projected request")
+    _require(
+        _same(apply_context_decision(incoming, event["result"]["decision"]), projected),
+        "Projected request differs from the independently validated selection",
+    )
+    return projected
+
+
 def verify_gateway_usage(
     archive_path: Path,
     expected_binding: GatewayBinding,
@@ -497,6 +620,7 @@ def verify_gateway_usage(
     expected_model_settings: dict | None = None,
     expected_budgets: dict | None = None,
     expected_budget_control: dict | None = None,
+    expected_strategy_sha256: str | None = None,
 ) -> dict[str, Any]:
     """Verify an execution's raw provider usage without requiring a proposal.
 
@@ -530,6 +654,9 @@ def verify_gateway_usage(
         "verified_requests": [],
         "budget_control": None,
         "budget_control_verified": False,
+        "strategy_sha256": None,
+        "strategy_control_verified": False,
+        "upstream_transport": None,
         "budget_settlement_complete": None,
         "cost_usd": None,
         "limitations": [
@@ -554,7 +681,32 @@ def verify_gateway_usage(
         _require(observed_binding == binding, "Gateway execution binding mismatch")
         result["binding"] = observed_binding.model_dump(mode="json")
         _require(gateway.get("model") == expected_model, "Gateway model mismatch")
+        transport = gateway.get("upstream_transport")
+        _require(
+            transport is None or transport in ("httpx-default", "caller-supplied"),
+            "Unknown gateway upstream transport provenance",
+        )
+        result["upstream_transport"] = transport
         settings = DiscoverySettings.model_validate(gateway.get("discovery_settings"))
+        strategy = gateway.get("strategy_control")
+        if strategy is not None:
+            _require(
+                isinstance(strategy, dict) and set(strategy) == {"strategy_sha256", "config"},
+                "Invalid gateway strategy control",
+            )
+            strategy_config = StrategyConfig.model_validate(strategy["config"])
+            _require(
+                digest(canonical_json(strategy_config.model_dump(mode="json")))
+                == strategy["strategy_sha256"],
+                "Gateway strategy configuration hash mismatch",
+            )
+            result["strategy_sha256"] = strategy["strategy_sha256"]
+        if expected_strategy_sha256 is not None:
+            _require(
+                strategy is not None and strategy["strategy_sha256"] == expected_strategy_sha256,
+                "Gateway strategy differs from the expected code strategy",
+            )
+            result["strategy_control_verified"] = True
         budget_control = gateway.get("budget_control")
         if expected_budget_control is not None:
             _require(
@@ -632,6 +784,9 @@ def verify_gateway_usage(
                 "Dispatch flags mismatch",
             )
             budget_state = _budget_record(record, budget_policy, budget_operations)
+            projected = _verify_context(
+                contents, result, record, observed_binding, strategy, expected_files
+            )
             if budget_state["budget_operation_id"] is not None:
                 _require(
                     budget_state["budget_operation_id"]
@@ -658,7 +813,13 @@ def verify_gateway_usage(
                     and forwarded.get("model") == expected_model,
                     "Forwarded model/path mismatch",
                 )
-                _verify_forwarded(incoming, forwarded, record, gateway, model_settings)
+                _verify_forwarded(
+                    projected if projected is not None else incoming,
+                    forwarded,
+                    record,
+                    gateway,
+                    model_settings,
+                )
             else:
                 _require(
                     "forwarded_sha256" not in record

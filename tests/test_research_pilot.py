@@ -7,6 +7,7 @@ from pathlib import Path
 import httpx
 import pytest
 from filelock import FileLock, Timeout
+from test_strategy_session import bundle
 
 from research_harness.evaluation import pilot
 from research_harness.evaluation.budget import AuthorizationRecord, BudgetLedger, RateCard
@@ -20,6 +21,7 @@ from research_harness.evaluation.pilot import (
     recover_pilot_case,
 )
 from research_harness.execution import DiscoverySettings
+from research_harness.strategies.session import StrategySession
 from research_harness.util import write_json
 
 DEVELOPMENT = Path(__file__).resolve().parents[1] / "examples/evaluation/development"
@@ -141,6 +143,49 @@ def test_preparation_freezes_one_shared_budget_without_dispatch(package, tmp_pat
         == "pending"
         for arm in ARMS
     )
+
+
+def test_budgeted_gateway_uses_controller_session_and_retains_failed_strategy_artifacts(
+    package, tmp_path, monkeypatch
+):
+    strategy = bundle(tmp_path)
+    output = tmp_path / "strategy-pilot"
+    prepare_pilot(
+        package,
+        output,
+        ledger_path=tmp_path / "strategy-budget.json",
+        instructions="Shared strategy budget fixture",
+        config=configuration(),
+        strategy=strategy,
+    )
+    install_runtime(monkeypatch)
+    original_gateway = pilot.ResponsesGateway
+    observed = []
+
+    def gateway(*args, **kwargs):
+        session = kwargs["strategy"]
+        session.assert_ready()
+        observed.append(session.session_id)
+        return original_gateway(*args, **kwargs)
+
+    monkeypatch.setattr(pilot, "ResponsesGateway", gateway)
+    requests = []
+    for arm in ARMS:
+        entry = execute_pilot_case(
+            output,
+            arm,
+            CASE,
+            omnigent_python=Path("unused-fixture-python"),
+            fixture_handler=provider(requests),
+        )
+        assert entry["status"] == "failed"  # The software runtime deliberately saves no proposal.
+        session = StrategySession.open(output / arm / "cases" / CASE / "strategy")
+        assert entry["strategy_session_id"] == observed[-1] == session.session_id
+        assert "strategy/session.json" in entry["artifact_hashes"]
+        assert "strategy/bundle/strategy.py" in entry["artifact_hashes"]
+    assert len(set(observed)) == 2
+    report = finalize_pilot(output)
+    assert report["pilot_budget"]["comparison_settled_nanodollars"] == 480000
 
 
 def test_both_arms_settle_failed_tasks_and_do_not_redispatch_terminals(

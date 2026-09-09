@@ -1,29 +1,53 @@
 from __future__ import annotations
 
+import importlib.util
 import json
 import os
 import sys
 import threading
 from contextlib import contextmanager
+from dataclasses import replace
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 import anyio
+import httpx
 import pytest
+from test_strategy_session import bundle
+from test_strategy_session import fake_runner as fake_runner
 
 import research_harness.evaluation.runtime_executor as executor_module
 from research_harness.backend import Backend
 from research_harness.discovery_models import Candidate, DataNeed, ProposalDraft
-from research_harness.evaluation.controller import CaseTask, ComparisonConfig
+from research_harness.evaluation.controller import (
+    ARMS,
+    CaseTask,
+    ComparisonConfig,
+    finalize_comparison,
+    prepare_comparison,
+    run_case,
+)
 from research_harness.evaluation.fixture_transport import FixtureSources, fixture_server
 from research_harness.evaluation.fixtures import FixtureProvider
-from research_harness.evaluation.runtime_executor import RuntimeExecutionError, RuntimeExecutor
+from research_harness.evaluation.runtime_executor import (
+    RuntimeExecutionError,
+    RuntimeExecutor,
+    task_strategy_session,
+)
 from research_harness.execution import DiscoverySettings
+from research_harness.integrations.model_gateway import ResponsesGateway
 from research_harness.integrations.omnigent import (
     PRIMARY_SESSION_ENV,
     bind_case,
     prepare_case,
 )
+from research_harness.optimization.archive import ArchiveConfig, OptimizationArchive
+from research_harness.optimization.evaluator import (
+    ResearchDevelopmentEvaluator,
+    export_development,
+)
+from research_harness.strategies.config import StrategyBundle
+from research_harness.strategies.session import StrategySession
 from research_harness.util import canonical_json, digest, write_json
 
 
@@ -323,10 +347,14 @@ def test_fixture_transport_runs_through_actual_stdio_protocol(tmp_path, recordin
     anyio.run(scenario)
 
 
+@pytest.mark.parametrize("with_strategy", [False, True])
 def test_direct_executor_actual_sdk_requests_produce_fixture_proposal(
-    tmp_path, recording, source, monkeypatch
+    tmp_path, recording, source, monkeypatch, fake_runner, with_strategy
 ):
     task = task_for(tmp_path, recording)
+    if with_strategy:
+        code = bundle(tmp_path)
+        task = replace(task, strategy_path=code.manifest_path, code_strategy_sha256=code.sha256)
     monkeypatch.setenv("OPENAI_API_KEY", "ambient-provider-key-must-not-be-used")
     monkeypatch.setenv("OPENAI_BASE_URL", "https://unused-provider.example")
     monkeypatch.setenv("RH_DATABASE_URL", "must-not-select-shared-storage")
@@ -375,6 +403,22 @@ def test_direct_executor_actual_sdk_requests_produce_fixture_proposal(
     assert (task.output / "source-fixtures.json").read_bytes() == recording.read_bytes()
     assert task.output / "execution.json" in result.attachments
     assert result.metadata["status"] == "completed"
+    if with_strategy:
+        assert fake_runner.calls == 2
+        session = StrategySession.open(task.output / "strategy")
+        assert result.metadata["strategy_session_id"] == session.session_id
+        assert task.output / "strategy" in result.attachments
+        projected = [
+            json.loads(item["output"])
+            for item in requests[-1]["body"]["input"]
+            if item.get("type") == "function_call_output"
+        ]
+        assert all(item["strategy_view"]["strategy_sha256"] == code.sha256 for item in projected)
+        assert "strategy_view" not in (result.research / "receipts.json").read_text()
+    else:
+        assert fake_runner.calls == 0
+        assert "strategy_session_id" not in result.metadata
+        assert not (task.output / "strategy").exists()
     assert "local-gateway-fixture-key" not in (task.output / "execution.json").read_text()
     with Backend.local(task.output / "backend").open_registry() as store:
         assert store.scalar("SELECT COUNT(*) FROM proposals") == 1
@@ -403,10 +447,14 @@ def test_direct_failure_is_not_retried_and_retains_partial_artifacts(tmp_path, r
 
 
 @pytest.mark.parametrize("failure", [None, "start", "send", "export", "send_and_export", "close"])
+@pytest.mark.parametrize("with_strategy", [False, True])
 def test_omnigent_executor_sends_once_exports_failures_and_always_closes(
-    tmp_path, recording, monkeypatch, failure
+    tmp_path, recording, monkeypatch, failure, with_strategy
 ):
     task = task_for(tmp_path, recording, "omnigent")
+    if with_strategy:
+        code = bundle(tmp_path)
+        task = replace(task, strategy_path=code.manifest_path, code_strategy_sha256=code.sha256)
     observed = {}
     for key in [
         "OPENAI_API_KEY",
@@ -450,6 +498,7 @@ def test_omnigent_executor_sends_once_exports_failures_and_always_closes(
                 self.output / "runtime-usage.discovery.json", {"fixture": "lifecycle double"}
             )
             write_json(self.output / "trace-manifest.json", {"fixture": True})
+            write_json(self.output / "artifacts" / "retained.json", {"tool": "content blob"})
             if failure in {"export", "send_and_export"}:
                 raise RuntimeError("trace export failure")
 
@@ -496,11 +545,273 @@ def test_omnigent_executor_sends_once_exports_failures_and_always_closes(
     assert result.research == case.parent / "research"
     assert result.runtime_usage == case.parent / "omnigent/runtime-usage.discovery.json"
     assert case.parent / "agent" in result.attachments
+    assert case.parent / "omnigent/artifacts" in result.attachments
+    if with_strategy:
+        state = json.loads(case.read_bytes())["code_strategy"]
+        session = StrategySession.open(task.output / "strategy")
+        assert state["output"] == str(session.root)
+        assert state["session_id"] == result.metadata["strategy_session_id"] == session.session_id
+        assert case.parent / "code-strategy" in result.attachments
+        assert task.output / "strategy" in result.attachments
+        assert not list((case.parent / "agent").rglob("strategy.py"))
     assert not any(path.name in {"runner-token", "sessions.db"} for path in result.attachments)
     if failure == "send_and_export":
         assert result.metadata["cleanup_errors"] == [
             {"operation": "export_trace", "error": "RuntimeError: trace export failure"}
         ]
+
+
+def test_invalid_strategy_fails_after_receipt_and_retains_full_execution(
+    tmp_path, recording, fake_runner
+):
+    code = bundle(tmp_path)
+    task = replace(
+        task_for(tmp_path, recording),
+        strategy_path=code.manifest_path,
+        code_strategy_sha256=code.sha256,
+    )
+    fake_runner.invalid = True
+
+    def respond(payload, number):
+        return 200, response(
+            [call("search_sources", {"query": "policy", "filters": None}, number)], number
+        )
+
+    with model_server(respond) as (base_url, requests):
+        with pytest.raises(RuntimeExecutionError, match="unknown observation references") as raised:
+            executor(base_url)(task)
+    assert len(requests) == fake_runner.calls == 1
+    result = raised.value.artifacts
+    assert task.output / "strategy" in result.attachments
+    assert list((task.output / "strategy").rglob("execution/stdout.txt"))
+    assert not (result.research / "proposal.json").exists()
+    assert len(json.loads((result.research / "receipts.json").read_bytes())) == 1
+    assert StrategySession.open(task.output / "strategy").status()["status"] == "failed"
+
+
+@pytest.mark.parametrize("change", ["failed", "removed", "recreated"])
+def test_completion_revalidates_original_session_even_with_saved_proposal(
+    tmp_path, recording, monkeypatch, change
+):
+    import shutil
+
+    code = bundle(tmp_path)
+    task = replace(
+        task_for(tmp_path, recording),
+        strategy_path=code.manifest_path,
+        code_strategy_sha256=code.sha256,
+    )
+
+    def returned(task, fixtures, strategy):
+        write_json(task.output / "research/proposal.json", {"fixture": "completion boundary"})
+        if change == "failed":
+            state = strategy.status()
+            state["status"] = "failed"
+            write_json(strategy.root / "session.json", state)
+        else:
+            shutil.rmtree(strategy.root)
+            if change == "recreated":
+                StrategySession(strategy.root, code)
+
+    run = executor()
+    monkeypatch.setattr(run, "_direct", returned)
+    with pytest.raises(RuntimeExecutionError):
+        run(task)
+    assert json.loads((task.output / "execution.json").read_bytes())["status"] == "failed"
+
+
+@pytest.mark.parametrize("change", ["code", "missing-session", "new-session"])
+def test_bound_session_identity_fails_before_provider(tmp_path, recording, change):
+    import shutil
+
+    code = bundle(tmp_path)
+    task = replace(
+        task_for(tmp_path, recording),
+        strategy_path=code.manifest_path,
+        code_strategy_sha256=code.sha256,
+    )
+    session = task_strategy_session(task)
+    task = replace(task, strategy_session_id=session.session_id)
+    if change == "code":
+        task = replace(task, code_strategy_sha256="a" * 64)
+    else:
+        shutil.rmtree(session.root)
+        if change == "new-session":
+            StrategySession(session.root, code)
+    with pytest.raises(RuntimeExecutionError):
+        executor()(task)
+    assert not (task.output / "research").exists()
+
+
+def test_controlled_strategy_uses_real_docker_and_both_runtime_paths(tmp_path):
+    image = os.environ.get("RH_TEST_STRATEGY_IMAGE")
+    python = os.environ.get("RH_TEST_OMNIGENT_PYTHON")
+    if not image or not python:
+        pytest.skip(
+            "Set RH_TEST_STRATEGY_IMAGE and RH_TEST_OMNIGENT_PYTHON for local runtime acceptance"
+        )
+    # Authored source/model fixtures, actual direct SDK and normal Omnigent/MCP processes.
+    program = (
+        Path(__file__).resolve().parents[1] / "examples/evaluation/controlled_runtime_fixture.py"
+    )
+    spec = importlib.util.spec_from_file_location("controlled_strategy_fixture", program)
+    fixture = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(fixture)
+    code = bundle(tmp_path, context=True)
+    code.source.write_text(
+        "def apply(event):\n"
+        "    payload = event['payload']\n"
+        "    if event['kind'] == 'context':\n"
+        "        decision = {'keep_group_ids': [g['id'] for g in payload['groups']]}\n"
+        "    else:\n"
+        "        decision = {'order': [i['id'] for i in reversed(payload['items'])]}\n"
+        "    return {'decision': decision, 'state': {'calls': event['state'].get('calls', 0) + 1}}\n"
+    )
+    config = code.config.model_dump(mode="json")
+    config["source_sha256"] = digest(code.source.read_bytes())
+    config["sandbox"]["image"] = image
+    write_json(code.manifest_path, config)
+    code = StrategyBundle.load(code.manifest_path)
+    prepared = tmp_path / "comparison"
+    prepare_comparison(
+        fixture.benchmark(tmp_path / "package"),
+        prepared,
+        instructions=(program.parents[2] / "agents/comparison/instructions.md").read_text(),
+        config=ComparisonConfig(settings=DiscoverySettings(max_rounds=8, deadline_seconds=120)),
+        strategy=code,
+    )
+    captured = {}
+
+    def execute(task):
+        session = task_strategy_session(task)
+        policy = (
+            fixture.DirectResponses()
+            if task.arm == "direct"
+            else fixture.FIXTURE.ModelFixture(fixture.FIXTURE.SOURCE)
+        )
+        requests = []
+
+        def upstream(request):
+            payload = json.loads(request.content)
+            requests.append(payload)
+            if task.arm == "direct":
+                return httpx.Response(200, json=policy.respond(payload))
+            return httpx.Response(
+                200, headers={"content-type": "text/event-stream"}, content=policy.respond(payload)
+            )
+
+        allowed = (
+            {"search_sources", "inspect_url", "probe_source"}
+            if task.arm == "direct"
+            else {f"research__{name}" for name in fixture.DOMAIN_TOOLS}
+        )
+        with httpx.Client(transport=httpx.MockTransport(upstream)) as client:
+            gateway = ResponsesGateway(
+                task.output / "gateway",
+                model=task.config.model,
+                settings=task.config.settings,
+                upstream_base_url="https://fixture.invalid/v1",
+                client=client,
+                allowed_function_names=allowed,
+                binding=task.gateway_binding,
+                strategy=session,
+            )
+            with gateway:
+                result = RuntimeExecutor(
+                    base_url=gateway.base_url,
+                    api_key=gateway.api_key,
+                    omnigent_python=Path(python),
+                    max_spend_usd=1,
+                )(task)
+        session.assert_ready()
+        assert (
+            result.metadata["strategy_session_id"] == task.strategy_session_id == session.session_id
+        )
+        captured[task.arm] = (session, requests)
+        return replace(
+            result,
+            gateway_usage=gateway.output / "archive.json",
+            attachments=(*result.attachments, gateway.output),
+        )
+
+    for arm in ARMS:
+        entry = run_case(prepared, arm, "controlled-policy", execute)
+        assert entry["status"] == "completed", entry["run"].get("error")
+        assert "strategy/session.json" in entry["artifact_hashes"]
+        assert any(
+            name.endswith("execution/input/strategy.py") for name in entry["artifact_hashes"]
+        )
+        assert any(
+            name.startswith("gateway/") and name.endswith("context-projection.json")
+            for name in entry["artifact_hashes"]
+        )
+    report = finalize_comparison(prepared)
+    for arm in report["arms"]:
+        score = arm["results"][0]["score"]
+        assert score["quality"] == 1.0
+        assert score["gateway_usage"]["status"] == "verified_complete"
+        assert score["gateway_usage"]["strategy_control_verified"] is True
+        session, requests = captured[arm["name"]]
+        assert len(session.status()["events"]) == len(requests) + 3
+        assert session.status()["state"]["calls"] == len(requests) + 3
+    assert len({session.session_id for session, _ in captured.values()}) == 2
+
+    # Feed the actual execution inventory into the independent archive bridge.
+    # It must not rerun candidate code, import it, or upgrade fixtures to models.
+    plan = json.loads((prepared / "comparison.json").read_bytes())
+    for arm, expected_tokens in (("direct", 440), ("omnigent", 770)):
+        fixed = {
+            key: value
+            for key, value in plan["controls"][arm].items()
+            if key not in {"strategy_sha256", "code_strategy_sha256"}
+        }
+        fixed["sandbox"] = code.config.sandbox.model_dump(mode="json")
+        fixed["strategy_limits"] = code.config.model_dump(
+            mode="json", exclude={"source", "source_sha256", "sandbox"}
+        )
+        exported = tmp_path / f"{arm}-development"
+        export_development(prepared, arm, exported)
+        archive = OptimizationArchive.create(
+            tmp_path / f"{arm}-archive",
+            tmp_path / f"{arm}-feedback",
+            config=ArchiveConfig(
+                run_id=f"{arm}-strategy-bridge-fixture", execution="fixture", fixed_controls=fixed
+            ),
+            frozen_inputs={
+                "development_manifest": prepared / "benchmark/manifest.json",
+                "backend": prepared / "implementation",
+                "evaluator": program.parents[2] / "src/research_harness/optimization/evaluator.py",
+            },
+        )
+        archive.register_candidate(
+            "baseline",
+            prepared / "code-strategy",
+            instructions=(prepared / "instructions.md").read_text(),
+            manifest={"schema_version": 1, "strategy_manifest": "strategy.json"},
+            operation_id="register-baseline",
+        )
+        result = archive.record_development(
+            "baseline",
+            exported,
+            evaluator=ResearchDevelopmentEvaluator(fixed),
+            operation_id="evaluate-baseline",
+        )
+        assert result["status"] == "evaluated", result
+        evidence = json.loads(
+            (archive.root / "candidates/baseline/development/evidence.json").read_bytes()
+        )
+        assert evidence["execution_verified"] is False
+        assert evidence["cases"][0]["quality"] == 1.0, evidence
+        assert evidence["cases"][0]["status"] == "ok", evidence
+        assert evidence["cases"][0]["total_tokens"] == expected_tokens, evidence
+        preserved = archive.feedback_path() / "candidates/baseline/development/artifacts"
+        inventory = json.loads((exported / "development.json").read_bytes())["execution_files"]
+        assert all(
+            digest((preserved / name).read_bytes()) == sha for name, sha in inventory.items()
+        )
+        assert not (preserved / "benchmark").exists()
+        assert not (preserved / "implementation").exists()
+        assert archive.select(operation_id="select-fixture")["candidate_ids"] == ["baseline"]
 
 
 @pytest.mark.parametrize(

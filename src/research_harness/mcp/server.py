@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from contextlib import nullcontext
 from copy import deepcopy
 from functools import partial
 from typing import Annotated, Any
@@ -143,11 +144,15 @@ def create_server(
     """
     supplied = deepcopy(runtime or {})
     code_identity = strategy.bundle.sha256 if strategy is not None else None
+    strategy_session_id = strategy.session_id if strategy is not None else None
     if supplied.get("code_strategy_sha256") not in {None, code_identity}:
         raise ValueError("Runtime code strategy differs from the host strategy session")
     if strategy is not None:
         strategy.assert_ready()
         supplied["code_strategy_sha256"] = code_identity
+        if supplied.get("strategy_session_id") not in {None, strategy_session_id}:
+            raise ValueError("Runtime strategy session differs from its original state")
+        supplied["strategy_session_id"] = strategy_session_id
     chosen_limits = {**DEFAULT_LIMITS, **(research_limits or {})}
     if set(chosen_limits) != set(DEFAULT_LIMITS) or any(
         type(value) is not int or value < 0 for value in chosen_limits.values()
@@ -160,6 +165,8 @@ def create_server(
         context = service.get_context()
         if context["runtime"].get("code_strategy_sha256") != code_identity:
             raise ValueError("The resumed discovery requires its original code strategy session")
+        if context["runtime"].get("strategy_session_id") != strategy_session_id:
+            raise ValueError("The resumed discovery requires its original strategy session state")
         if research_limits is not None and chosen_limits != context["limits"]:
             raise ValueError("Research limits conflict with the resumed discovery")
         if research_deadline_seconds is not None and chosen_deadline != context["runtime"].get(
@@ -193,20 +200,24 @@ def create_server(
     ) -> dict[str, Any]:
         def execute():
             try:
-                if strategy is not None and (tool or require_strategy_ready):
-                    strategy.assert_ready()
-                result = action()
-                error = None
-                if source_validation and result.get("status") in {"error", "failed"}:
-                    error = {
-                        "code": "source_validation_failed",
-                        "message": result.get("error")
-                        or "The source did not pass validation; inspect the returned evidence and limitations.",
-                        "retryable": False,
-                    }
-                if strategy is not None and tool is not None:
-                    result = strategy.project(tool, result)
-                return _envelope(service, operation_id=operation_id, data=result, error=error)
+                guard = (
+                    strategy.guard()
+                    if strategy is not None and (tool or require_strategy_ready)
+                    else nullcontext()
+                )
+                with guard:
+                    result = action()
+                    error = None
+                    if source_validation and result.get("status") in {"error", "failed"}:
+                        error = {
+                            "code": "source_validation_failed",
+                            "message": result.get("error")
+                            or "The source did not pass validation; inspect the returned evidence and limitations.",
+                            "retryable": False,
+                        }
+                    if strategy is not None and tool is not None:
+                        result = strategy.project(tool, result)
+                    return _envelope(service, operation_id=operation_id, data=result, error=error)
             except Exception as exc:
                 return _failure(service, exc, operation_id)
 

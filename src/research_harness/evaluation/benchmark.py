@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any, Literal
 from urllib.parse import urlsplit
 
-from pydantic import Field, StrictInt, model_validator
+from pydantic import Field, StrictInt, model_serializer, model_validator
 
 from research_harness.config import SourceSpec, StrictModel
 from research_harness.evaluation.discovery import score, validate_requirements
@@ -172,7 +172,16 @@ class RunControls(StrictModel):
     budgets: dict[str, StrictInt]
     fixture_sha256: str = Field(pattern=SHA256)
     strategy_sha256: str = Field(pattern=SHA256)
+    code_strategy_sha256: str | None = Field(default=None, pattern=SHA256)
     backend_sha256: str = Field(pattern=SHA256)
+
+    @model_serializer(mode="wrap")
+    def serialize_controls(self, handler):
+        result = handler(self)
+        # Legacy task identities and manifests did not include a code strategy.
+        if self.code_strategy_sha256 is None:
+            result.pop("code_strategy_sha256", None)
+        return result
 
     @model_validator(mode="after")
     def positive_budgets(self):
@@ -328,17 +337,20 @@ def compare_runs(
     names = [manifest.name for _, manifest, _ in manifests]
     if len(names) != len(set(names)):
         raise ValueError("Comparison arm names must be unique")
-    varied_field = "runtime" if axis == "runtime" else "strategy_sha256"
-    fixed = manifests[0][1].controls.model_dump(exclude={varied_field})
+    varied_fields = (
+        {"runtime"} if axis == "runtime" else {"strategy_sha256", "code_strategy_sha256"}
+    )
+    fixed = manifests[0][1].controls.model_dump(exclude=varied_fields)
     for _, manifest, _ in manifests:
         if manifest.benchmark_sha256 != benchmark.sha256:
             raise ValueError("Run manifest was produced for a different benchmark revision")
         if manifest.controls.fixture_sha256 != benchmark.fixture_sha256:
             raise ValueError("Run fixture hash does not match the benchmark package")
-        if canonical_json(manifest.controls.model_dump(exclude={varied_field})) != canonical_json(
+        if canonical_json(manifest.controls.model_dump(exclude=varied_fields)) != canonical_json(
             fixed
         ):
-            raise ValueError(f"Uncontrolled comparison: only {varied_field} may differ")
+            varied = "runtime" if axis == "runtime" else "instruction and code strategy hashes"
+            raise ValueError(f"Uncontrolled comparison: only {varied} may differ")
         ids = [run.case_id for run in manifest.runs]
         if len(ids) != len(set(ids)) or set(ids) != set(benchmark.cases):
             raise ValueError(
@@ -380,6 +392,7 @@ def compare_runs(
                         expected_model_settings=manifest.controls.model_settings,
                         expected_budgets=manifest.controls.budgets,
                         expected_budget_control=manifest.controls.budget_control,
+                        expected_strategy_sha256=manifest.controls.code_strategy_sha256,
                     )
                 except (OSError, ValueError, TypeError, KeyError) as exc:
                     result = {
@@ -405,6 +418,11 @@ def compare_runs(
                     expected_model_settings=manifest.controls.model_settings,
                     expected_budgets=manifest.controls.budgets,
                     expected_budget_control=manifest.controls.budget_control,
+                    **(
+                        {"expected_strategy_sha256": manifest.controls.code_strategy_sha256}
+                        if manifest.controls.code_strategy_sha256 is not None
+                        else {}
+                    ),
                 )
                 result.update(
                     gateway_usage=evidence,

@@ -17,6 +17,7 @@ from research_harness.evaluation.benchmark import (
     CaseRun,
     RunControls,
     compare_runs,
+    gateway_binding_for_case,
     load_benchmark,
     validate_splits,
 )
@@ -26,7 +27,7 @@ from research_harness.evaluation.fixtures import (
     run_fixture_arm,
 )
 from research_harness.services.research import ResearchService
-from research_harness.util import digest, write_json
+from research_harness.util import canonical_json, digest, write_json
 
 DEVELOPMENT = Path(__file__).resolve().parents[1] / "examples/evaluation/development/manifest.json"
 
@@ -142,6 +143,43 @@ def test_runtime_comparison_requires_identical_strategy_and_accepts_only_runtime
     report = compare_runs(DEVELOPMENT, [generated[0], changed])
     assert report["comparison_axis"] == "runtime"
     assert report["fixed_controls"]["strategy_sha256"] == original["controls"]["strategy_sha256"]
+
+
+def test_optional_code_strategy_preserves_legacy_control_and_case_identity(generated):
+    raw = json.loads(generated[0].read_bytes())["controls"]
+    controls = RunControls.model_validate({**raw, "code_strategy_sha256": None})
+    assert "code_strategy_sha256" not in controls.model_dump(mode="json")
+    case = next(iter(load_benchmark(DEVELOPMENT).cases.values()))
+    legacy = dict(raw)
+    if legacy.get("budget_control") is None:
+        legacy.pop("budget_control", None)
+    expected = digest(
+        canonical_json(
+            {"task": case.task(), "fixture_sha256": case.fixtures.sha256, "controls": legacy}
+        )
+    )
+    binding = gateway_binding_for_case(case, controls, "a" * 32)
+    assert binding.task_sha256 == expected
+    changed = controls.model_copy(update={"code_strategy_sha256": "b" * 64})
+    assert gateway_binding_for_case(case, changed, "a" * 32).task_sha256 != expected
+
+
+@pytest.mark.parametrize("change_instructions", [False, True])
+def test_code_strategy_changes_are_allowed_only_on_strategy_axis(generated, change_instructions):
+    def change(value):
+        value["name"] = "code-candidate"
+        value["controls"]["code_strategy_sha256"] = "c" * 64
+        if change_instructions:
+            value["controls"]["strategy_sha256"] = "d" * 64
+
+    candidate = changed_run(generated[0], f"code-axis-{change_instructions}", change)
+    with pytest.raises(ValueError, match="only runtime"):
+        compare_runs(DEVELOPMENT, [generated[0], candidate], axis="runtime")
+    report = compare_runs(DEVELOPMENT, [generated[0], candidate], axis="strategy")
+    assert report["arms"][1]["controls"]["code_strategy_sha256"] == "c" * 64
+    assert "strategy_sha256" not in report["fixed_controls"]
+    assert "code_strategy_sha256" not in report["fixed_controls"]
+    assert report["paired_differences"][0]["macro_quality_difference"] == 0
 
 
 @pytest.mark.parametrize("field", ["model", "provider"])

@@ -11,7 +11,7 @@ import argparse
 import json
 import shutil
 from collections.abc import Callable
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from time import perf_counter
 from typing import Any, Literal
@@ -33,6 +33,8 @@ from research_harness.evaluation.benchmark import (
 from research_harness.evaluation.fixtures import FixtureProvider
 from research_harness.evaluation.workflow_summary import aggregate_workflows
 from research_harness.execution import DiscoverySettings, GatewayBinding
+from research_harness.strategies.config import StrategyBundle
+from research_harness.strategies.session import StrategySession
 from research_harness.util import canonical_json, digest, timestamp, write_json
 
 ARMS = ("direct", "omnigent")
@@ -57,6 +59,9 @@ class CaseTask:
     instructions: str
     config: ComparisonConfig
     gateway_binding: GatewayBinding | None = None
+    strategy_path: Path | None = None
+    code_strategy_sha256: str | None = None
+    strategy_session_id: str | None = None
 
 
 @dataclass(frozen=True)
@@ -98,6 +103,7 @@ def prepare_comparison(
     *,
     instructions: str,
     config: ComparisonConfig | None = None,
+    strategy: StrategyBundle | None = None,
 ) -> Path:
     """Freeze a development package without starting providers or runtime processes."""
     benchmark = load_benchmark(benchmark_path)
@@ -106,6 +112,11 @@ def prepare_comparison(
     if not instructions.strip():
         raise ValueError("Shared instructions must not be empty")
     config = ComparisonConfig.model_validate(config or ComparisonConfig())
+    if (
+        strategy is not None
+        and StrategyBundle.load(strategy.manifest_path).sha256 != strategy.sha256
+    ):
+        raise ValueError("Code strategy changed before comparison preparation")
     output = Path(output).resolve()
     output.mkdir(parents=True, exist_ok=False)
     package = output / "benchmark"
@@ -124,6 +135,7 @@ def prepare_comparison(
     if frozen.sha256 != benchmark.sha256 or frozen.fixture_sha256 != benchmark.fixture_sha256:
         raise ValueError("Benchmark changed while preparing the comparison")
     (output / "instructions.md").write_bytes(instructions.encode("utf-8"))
+    frozen_strategy = strategy.freeze(output / "code-strategy") if strategy is not None else None
     sources = source_fingerprints()
     repository = Path(__file__).resolve().parents[3]
     for relative, expected in sources.items():
@@ -142,6 +154,7 @@ def prepare_comparison(
         budgets=config.settings.budgets(),
         fixture_sha256=frozen.fixture_sha256,
         strategy_sha256=digest(instructions),
+        code_strategy_sha256=frozen_strategy.sha256 if frozen_strategy is not None else None,
         backend_sha256=digest(canonical_json(sources)),
     )
     plan = {
@@ -167,6 +180,12 @@ def prepare_comparison(
             "This directory is trusted controller state, not an M6 candidate sandbox.",
         ],
     }
+    if frozen_strategy is not None:
+        plan["code_strategy"] = {
+            "manifest_path": str(frozen_strategy.manifest_path.relative_to(output)),
+            "sha256": frozen_strategy.sha256,
+            "config": frozen_strategy.config.model_dump(mode="json"),
+        }
     write_json(output / "comparison.json", plan)
     for arm in ARMS:
         write_json(
@@ -195,13 +214,26 @@ def _load(output: Path, *, check_source: bool = True) -> tuple[dict, Any]:
     for relative, expected in plan["sources"].items():
         if digest(local_path(output / "implementation", relative).read_bytes()) != expected:
             raise ValueError("Frozen implementation bytes changed")
+    code = plan.get("code_strategy")
+    frozen_strategy = None
+    if code is not None:
+        if code["manifest_path"] != "code-strategy/strategy.json":
+            raise ValueError("Frozen code strategy manifest binding changed")
+        frozen_strategy = StrategyBundle.load(local_path(output, code["manifest_path"]))
+        if (
+            frozen_strategy.sha256 != code["sha256"]
+            or frozen_strategy.config.model_dump(mode="json") != code["config"]
+        ):
+            raise ValueError("Frozen code strategy identity or limits changed")
     for arm in ARMS:
         controls = RunControls.model_validate(plan["controls"][arm])
         if (
             controls.fixture_sha256 != benchmark.fixture_sha256
             or controls.strategy_sha256 != digest((output / "instructions.md").read_bytes())
+            or controls.code_strategy_sha256
+            != (frozen_strategy.sha256 if frozen_strategy else None)
         ):
-            raise ValueError("Frozen instructions or fixtures changed")
+            raise ValueError("Frozen instructions, code strategy or fixtures changed")
     return plan, benchmark
 
 
@@ -275,6 +307,25 @@ def _save_artifact_refs(
     )
 
 
+def _retain_strategy(case_root: Path, result: ExecutionArtifacts) -> ExecutionArtifacts:
+    paths = [case_root / "strategy", case_root / "runtime" / "code-strategy"]
+    attachments = tuple(
+        dict.fromkeys((*result.attachments, *(path for path in paths if path.exists())))
+    )
+    return replace(result, attachments=attachments)
+
+
+def _check_strategy_session(
+    case_root: Path, expected: str | None, expected_session_id: str | None
+) -> None:
+    if expected is None:
+        return
+    session = StrategySession.open(case_root / "strategy")
+    if session.bundle.sha256 != expected or session.session_id != expected_session_id:
+        raise ValueError("Case strategy session differs from frozen comparison controls")
+    session.assert_ready()
+
+
 def run_case(
     output: Path,
     arm: str,
@@ -320,6 +371,10 @@ def run_case(
             instructions=(output / "instructions.md").read_text(encoding="utf-8"),
             config=ComparisonConfig.model_validate(plan["config"]),
             gateway_binding=binding,
+            strategy_path=local_path(output, plan["code_strategy"]["manifest_path"])
+            if plan.get("code_strategy")
+            else None,
+            code_strategy_sha256=plan.get("code_strategy", {}).get("sha256"),
         )
         # The public task copy omits evaluator requirements, correct source
         # choices and review notes. Each case/arm has a separate backend root.
@@ -327,7 +382,15 @@ def run_case(
         started = perf_counter()
         result = None
         try:
-            result = executor(task)
+            if task.strategy_path is not None:
+                session = StrategySession(
+                    case_root / "strategy", StrategyBundle.load(task.strategy_path)
+                )
+                entry["strategy_session_id"] = session.session_id
+                task = replace(task, strategy_session_id=session.session_id)
+                write_json(arm_root / "journal.json", journal)
+            result = _retain_strategy(case_root, executor(task))
+            _check_strategy_session(case_root, task.code_strategy_sha256, task.strategy_session_id)
             _save_artifact_refs(case_root, entry, result, complete=True)
             run = CaseRun(
                 case_id=case_id,
@@ -346,7 +409,12 @@ def run_case(
             # Validation can fail after the executor returned provider evidence.
             # Preserve that result as partial just as an executor-raised error.
             partial = getattr(exc, "artifacts", result)
+            if not isinstance(partial, ExecutionArtifacts) and (case_root / "strategy").exists():
+                partial = ExecutionArtifacts(
+                    research=case_root / ("research" if arm == "direct" else "runtime/research")
+                )
             if isinstance(partial, ExecutionArtifacts):
+                partial = _retain_strategy(case_root, partial)
                 try:
                     _save_artifact_refs(case_root, entry, partial, complete=False)
                 except Exception as artifact_error:
@@ -368,7 +436,19 @@ def run_case(
                 if isinstance(partial, ExecutionArtifacts) and partial.gateway_usage
                 else None,
             )
-        except BaseException:
+        except BaseException as exc:
+            partial = getattr(exc, "artifacts", result)
+            if not isinstance(partial, ExecutionArtifacts) and (case_root / "strategy").exists():
+                partial = ExecutionArtifacts(
+                    research=case_root / ("research" if arm == "direct" else "runtime/research")
+                )
+            if isinstance(partial, ExecutionArtifacts):
+                try:
+                    _save_artifact_refs(
+                        case_root, entry, _retain_strategy(case_root, partial), complete=False
+                    )
+                except Exception as artifact_error:
+                    entry["artifact_error"] = f"{type(artifact_error).__name__}: {artifact_error}"
             entry.update(status="interrupted", observed_at=timestamp())
             write_json(arm_root / "journal.json", journal)
             raise
@@ -405,7 +485,13 @@ def record_interruption(
             # acquiring the lock that excludes a still-running executor.
             artifacts = artifact_loader()
         arm_root = output / arm
+        case_root = arm_root / "cases" / case_id
+        if artifacts is None and (case_root / "strategy").exists():
+            artifacts = ExecutionArtifacts(
+                research=case_root / ("research" if arm == "direct" else "runtime/research")
+            )
         if artifacts is not None:
+            artifacts = _retain_strategy(case_root, artifacts)
             # Explicitly supplied recovery evidence is frozen without replaying
             # the execution. The evaluator still checks its original binding.
             _save_artifact_refs(arm_root / "cases" / case_id, entry, artifacts, complete=False)
@@ -451,6 +537,12 @@ def finalize_comparison(output: Path) -> dict:
                 ):
                     raise ValueError("Journal result has a foreign case or status")
                 case_root = output / arm / "cases" / case_id
+                if run.status == "completed":
+                    _check_strategy_session(
+                        case_root,
+                        plan.get("code_strategy", {}).get("sha256"),
+                        entry.get("strategy_session_id"),
+                    )
                 for name in ("artifacts", "runtime_usage", "gateway_usage"):
                     relative = getattr(run, name)
                     expected = (
@@ -486,6 +578,7 @@ def finalize_comparison(output: Path) -> dict:
                             for relative in entry.get("attachments", [])
                         ),
                     )
+                    result = _retain_strategy(case_root, result)
                     try:
                         current = _artifact_hashes(
                             case_root, result, require_proposal=run.status == "completed"
@@ -527,6 +620,7 @@ def main(argv: list[str] | None = None) -> None:
     prepare.add_argument("--out", required=True, type=Path)
     prepare.add_argument("--instructions", required=True, type=Path)
     prepare.add_argument("--config", type=Path)
+    prepare.add_argument("--strategy", type=Path, help="Manifest of the isolated code strategy")
     finalize = commands.add_parser("finalize")
     finalize.add_argument("output", type=Path)
     interrupt = commands.add_parser("record-interruption")
@@ -544,6 +638,7 @@ def main(argv: list[str] | None = None) -> None:
             config=ComparisonConfig.model_validate_json(args.config.read_bytes())
             if args.config
             else None,
+            strategy=StrategyBundle.load(args.strategy) if args.strategy else None,
         )
         print(path)
     elif args.command == "finalize":

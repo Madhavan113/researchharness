@@ -1,8 +1,8 @@
 # Strategy optimization: implementation status
 
-The strategy foundation and shared observation projection are implemented; model-backed search and held-out evaluation are still pending. The accepted goal includes those runs. The current components are an isolated Python executor, durable strategy sessions shared by direct discovery and Omnigent/MCP, and an immutable development archive with selection/finalization rules. Context selection and the end-to-end optimization controller remain unfinished.
+Isolated strategies, shared observation projection, controlled-gateway context selection and independent development archival are implemented. Model-backed search and held-out evaluation are still pending; the accepted goal includes those runs. The coding proposer and end-to-end optimization controller remain unfinished.
 
-The [September 9 checkpoint validation](../examples/evaluation/evidence/checkpoint-2026-09-09/verification.json) retains source hashes and the [787-test report](../examples/evaluation/evidence/checkpoint-2026-09-09/pytest.xml). All tests passed with zero skips, including the actual Omnigent runtime and Docker checks. The earlier [foundation verification](../examples/evaluation/evidence/strategy-foundation-2026-09-08/verification.json) remains a separate immutable checkpoint. These are software/fixture checks, not a measurement of research quality.
+The [context/evaluation checkpoint](../examples/evaluation/evidence/strategy-context-evaluation-2026-09-09/verification.json) retains 97 source/test/configuration hashes and the [876-test report](../examples/evaluation/evidence/strategy-context-evaluation-2026-09-09/pytest.xml). All tests passed with zero skips, including actual Omnigent and Docker checks. Its [725-file archive](../examples/evaluation/evidence/strategy-context-evaluation-2026-09-09/index.json) preserves context and development evidence plus reproduction source. The earlier [787-test observation checkpoint](../examples/evaluation/evidence/checkpoint-2026-09-09/verification.json) and [foundation verification](../examples/evaluation/evidence/strategy-foundation-2026-09-08/verification.json) remain separate immutable records. These are software/fixture checks, not a measurement of research quality.
 
 Meta-Harness lets a coding proposer inspect prior candidate code, scores and full available execution traces through a filesystem, then propose executable changes. Our planned search keeps that feedback channel and selects only on development results. Test feedback stays outside search. [Paper, section 3](https://arxiv.org/html/2603.28052v1).
 
@@ -46,7 +46,7 @@ uv run --extra mcp python examples/evaluation/native_strategy_hook_fixture.py \
   --out /tmp/research-native-hook-fixture
 ~~~
 
-The shared integration below now applies validated structured-observation projection to direct and MCP results before their differing serializations. Full conversation selection still requires a separate host gateway projection that preserves complete function-call/result groups and immutable model/tool/budget controls.
+The shared integration below applies validated structured-observation projection to direct and MCP results before their differing serializations. The separate controlled gateway now selects complete conversation groups while retaining fixed model, tool and budget controls.
 
 ## Shared observation strategies
 
@@ -73,13 +73,37 @@ uv run --extra mcp python examples/evaluation/strategy_observation_fixture.py \
 
 The [acceptance record](../examples/evaluation/evidence/strategy-observation-2026-09-09/acceptance.json) verifies matching direct/MCP projection through the actual normal Omnigent server and runner, two actual strategy containers, four synthetic model requests, unchanged receipts and exact retries with one execution per path. A host-import guard remained untouched. The [120-file archive](../examples/evaluation/evidence/strategy-observation-2026-09-09/index.json) retains the exact fixture and available execution evidence. This acceptance covers observation projection; it does not measure proposal quality or optimization.
 
-Context selection remains the next boundary: candidates should return identities of host-built conversation groups, with current instructions, user tasks, complete function-call/result relationships and provider-required reasoning items preserved. The controlled gateway must archive original and projected requests while retaining fixed model, tool and spending controls. That gateway integration and independent verification are not implemented in this checkpoint; keep `context` disabled.
+Strategy readiness and a domain operation now share one session lock through proposal commit. A concurrent failed strategy cannot pass a separate readiness check and commit afterward. Every prepared case binds a fresh session identity as well as the code digest. Missing or replaced state is rejected without executing a cached observation again. Older strategy-bound cases from the earlier checkpoint lack this identity and cannot resume with the new loader: restore the corresponding code/state version or prepare a new case. Baseline cases without strategies remain compatible.
+
+## Controlled context selection
+
+[Context projection](../src/research_harness/strategies/context.py) groups the actual Responses input on the host. A candidate returns `{"keep_group_ids": [...]}` using existing identities in their original order. The host retains every user/system/developer message and all items since the latest user message, including reasoning items and complete tool exchanges. Only older completed model/tool interactions may be omitted. This is a conservative harness policy informed by the provider's [reasoning-context guidance](https://developers.openai.com/api/docs/guides/reasoning#keeping-reasoning-items-in-context), not a claim that every retained item is a JSON-schema requirement.
+
+Enable `context` only when the host [ResponsesGateway](../src/research_harness/integrations/model_gateway.py) receives the same bound `StrategySession`. The native Omnigent hook still does not rewrite full requests. Each controlled request archives the original and projected bytes, group decision and isolated strategy event. Independent gateway verification checks the projection and fixed controls against that proof. Spending reservations use the final projected bytes; deadline checks and shutdown wait for strategy work before sealing the archive.
+
+The actual normal Omnigent follow-up fixture made five synthetic provider requests and five Docker executions. Initial research retained its full active turn. After a real second user message, history changed from 7 to 2 items, then 9 to 4; both user messages survived. The provider fixture reported 550 independently verified synthetic tokens. A single-brief run may have no removable history under this policy, so these counts establish integration behavior rather than quality or cost improvement.
+
+The [acceptance record](../examples/evaluation/evidence/strategy-context-evaluation-2026-09-09/acceptance.json) also covers the controlled direct and Omnigent comparison: 4/7 synthetic requests, 7/10 isolated strategy executions and 440/770 verified synthetic tokens respectively. Both independently graded fixture proposals scored 1.0, and the archive retained the execution files without upgrading either run to verified model evidence. Reproduce both boundaries with the already-installed pinned image and separate Omnigent environment:
+
+~~~sh
+RH_TEST_STRATEGY_IMAGE=python@sha256:9d2e5553305c7c7b0097999bb17187c69b921ccd6bc9d40e4bb5ebe652c00285 \
+RH_TEST_OMNIGENT_PYTHON=/tmp/researchharness-omnigent-be042b39/.venv/bin/python \
+uv run --extra mcp pytest \
+  tests/test_strategy_context.py::test_actual_normal_runner_followup_prunes_only_the_previous_completed_interaction \
+  tests/test_comparison_runtime.py::test_controlled_strategy_uses_real_docker_and_both_runtime_paths -q
+~~~
+
+Comparison and pilot execution now freeze the candidate bundle and reserve one session identity for each case before dispatch. Both direct and Omnigent paths share that session with their gateway and record its artifacts on success, failure and interruption. A strategy comparison can vary instructions and code while retaining the remaining controls. Candidate limits, sandbox settings and the complete execution inventory stay bound to the run.
 
 ## Development archive and final evaluation
 
 [OptimizationArchive](../src/research_harness/optimization/archive.py) keeps frozen backend/evaluator/benchmark inputs and its operation journal in host-only state. A separate feedback directory contains candidate bundles, complete dedicated development artifacts and independent per-case evidence. Source trees and artifact trees are copied and hashed; symlinks, hardlinks, path escapes, extra files and changed bytes are rejected. Size limits fail an archive operation rather than silently summarize away artifacts.
 
-A trusted evaluator callback receives the frozen artifact copy and returns evidence bound to the candidate, artifact inventory, controls, evaluator and development benchmark. Every case and failure must be represented. A callback identity is not authenticated by a supplied fingerprint: the future controller must instantiate the actual independent evaluator. Candidate-provided quality claims are not an evaluator.
+A trusted evaluator callback receives the frozen artifact copy and returns evidence bound to the candidate, artifact inventory, controls, evaluator and development benchmark. Every case and failure must be represented. A callback identity is not authenticated by a supplied fingerprint: the controller must instantiate the actual independent evaluator. Candidate-provided quality claims are not an evaluator.
+
+[export_development and ResearchDevelopmentEvaluator](../src/research_harness/optimization/evaluator.py) connect completed comparison arms to the archive. Export copies every controller-recorded execution file unchanged, including available raw requests, strategy attempts, receipts, runtime traces and failure artifacts. It excludes the comparison's private benchmark and implementation trees. Historical exports validate the frozen implementation and do not require the current worktree to match or rerun providers. The trusted executor remains responsible for the recorded attachment inventory.
+
+The evaluator independently regrades saved proposals against frozen development requirements, verifies gateway usage and strategy state without executing candidate code, and retains failed cases with zero quality and any known usage. Synthetic and unknown-transport evidence cannot establish a measured model baseline. Model eligibility additionally requires standard host HTTP dispatch, matching approved production budget controls, positive observed responses and complete settlement evidence. These are trusted-host provenance checks, not authentication against a malicious host or fresh spending permission. The [bridge tests](../tests/test_optimization_evaluator.py) cover private inputs, forged score claims, failures and altered bindings; the [two-runtime acceptance](../tests/test_comparison_runtime.py) also archives actual strategy executions.
 
 Model-mode admission requires reviewed development cases, explicit model/provider/budget/sandbox controls and a verified measured baseline before further candidates. Fixture mode tests this lifecycle without making model-quality claims. Selection computes the quality/token Pareto frontier from development evidence; unknown objectives and unverified model executions stay excluded. The selection intent closes search and freezes the frontier in the same journal write. Retrying that operation only completes the recorded decision.
 
@@ -91,6 +115,6 @@ The host must enforce the directory boundary when launching the proposer and ter
 
 ## Remaining work
 
-Implement protocol-safe context selection, then bind strategy hashes and execution limits into controlled evaluation. Add the bounded coding proposer and the planned three iterations with two candidates each, preserving all available development artifacts. Prepare the reviewed development and isolated held-out packages. Run the real baseline and search only after provider access and the pending spending decision are recorded; then freeze selection and run the isolated final evaluation.
+Add the bounded coding proposer and connect it to the independent development bridge and planned three iterations with two candidates each, preserving all available development artifacts. Prepare the reviewed development and isolated held-out packages. Run the real baseline and search only after provider access and the pending spending decision are recorded; then freeze selection, revoke proposer access and run the isolated final evaluation.
 
 The [shared goal](goals/omnigent-integration.md) retains the full completion criteria and current evidence.

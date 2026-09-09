@@ -208,11 +208,11 @@ def resolve_pipeline(
     return spec, None, row
 
 
-def _strategy_session(manifest: Path, output: Path):
+def _strategy_session(manifest: Path, output: Path, *, create: bool = True):
     from research_harness.strategies.config import StrategyBundle
     from research_harness.strategies.session import StrategySession
 
-    return StrategySession(output, StrategyBundle.load(manifest))
+    return StrategySession(output, StrategyBundle.load(manifest), create=create)
 
 
 def registry_command(args: argparse.Namespace, backend: Backend) -> int:
@@ -292,7 +292,11 @@ def execute(args: argparse.Namespace) -> int:
             search_provider=McpSearchProvider(args.search_endpoint),
             runtime=runtime,
             **(
-                {"strategy": _strategy_session(args.strategy, args.out.resolve() / "strategy")}
+                {
+                    "strategy": _strategy_session(
+                        args.strategy, args.out.resolve() / "strategy", create=not discovery_id
+                    )
+                }
                 if args.strategy
                 else {}
             ),
@@ -336,7 +340,13 @@ def execute(args: argparse.Namespace) -> int:
                 if args.instructions
                 else None,
                 **(
-                    {"strategy": _strategy_session(args.strategy, args.out.resolve() / "strategy")}
+                    {
+                        "strategy": _strategy_session(
+                            args.strategy,
+                            args.out.resolve() / "strategy",
+                            create=not (args.out / "context.json").exists(),
+                        )
+                    }
                     if args.strategy
                     else {}
                 ),

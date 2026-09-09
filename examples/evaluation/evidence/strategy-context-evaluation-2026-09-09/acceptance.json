@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "paid_calls": 0,
+  "actual_omnigent_pin": "be042b390e293a8d586cbb7e403a2ce0ce38fc62",
+  "actual_strategy_image": "python@sha256:9d2e5553305c7c7b0097999bb17187c69b921ccd6bc9d40e4bb5ebe652c00285",
+  "controlled_development_bridge": {
+    "direct": {
+      "quality": 1.0,
+      "synthetic_tokens": 440,
+      "provider_requests": 4,
+      "actual_strategy_executions": 7,
+      "execution_verified_as_model": false,
+      "exported_execution_files": 164
+    },
+    "omnigent": {
+      "quality": 1.0,
+      "synthetic_tokens": 770,
+      "provider_requests": 7,
+      "actual_strategy_executions": 10,
+      "execution_verified_as_model": false,
+      "exported_execution_files": 305
+    }
+  },
+  "normal_followup_context": {
+    "provider_requests": 5,
+    "actual_strategy_executions": 5,
+    "synthetic_tokens": 550,
+    "incoming_items": [
+      1,
+      3,
+      5,
+      7,
+      9
+    ],
+    "projected_items": [
+      1,
+      3,
+      5,
+      2,
+      4
+    ],
+    "all_user_messages_preserved": true,
+    "active_turn_preserved": true,
+    "strategy_control_verified": true,
+    "upstream_transport": "caller-supplied"
+  },
+  "complete_recorded_development_files_preserved": true,
+  "private_benchmark_and_evaluator_excluded_from_feedback": true,
+  "limitations": [
+    "Authored source/model fixtures and actual runtime/container software checks; no live model or optimization result.",
+    "A single-brief conversation may have no removable groups under the conservative active-turn policy.",
+    "Recorded host hashes and transport metadata prove consistency under the trusted executor, not authenticity against a malicious host.",
+    "The two harness.sqlite3 files are fixture research evidence snapshots; Omnigent account/session databases and credentials are excluded.",
+    "The checkpoint-source tree is a reviewer/reproduction snapshot and must not be mounted as proposer feedback."
+  ],
+  "command": "RH_TEST_STRATEGY_IMAGE=python@sha256:9d2e5553305c7c7b0097999bb17187c69b921ccd6bc9d40e4bb5ebe652c00285 RH_TEST_OMNIGENT_PYTHON=/tmp/researchharness-omnigent-be042b39/.venv/bin/python uv run --extra mcp pytest -ra --basetemp=/tmp/rh-context-evaluation-suite-20260909 --junitxml=/tmp/rh-context-evaluation-suite-20260909.xml"
+}

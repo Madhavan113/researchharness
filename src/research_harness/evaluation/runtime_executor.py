@@ -25,6 +25,8 @@ from research_harness.integrations.omnigent import (
     prepare_case,
     refresh_unbound_bundle,
 )
+from research_harness.strategies.config import StrategyBundle
+from research_harness.strategies.session import StrategySession
 from research_harness.util import digest, timestamp, write_json
 
 
@@ -34,6 +36,27 @@ class RuntimeExecutionError(RuntimeError):
     def __init__(self, message: str, *, artifacts: ExecutionArtifacts):
         super().__init__(message)
         self.artifacts = artifacts
+
+
+def task_strategy_session(task: CaseTask) -> StrategySession | None:
+    """Reconstruct the same case-bound session for runtime and gateway hooks."""
+    if task.strategy_path is None:
+        if task.code_strategy_sha256 is not None or task.strategy_session_id is not None:
+            raise ValueError("Code strategy controls require a frozen manifest")
+        return None
+    bundle = StrategyBundle.load(task.strategy_path)
+    if task.code_strategy_sha256 != bundle.sha256:
+        raise ValueError("Code strategy differs from the task's frozen identity")
+    session = (
+        StrategySession.open(task.output / "strategy")
+        if task.strategy_session_id is not None
+        else StrategySession(task.output / "strategy", bundle)
+    )
+    if session.bundle.sha256 != bundle.sha256 or (
+        task.strategy_session_id is not None and session.session_id != task.strategy_session_id
+    ):
+        raise ValueError("Strategy session differs from the task's recorded identity")
+    return session
 
 
 class RuntimeExecutor:
@@ -104,8 +127,12 @@ class RuntimeExecutor:
         research = task.output / "research" if task.arm == "direct" else runtime_root / "research"
         usage = runtime_root / "omnigent" / "runtime-usage.discovery.json"
         attachments = [task.output / "execution.json", task.output / "source-fixtures.json"]
+        if task.strategy_path is not None:
+            attachments.append(task.output / "strategy")
         if task.arm == "omnigent":
             attachments.extend([runtime_root / "case.json", runtime_root / "agent"])
+            if task.strategy_path is not None:
+                attachments.append(runtime_root / "code-strategy")
             # Whitelist exported provenance. Databases, runner tokens and runtime
             # account/config directories can contain authentication material.
             attachments.extend(
@@ -117,6 +144,7 @@ class RuntimeExecutor:
                     "response-phases.json",
                     "events.jsonl",
                     "events",
+                    "artifacts",
                     "runtime-usage.discovery.json",
                 )
             )
@@ -127,7 +155,9 @@ class RuntimeExecutor:
             attachments=tuple(path for path in attachments if path.exists()),
         )
 
-    def _direct(self, task: CaseTask, fixtures: FixtureSources) -> None:
+    def _direct(
+        self, task: CaseTask, fixtures: FixtureSources, strategy: StrategySession | None = None
+    ) -> None:
         with (
             fixtures.client() as source_http,
             httpx.Client(trust_env=False) as model_http,
@@ -149,9 +179,12 @@ class RuntimeExecutor:
                 search_provider=fixtures.provider,
                 settings=task.config.settings,
                 instructions=task.instructions,
+                strategy=strategy,
             ).run(task.brief)
 
-    def _omnigent(self, task: CaseTask, metadata: dict[str, Any]) -> None:
+    def _omnigent(
+        self, task: CaseTask, metadata: dict[str, Any], strategy: StrategySession | None = None
+    ) -> None:
         case = prepare_case(
             task.output / "runtime",
             brief=task.brief,
@@ -161,6 +194,8 @@ class RuntimeExecutor:
             instructions=task.instructions,
             search_endpoint="fixture://authored-development-fixtures",
             controlled_discovery=True,
+            strategy=strategy.bundle if strategy is not None else None,
+            strategy_output=strategy.root if strategy is not None else None,
         )
         launch_path = case.parent / "agent" / "tools" / "mcp" / "research.yaml"
         launch = json.loads(launch_path.read_text())
@@ -230,14 +265,24 @@ class RuntimeExecutor:
         }
         write_json(record, metadata)
         try:
+            strategy = task_strategy_session(task)
+            if strategy is not None:
+                strategy.assert_ready()
+                metadata.update(
+                    code_strategy_sha256=strategy.bundle.sha256,
+                    code_strategy_config=strategy.bundle.config.model_dump(mode="json"),
+                    strategy_session_id=strategy.session_id,
+                )
             fixtures = FixtureSources(task.fixture_path)
             (task.output / "source-fixtures.json").write_bytes(fixtures.raw)
             metadata.update(fixture_sha256=fixtures.sha256, search_provider=fixtures.provider.name)
             write_json(record, metadata)
             if task.arm == "direct":
-                self._direct(task, fixtures)
+                self._direct(task, fixtures, strategy)
             else:
-                self._omnigent(task, metadata)
+                self._omnigent(task, metadata, strategy)
+            if strategy is not None:
+                strategy.assert_ready()
             artifacts = self._artifacts(task, metadata)
             if not (artifacts.research / "proposal.json").is_file():
                 raise RuntimeError("Discovery did not save a validated proposal")
@@ -254,6 +299,7 @@ class RuntimeExecutor:
                 raise RuntimeExecutionError(
                     str(exc), artifacts=self._artifacts(task, metadata)
                 ) from exc
+            exc.artifacts = self._artifacts(task, metadata)
             raise
         metadata.update(status="completed", finished_at=timestamp())
         write_json(record, metadata)

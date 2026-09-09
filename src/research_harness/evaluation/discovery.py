@@ -148,6 +148,7 @@ def score(
     expected_model_settings: dict | None = None,
     expected_budgets: dict | None = None,
     expected_budget_control: dict | None = None,
+    expected_strategy_sha256: str | None = None,
 ) -> dict:
     """Read one completed run and grade source selection, not full ingestion.
 
@@ -202,6 +203,7 @@ def score(
                 expected_model_settings=expected_model_settings,
                 expected_budgets=expected_budgets,
                 expected_budget_control=expected_budget_control,
+                expected_strategy_sha256=expected_strategy_sha256,
             )
     candidates = _objects(proposal["proposal"].get("candidates"), "Proposal candidates")
     if not candidates:

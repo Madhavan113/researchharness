@@ -7,10 +7,13 @@ events, preserves exact inputs and decisions, and never replays an uncertain run
 from __future__ import annotations
 
 import os
+import re
 import stat
 from collections.abc import Callable
+from contextlib import contextmanager
 from copy import deepcopy
 from pathlib import Path
+from uuid import uuid4
 
 from filelock import FileLock
 
@@ -143,6 +146,57 @@ def _validate(bundle: StrategyBundle, event: dict, decision: dict) -> dict:
     raise ValueError("Unknown strategy event kind")
 
 
+def _verify_session(
+    root: Path, bundle: StrategyBundle, expected_session_id: str | None
+) -> tuple[dict, StrategyBundle]:
+    journal = _read(root / "session.json")
+    identity = journal.get("session_id")
+    if (
+        not isinstance(identity, str)
+        or re.fullmatch(r"[a-f0-9]{32}", identity) is None
+        or expected_session_id not in {None, identity}
+    ):
+        raise StrategySessionError("Original strategy session identity is missing or changed")
+    manifest = journal["manifest"]
+    if Path(manifest).is_absolute() or ".." in Path(manifest).parts:
+        raise ValueError("Invalid frozen strategy manifest path")
+    frozen = StrategyBundle.load(root / manifest)
+    # Revalidate the caller's bundle too: changed bytes cannot silently reuse state.
+    supplied = StrategyBundle.load(bundle.manifest_path)
+    if journal["strategy_sha256"] != frozen.sha256 or frozen.sha256 != supplied.sha256:
+        raise ValueError("Strategy session identity changed")
+    state, seen, pending = {}, set(), False
+    for entry in journal["events"]:
+        if entry["operation_id"] in seen or pending:
+            raise ValueError("Invalid strategy event ordering")
+        seen.add(entry["operation_id"])
+        directory = root / "events" / entry["directory"]
+        if directory.parent != root / "events" or not entry["directory"].startswith("event-"):
+            raise ValueError("Invalid strategy event directory")
+        if entry["status"] == "completed":
+            proof = verify_event(directory, frozen)
+            if proof["record_sha256"] != entry["record_sha256"] or proof["input"]["state"] != state:
+                raise ValueError("Strategy state chain changed")
+            state = proof["result"]["state"]
+        elif entry["status"] in {"pending", "failed"}:
+            pending = True
+        else:
+            raise ValueError("Unknown strategy event status")
+    if state != journal["state"]:
+        raise ValueError("Strategy state no longer matches committed events")
+    return journal, frozen
+
+
+def verify_session(
+    root: Path, bundle: StrategyBundle, *, expected_session_id: str | None = None
+) -> dict:
+    """Inspect frozen state and every completed event without creating files or executing code.
+
+    The caller must hold a live session lock or supply an immutable artifact copy.
+    """
+    return deepcopy(_verify_session(_path(root), bundle, expected_session_id)[0])
+
+
 class StrategySession:
     @classmethod
     def open(cls, root: Path) -> StrategySession:
@@ -151,22 +205,28 @@ class StrategySession:
         manifest = Path(journal["manifest"])
         if manifest.is_absolute() or ".." in manifest.parts:
             raise ValueError("Invalid frozen strategy manifest path")
-        return cls(root, StrategyBundle.load(root / manifest))
+        return cls(root, StrategyBundle.load(root / manifest), create=False)
 
-    def __init__(self, root: Path, bundle: StrategyBundle):
+    def __init__(self, root: Path, bundle: StrategyBundle, *, create: bool = True):
         self.root = _path(root)
         self.lock = FileLock(
             str(self.root) + ".lock", timeout=bundle.config.sandbox.timeout_seconds + 90
         )
         self.bundle = bundle
+        self._session_id = None
         with self.lock:
             if not self.root.exists():
+                if not create:
+                    raise StrategySessionError(
+                        "Original strategy session is missing; restore its state"
+                    )
                 self.root.mkdir(parents=True)
                 frozen = bundle.freeze(self.root / "bundle")
                 _save(
                     self.root / "session.json",
                     {
                         "schema_version": 1,
+                        "session_id": uuid4().hex,
                         "strategy_sha256": frozen.sha256,
                         "manifest": frozen.manifest_path.relative_to(self.root).as_posix(),
                         "status": "ready",
@@ -174,43 +234,15 @@ class StrategySession:
                         "events": [],
                     },
                 )
-            self._load()
+            self._session_id = self._load()["session_id"]
+
+    @property
+    def session_id(self) -> str:
+        return self._session_id
 
     def _load(self) -> dict:
-        journal = _read(self.root / "session.json")
-        manifest = journal["manifest"]
-        if Path(manifest).is_absolute() or ".." in Path(manifest).parts:
-            raise ValueError("Invalid frozen strategy manifest path")
-        frozen = StrategyBundle.load(self.root / manifest)
-        # Revalidate the caller's bundle too: changed bytes cannot silently reuse state.
-        supplied = StrategyBundle.load(self.bundle.manifest_path)
-        if journal["strategy_sha256"] != frozen.sha256 or frozen.sha256 != supplied.sha256:
-            raise ValueError("Strategy session identity changed")
+        journal, frozen = _verify_session(self.root, self.bundle, self._session_id)
         self.bundle = frozen
-        state, seen, pending = {}, set(), False
-        for entry in journal["events"]:
-            if entry["operation_id"] in seen or pending:
-                raise ValueError("Invalid strategy event ordering")
-            seen.add(entry["operation_id"])
-            directory = self.root / "events" / entry["directory"]
-            if directory.parent != self.root / "events" or not entry["directory"].startswith(
-                "event-"
-            ):
-                raise ValueError("Invalid strategy event directory")
-            if entry["status"] == "completed":
-                proof = verify_event(directory, frozen)
-                if (
-                    proof["record_sha256"] != entry["record_sha256"]
-                    or proof["input"]["state"] != state
-                ):
-                    raise ValueError("Strategy state chain changed")
-                state = proof["result"]["state"]
-            elif entry["status"] in {"pending", "failed"}:
-                pending = True
-            else:
-                raise ValueError("Unknown strategy event status")
-        if state != journal["state"]:
-            raise ValueError("Strategy state no longer matches committed events")
         return journal
 
     def assert_ready(self) -> None:
@@ -220,6 +252,17 @@ class StrategySession:
                 e["status"] != "completed" for e in journal["events"]
             ):
                 raise StrategySessionError("Strategy session failed or requires explicit recovery")
+
+    @contextmanager
+    def guard(self):
+        """Serialize service admission/commit with strategy events and failure.
+
+        The lock is reentrant for projection in the same thread. Do not hold
+        this guard over model HTTP calls: the gateway may need this session.
+        """
+        with self.lock:
+            self.assert_ready()
+            yield
 
     def status(self) -> dict:
         with self.lock:

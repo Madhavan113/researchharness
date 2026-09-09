@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+from contextlib import nullcontext
 from importlib.util import find_spec
 from pathlib import Path
 from typing import Any
@@ -199,6 +200,7 @@ class Discovery:
         if strategy is not None:
             strategy.assert_ready()
             self.execution_config["code_strategy_sha256"] = strategy.bundle.sha256
+            self.execution_config["strategy_session_id"] = strategy.session_id
         self.search_config: dict[str, Any] = {
             "mode": "native" if search_provider is None else "wrapped",
             "provider": "openai-native" if search_provider is None else search_provider.name,
@@ -286,8 +288,12 @@ class Discovery:
         return self.service.inspect(url)
 
     def tool(self, name: str, arguments: str, *, operation_id: str | None = None) -> dict[str, Any]:
-        if self.strategy is not None:
-            self.strategy.assert_ready()
+        with self.strategy.guard() if self.strategy is not None else nullcontext():
+            return self._tool(name, arguments, operation_id=operation_id)
+
+    def _tool(
+        self, name: str, arguments: str, *, operation_id: str | None = None
+    ) -> dict[str, Any]:
         try:
             if len(arguments) > 60_000:
                 raise ValueError("Tool arguments exceed limit")
@@ -477,11 +483,12 @@ class Discovery:
                 try:
                     if draft is None:
                         raise ValueError("No structured proposal returned")
-                    result = self.service.submit_proposal(
-                        draft,
-                        operation_id=f"proposal:{response.id}",
-                        usage=self.usage,
-                    )
+                    with self.strategy.guard() if self.strategy is not None else nullcontext():
+                        result = self.service.submit_proposal(
+                            draft,
+                            operation_id=f"proposal:{response.id}",
+                            usage=self.usage,
+                        )
                 except ValueError as exc:
                     error = str(exc)
                     if self.search_provider is not None:

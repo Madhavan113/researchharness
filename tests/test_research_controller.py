@@ -8,6 +8,7 @@ from pathlib import Path
 import httpx
 import pytest
 from filelock import FileLock, Timeout
+from test_strategy_session import bundle
 
 from research_harness.backend import Backend
 from research_harness.discovery_models import Candidate, DataNeed, ProposalDraft
@@ -23,9 +24,12 @@ from research_harness.evaluation.controller import (
     run_case,
 )
 from research_harness.evaluation.fixtures import FixtureProvider
+from research_harness.evaluation.runtime_executor import task_strategy_session
 from research_harness.execution import DiscoverySettings
 from research_harness.integrations.model_gateway import ResponsesGateway
 from research_harness.services.research import ResearchService
+from research_harness.strategies.config import StrategyBundle
+from research_harness.strategies.session import StrategySession
 from research_harness.util import canonical_json, digest, write_json
 
 DEVELOPMENT = Path(__file__).resolve().parents[1] / "examples/evaluation/development"
@@ -113,6 +117,168 @@ def fixture_executor(task):
             operation_id="submit",
         )
     return ExecutionArtifacts(research=output, metadata={"execution": "test-service-fixture"})
+
+
+@pytest.fixture
+def strategy_prepared(prepared, tmp_path):
+    authored = bundle(tmp_path)
+    output = tmp_path / "strategy-comparison"
+    prepare_comparison(
+        prepared / "benchmark/manifest.json",
+        output,
+        instructions="Shared instructions",
+        strategy=authored,
+    )
+    return output, authored
+
+
+def test_code_strategy_is_frozen_separately_and_bound_to_each_case(strategy_prepared):
+    output, authored = strategy_prepared
+    plan = json.loads((output / "comparison.json").read_bytes())
+    assert plan["code_strategy"]["sha256"] == authored.sha256
+    assert plan["code_strategy"]["config"] == authored.config.model_dump(mode="json")
+    for controls in plan["controls"].values():
+        assert controls["strategy_sha256"] == digest("Shared instructions")
+        assert controls["code_strategy_sha256"] == authored.sha256
+    authored.source.write_text("changed external candidate")
+    seen = []
+
+    def execute(task):
+        assert task.strategy_path == output / "code-strategy/strategy.json"
+        assert task.code_strategy_sha256 == authored.sha256
+        session = task_strategy_session(task)
+        assert session.root == task.output / "strategy"
+        seen.append(task.gateway_binding.task_sha256)
+        return fixture_executor(task)
+
+    case_id = "filing-stable-accession"
+    entry = run_case(output, "direct", case_id, execute)
+    assert entry["status"] == "completed"
+    assert "strategy/session.json" in entry["artifact_hashes"]
+    assert "strategy/bundle/strategy.py" in entry["artifact_hashes"]
+    assert len(seen) == 1
+
+
+@pytest.mark.parametrize("mutation", ["source", "limits", "controls", "manifest_path", "removed"])
+def test_changed_strategy_identity_is_rejected_before_executor(strategy_prepared, mutation):
+    output, _ = strategy_prepared
+    plan_path = output / "comparison.json"
+    plan = json.loads(plan_path.read_bytes())
+    if mutation == "source":
+        (output / "code-strategy/strategy.py").write_text("changed")
+    elif mutation == "limits":
+        path = output / "code-strategy/strategy.json"
+        value = json.loads(path.read_bytes())
+        value["max_events"] += 1
+        write_json(path, value)
+    else:
+        if mutation == "controls":
+            plan["controls"]["direct"]["code_strategy_sha256"] = "c" * 64
+        elif mutation == "manifest_path":
+            plan["code_strategy"]["manifest_path"] = "implementation/strategy.json"
+        else:
+            del plan["code_strategy"]
+        write_json(plan_path, plan)
+
+    def forbidden(_):
+        raise AssertionError("Changed identity reached runtime")
+
+    with pytest.raises(ValueError):
+        run_case(output, "direct", plan["case_ids"][0], forbidden)
+    assert (
+        json.loads((output / "direct/journal.json").read_bytes())["cases"][plan["case_ids"][0]][
+            "status"
+        ]
+        == "pending"
+    )
+
+
+def test_saved_proposal_cannot_hide_failed_strategy_session(strategy_prepared):
+    output, _ = strategy_prepared
+
+    def broken(task):
+        session = task_strategy_session(task)
+        result = fixture_executor(task)
+        path = session.root / "session.json"
+        state = json.loads(path.read_bytes())
+        state["status"] = "failed"
+        write_json(path, state)
+        (session.root / "failure.log").write_text("Candidate failed after provider work")
+        return result
+
+    entry = run_case(output, "direct", "filing-stable-accession", broken)
+    assert entry["status"] == "failed"
+    assert "Strategy session failed" in entry["run"]["error"]
+    assert "proposal.json" in {Path(name).name for name in entry["artifact_hashes"]}
+    assert "strategy/failure.log" in entry["artifact_hashes"]
+
+
+def test_interrupted_strategy_tree_is_retained_without_replay(strategy_prepared):
+    output, _ = strategy_prepared
+    case_id = "filing-stable-accession"
+    calls = []
+
+    def interrupted(task):
+        calls.append(task)
+        session = task_strategy_session(task)
+        (session.root / "available.log").write_text("Partial execution output")
+        raise KeyboardInterrupt
+
+    with pytest.raises(KeyboardInterrupt):
+        run_case(output, "direct", case_id, interrupted)
+    stored = json.loads((output / "direct/journal.json").read_bytes())["cases"][case_id]
+    assert stored["status"] == "interrupted"
+    assert "strategy/available.log" in stored["artifact_hashes"]
+    recovered = record_interruption(output, "direct", case_id, reason="Host observed process exit")
+    assert recovered["status"] == "failed"
+    assert "strategy/available.log" in recovered["artifact_hashes"]
+    assert len(calls) == 1
+
+
+@pytest.mark.parametrize("mutation", ["removed", "recreated"])
+def test_controller_pins_session_identity_before_executor(strategy_prepared, mutation):
+    output, _ = strategy_prepared
+    case_id = "filing-stable-accession"
+
+    def reset_session(task):
+        session = task_strategy_session(task)
+        assert task.strategy_session_id == session.session_id
+        result = fixture_executor(task)
+        # Keep the frozen task bundle available after deleting the session copy.
+        source = StrategyBundle.load(task.strategy_path)
+        shutil.rmtree(session.root)
+        if mutation == "recreated":
+            assert StrategySession(session.root, source).session_id != task.strategy_session_id
+        return result
+
+    entry = run_case(output, "direct", case_id, reset_session)
+    assert entry["status"] == "failed"
+    assert entry["strategy_session_id"]
+    assert entry["artifact_hashes"]["research/proposal.json"]
+
+
+@pytest.mark.parametrize("mutation", ["changed", "additional", "removed-session"])
+def test_completed_strategy_artifact_inventory_cannot_change(strategy_prepared, mutation):
+    output, _ = strategy_prepared
+    plan = json.loads((output / "comparison.json").read_bytes())
+
+    def execute(task):
+        session = task_strategy_session(task)
+        (session.root / "retained.log").write_text("Available strategy execution diagnostic")
+        return fixture_executor(task)
+
+    for arm in ARMS:
+        for case_id in plan["case_ids"]:
+            run_case(output, arm, case_id, execute)
+    root = output / "direct/cases/filing-stable-accession/strategy"
+    if mutation == "changed":
+        (root / "retained.log").write_text("Changed diagnostic")
+    elif mutation == "additional":
+        (root / "late.log").write_text("Unrecorded diagnostic")
+    else:
+        shutil.rmtree(root)
+    with pytest.raises((ValueError, OSError)):
+        finalize_comparison(output)
 
 
 def gateway_fixture(task, *, unknown=False, wrong_binding=False, relaxed_limits=False):

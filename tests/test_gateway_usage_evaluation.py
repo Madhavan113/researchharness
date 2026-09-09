@@ -150,6 +150,41 @@ def test_real_gateway_json_and_gzip_sse_are_verified_without_proposal(archive):
     assert result["response_count"] == 2 and result["cost_usd"] is None
     assert set(result["files"]) == {"archive.json", *load(archive / "archive.json")["files"]}
     assert verify(archive)["total_tokens"] == 330
+    assert result["upstream_transport"] == "caller-supplied"
+
+
+def test_legacy_gateway_transport_provenance_is_unknown(archive):
+    metadata = load(archive / "gateway.json")
+    metadata.pop("upstream_transport")
+    write_json(archive / "gateway.json", metadata)
+    reindex(archive)
+    result = verify(archive)
+    assert result["status"] == "verified_complete", result["errors"]
+    assert result["upstream_transport"] is None
+
+
+def test_unknown_gateway_transport_provenance_is_invalid(archive):
+    metadata = load(archive / "gateway.json")
+    metadata["upstream_transport"] = "claimed-live"
+    write_json(archive / "gateway.json", metadata)
+    reindex(archive)
+    assert verify(archive)["status"] == "invalid"
+
+
+def test_gateway_constructed_standard_transport_is_recorded_without_dispatch(tmp_path):
+    output = tmp_path / "gateway"
+    with ResponsesGateway(
+        output,
+        model=MODEL,
+        settings=SETTINGS,
+        upstream_base_url="https://api.openai.com/v1",
+        binding=BINDING,
+    ):
+        pass
+    result = verify(output)
+    assert result["status"] == "verified_complete", result["errors"]
+    assert result["upstream_transport"] == "httpx-default"
+    assert result["dispatched_requests"] == 0
 
 
 @pytest.mark.parametrize(

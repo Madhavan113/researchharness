@@ -29,6 +29,7 @@ from research_harness.util import canonical_json, digest, timestamp, utcnow, wri
 
 if TYPE_CHECKING:
     from research_harness.evaluation.dispatch_budget import DispatchBudget
+    from research_harness.strategies.session import StrategySession
 
 MAX_REQUEST_BYTES = 8 * 1024 * 1024
 MAX_RESPONSE_BYTES = 32 * 1024 * 1024
@@ -194,6 +195,7 @@ class ResponsesGateway:
         allowed_function_names: set[str] | None = None,
         binding: GatewayBinding | None = None,
         dispatch_budget: DispatchBudget | None = None,
+        strategy: StrategySession | None = None,
         clock: Callable[[], float] = time.monotonic,
     ):
         if not model.strip():
@@ -217,6 +219,9 @@ class ResponsesGateway:
         self.upstream_base_url = upstream_base_url.rstrip("/")
         self._dispatch_budget = dispatch_budget
         self._budget_violation: str | None = None
+        self._strategy = strategy
+        if strategy is not None and strategy.bundle.config.context and binding is None:
+            raise ValueError("Context projection requires a bound gateway execution")
         if dispatch_budget is not None:
             policy = dispatch_budget.policy
             if (
@@ -271,6 +276,8 @@ class ResponsesGateway:
         self._reserved_attempts = 0
         self._upstream_requests = 0
         self._active_attempts: dict[str, dict] = {}
+        self._strategy_condition = threading.Condition(self._lock)
+        self._strategy_active = 0
         self._handlers: set[BaseHTTPRequestHandler] = set()
         self._closing = threading.Event()
         self._sealed = False
@@ -285,6 +292,7 @@ class ResponsesGateway:
                 if self._binding_json is not None
                 else None,
                 "model": model,
+                "upstream_transport": "httpx-default" if client is None else "caller-supplied",
                 "discovery_settings": self.settings.model_dump(mode="json"),
                 "allowed_function_names": sorted(self.allowed_function_names)
                 if self.allowed_function_names is not None
@@ -295,6 +303,12 @@ class ResponsesGateway:
                 "dollar_cap_enforced": False,
                 "budget_control": dispatch_budget.metadata()
                 if dispatch_budget is not None
+                else None,
+                "strategy_control": {
+                    "strategy_sha256": strategy.bundle.sha256,
+                    "config": strategy.bundle.config.model_dump(mode="json"),
+                }
+                if strategy is not None
                 else None,
                 "supported_request_fields": sorted(SUPPORTED_REQUEST_FIELDS),
                 "shutdown_policy": "seal_interrupted_records_before_returning",
@@ -350,6 +364,96 @@ class ResponsesGateway:
             self._save_record(record)
             self._save_report()
 
+    @contextlib.contextmanager
+    def _strategy_work(self):
+        # The shared session writes outside the gateway tree. Close must settle
+        # this work before the controller can freeze either tree.
+        with self._strategy_condition:
+            if self._closing.is_set():
+                raise RuntimeError("Gateway closed before strategy work")
+            self._strategy_active += 1
+        try:
+            yield
+        finally:
+            with self._strategy_condition:
+                self._strategy_active -= 1
+                self._strategy_condition.notify_all()
+
+    def _project_request(
+        self, record: dict, incoming: dict, handler
+    ) -> tuple[dict | None, str | None]:
+        from research_harness.strategies.context import POLICY, project_context
+
+        context_enabled = self._strategy.bundle.config.context
+        operation_id = (
+            f"context:{self.binding.execution_id}:{record['id']}" if context_enabled else None
+        )
+        timer = None
+        with self._lock:
+            self.begin()
+            if reason := self._admission_denial(record):
+                return None, reason
+            if context_enabled:
+                record.update(context_projection_pending=True, context_operation_id=operation_id)
+                self._save_record(record)
+            if handler is not None:
+                attempt = {"handler": handler, "response": None, "body": bytearray()}
+                timer = threading.Timer(self._remaining(), self._expire, args=(record, attempt))
+                timer.daemon = True
+                timer.start()
+        try:
+            with self._strategy_work():
+                self._strategy.assert_ready()
+                projected = project_context(self._strategy, incoming, operation_id=operation_id)
+                if context_enabled:
+                    proof = self._strategy.event_record(operation_id)
+                    root = Path(proof["directory"])
+                    expected = {**proof["files"], "record.json": proof["record_sha256"]}
+                    evidence = {name: (root / name).read_bytes() for name in expected}
+                    if any(digest(evidence[name]) != value for name, value in expected.items()):
+                        raise ValueError("Strategy event changed during gateway archival")
+                    projected_raw = canonical_json(projected).encode()
+                    descriptor = {
+                        "schema_version": 1,
+                        "policy": POLICY,
+                        "binding": self.binding.model_dump(mode="json"),
+                        "operation_id": operation_id,
+                        "strategy_sha256": self._strategy.bundle.sha256,
+                        "incoming_sha256": record["incoming_sha256"],
+                        "projected_sha256": digest(projected_raw),
+                        "event_files": expected,
+                    }
+                    with self._lock:
+                        if reason := self._admission_denial(record):
+                            return None, reason
+                        directory = self.output / record["id"]
+                        # Copy only verified immutable event files. No session
+                        # root, credentials, live database or candidate path is mounted.
+                        for name, raw in evidence.items():
+                            path = directory / "strategy-event" / name
+                            path.parent.mkdir(parents=True, exist_ok=True)
+                            path.write_bytes(raw)
+                        (directory / "projected.json").write_bytes(projected_raw)
+                        write_json(directory / "context-projection.json", descriptor)
+                        record.update(
+                            context_projection_pending=False,
+                            projected_sha256=digest(projected_raw),
+                            context_projection_sha256=digest(
+                                (directory / "context-projection.json").read_bytes()
+                            ),
+                        )
+                        self._save_record(record)
+                return projected, None
+        except Exception as exc:
+            with self._lock:
+                if not self._sealed and record["outcome"] == "received":
+                    record["strategy_error"] = f"{type(exc).__name__}: {exc}"
+                    self._save_record(record)
+            return None, "strategy_context_failed" if context_enabled else "strategy_session_failed"
+        finally:
+            if timer is not None:
+                timer.cancel()
+
     def _prepare(
         self, record: dict, incoming: dict, handler: BaseHTTPRequestHandler | None = None
     ) -> tuple[dict | None, str | None]:
@@ -376,7 +480,12 @@ class ResponsesGateway:
             not isinstance(tool, dict) or tool.get("type") != "function" for tool in tools
         ):
             return None, "provider_native_tools_forbidden"
-        forwarded = deepcopy(incoming)
+        projected = incoming
+        if self._strategy is not None:
+            projected, reason = self._project_request(record, incoming, handler)
+            if reason is not None:
+                return None, reason
+        forwarded = deepcopy(projected)
         stripped = []
         if self.allowed_function_names is not None:
             forwarded["tools"] = []
@@ -656,6 +765,19 @@ class ResponsesGateway:
                 record, attempt
             ):
                 return
+            if self._strategy is not None:
+                try:
+                    with self._strategy_work():
+                        self._strategy.assert_ready()
+                except Exception as exc:
+                    with self._lock:
+                        if not self._sealed and record["outcome"] == "in_flight":
+                            record["strategy_error"] = f"{type(exc).__name__}: {exc}"
+                    self._finish(
+                        record, response_body, "interrupted", reason="strategy_session_failed"
+                    )
+                    self._error(handler, 400, "strategy_session_failed")
+                    return
             with self._lock:
                 if self._closing.is_set() or record["outcome"] != "in_flight":
                     return
@@ -968,6 +1090,22 @@ class ResponsesGateway:
                 self._stop_transport()
             except BaseException as exc:
                 error = error or exc
+            if self._strategy is not None:
+                # Covers session lock wait, bounded Docker execution and cleanup.
+                deadline = (
+                    time.monotonic()
+                    + 2 * self._strategy.bundle.config.sandbox.timeout_seconds
+                    + 180
+                )
+                with self._strategy_condition:
+                    while self._strategy_active:
+                        remaining = deadline - time.monotonic()
+                        if remaining <= 0:
+                            error = error or RuntimeError(
+                                "Strategy writers did not settle before gateway close"
+                            )
+                            break
+                        self._strategy_condition.wait(min(remaining, 1))
             if error is None:
                 try:
                     self._publish_archive()

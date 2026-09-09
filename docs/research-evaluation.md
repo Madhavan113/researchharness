@@ -124,7 +124,7 @@ The comparison module aggregates all briefs in one manifest:
 uv run python -m research_harness.evaluation.benchmark compare examples/evaluation/development/manifest.json /path/to/direct/run.json /path/to/omnigent/run.json --axis runtime --out artifacts/evaluation/comparison.json
 ~~~
 
-The runtime comparison requires identical strategy hashes. For an explicitly declared strategy experiment, use --axis strategy; then the runtime must remain fixed. Execution type, model and settings, provider and settings, operation/deadline budgets, fixture package, and backend hash must match in either mode. It rejects different benchmark revisions and missing or duplicated cases. Every case must appear in every arm, including failed executions; dropping a difficult case cannot improve the denominator.
+The runtime comparison requires identical instruction and optional code-strategy hashes. For an explicitly declared strategy experiment, use --axis strategy; then instructions and code may differ while the runtime stays fixed. Execution type, model and settings, provider and settings, operation/deadline budgets, fixture package, and backend hash must match in either mode. The optimization archive additionally freezes sandbox and strategy limits. It rejects different benchmark revisions and missing or duplicated cases. Every case must appear in every arm, including failed executions; dropping a difficult case cannot improve the denominator.
 
 RunControls, CaseRun, and RunManifest in [benchmark.py](../src/research_harness/evaluation/benchmark.py) define the strict manifest schemas. Their main fields are:
 
@@ -136,7 +136,7 @@ RunControls, CaseRun, and RunManifest in [benchmark.py](../src/research_harness/
 | controls.provider / provider_settings | Search provider identity and settings, including any index/time filters |
 | controls.budgets | search, inspection, probe, and deadline_seconds; record any additional controller limits too |
 | controls.fixture_sha256 | Combined fixture hash returned by benchmark check |
-| controls.strategy_sha256 / backend_sha256 | Frozen strategy and domain implementation hashes recorded by the controller |
+| controls.strategy_sha256 / code_strategy_sha256 / backend_sha256 | Instruction, optional executable strategy bundle, and domain implementation hashes recorded by the controller; absent code identity retains legacy baseline bindings |
 | runs | One CaseRun per case id; completed runs name an artifact directory, failed runs record a failure reason |
 | per-run usage | Optional elapsed_seconds, model_cost_usd, provider_cost_usd; unknown values are null; runtime_usage or gateway_usage can reference verified host artifacts; gateway_usage requires execution_id |
 

@@ -115,7 +115,9 @@ def _read_case(path: Path) -> dict[str, Any]:
         expected_manifest = Path(case["output"]) / "code-strategy" / "strategy.json"
         if (
             not isinstance(code, dict)
-            or set(code) != {"manifest_path", "sha256", "output"}
+            or set(code) != {"manifest_path", "sha256", "output", "session_id"}
+            or not isinstance(code["session_id"], str)
+            or re.fullmatch(r"[a-f0-9]{32}", code["session_id"]) is None
             or code["manifest_path"] != str(expected_manifest)
             or json.loads(binding_file.read_text()) != code
             or StrategyBundle.load(expected_manifest).sha256 != code["sha256"]
@@ -224,6 +226,7 @@ def prepare_case(
             "manifest_path": str(frozen.manifest_path),
             "sha256": frozen.sha256,
             "output": str(state_root),
+            "session_id": StrategySession(state_root, frozen).session_id,
         }
         write_json(bundle / "code-strategy-binding.json", case["code_strategy"])
     config["name"] = case_id
@@ -348,6 +351,7 @@ def bound_service(path: Path, *, env: dict[str, str] | None = None) -> tuple[Res
         )
     if case.get("code_strategy") is not None:
         runtime["code_strategy_sha256"] = case["code_strategy"]["sha256"]
+        runtime["strategy_session_id"] = case["code_strategy"]["session_id"]
     return service, runtime
 
 
@@ -356,7 +360,10 @@ def case_strategy_session(path: Path) -> StrategySession | None:
     code = case.get("code_strategy")
     if code is None:
         return None
-    return StrategySession(Path(code["output"]), StrategyBundle.load(Path(code["manifest_path"])))
+    session = StrategySession.open(Path(code["output"]))
+    if session.bundle.sha256 != code["sha256"] or session.session_id != code["session_id"]:
+        raise ValueError("The case requires its original strategy session state")
+    return session
 
 
 def create_case_server(path: Path):

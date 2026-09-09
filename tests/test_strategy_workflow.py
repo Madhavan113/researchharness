@@ -73,6 +73,10 @@ def test_direct_and_mcp_use_the_same_projection_and_preserve_receipts(tmp_path, 
     with pytest.raises(ValueError, match="original code strategy"):
         create_server(service, mcp_provider)
     create_server(service, mcp_provider, strategy=StrategySession(mcp_session.root, authored))
+    with pytest.raises(ValueError, match="original strategy session state"):
+        create_server(
+            service, mcp_provider, strategy=StrategySession(tmp_path / "replacement", authored)
+        )
 
 
 def test_failed_strategy_blocks_mcp_proposal_and_terminates_direct_tool_path(tmp_path, fake_runner):
