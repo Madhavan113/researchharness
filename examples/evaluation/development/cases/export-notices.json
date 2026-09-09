@@ -1,0 +1,61 @@
+{
+  "id": "export-notices",
+  "title": "Export control notices",
+  "brief": "Find a public structured source for newly issued export-control notices, preserving notice identity and publication time rather than download time.",
+  "topic_group": "export-controls",
+  "source_families": [
+    "export-office"
+  ],
+  "tags": [
+    "official-source",
+    "timestamps"
+  ],
+  "review_status": "authored",
+  "review_notes": "Authored development contract, not independently human-reviewed. Endpoints, records, and search ordering are synthetic.",
+  "specification": {
+    "requirements": [
+      {
+        "id": "official-notices",
+        "weight": 1,
+        "any_of": [
+          {
+            "url": "https://export-office.fixture.example/notices.json",
+            "connector": "json",
+            "published_pointer": "/published_at",
+            "required_pointers": [
+              "/title"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "fixtures": {
+    "path": "fixtures/export-notices.json",
+    "sha256": "2dbea9c4a621eee0cbefa4bd9f7af3dc193ce1f51d980caccf136fed66e1225d"
+  },
+  "sources": [
+    {
+      "id": "official-notices",
+      "name": "Official Notices",
+      "connector": "json",
+      "url": "https://export-office.fixture.example/notices.json",
+      "items_pointer": "/items",
+      "id_pointer": "/id",
+      "published_pointer": "/published_at",
+      "required_pointers": [
+        "/title"
+      ]
+    }
+  ],
+  "fixture_plan": {
+    "source_ids": [
+      "official-notices"
+    ],
+    "unsupported": []
+  },
+  "manual_checks": [
+    "Review relevance and whether the source scope answers the full brief.",
+    "Confirm the proposal states sample, history, and freshness limitations without inventing access."
+  ]
+}

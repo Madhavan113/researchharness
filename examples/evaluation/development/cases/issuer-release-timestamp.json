@@ -1,0 +1,64 @@
+{
+  "id": "issuer-release-timestamp",
+  "title": "Issuer earnings release timing",
+  "brief": "Collect earnings release text with the original timezone-aware publication timestamp for later point-in-time analysis. Do not infer historical availability from retrieval time.",
+  "topic_group": "issuer-releases",
+  "source_families": [
+    "issuer-news"
+  ],
+  "tags": [
+    "timestamps",
+    "point-in-time"
+  ],
+  "review_status": "authored",
+  "review_notes": "Authored development contract, not independently human-reviewed. Endpoints, records, and search ordering are synthetic.",
+  "specification": {
+    "requirements": [
+      {
+        "id": "issuer-releases",
+        "weight": 1,
+        "any_of": [
+          {
+            "url": "https://issuer-news.fixture.example/earnings.json",
+            "connector": "json",
+            "published_pointer": "/published_at"
+          }
+        ]
+      }
+    ]
+  },
+  "fixtures": {
+    "path": "fixtures/issuer-release-timestamp.json",
+    "sha256": "e68cd2988358401dd8a43895b6df7a9624f4e7e61f9a398302708f506937e605"
+  },
+  "sources": [
+    {
+      "id": "retrieval-timestamp",
+      "name": "Retrieval Timestamp",
+      "connector": "json",
+      "url": "https://issuer-news.fixture.example/earnings.json",
+      "items_pointer": "/items",
+      "id_pointer": "/id",
+      "published_pointer": "/downloaded_at"
+    },
+    {
+      "id": "release-timestamp",
+      "name": "Release Timestamp",
+      "connector": "json",
+      "url": "https://issuer-news.fixture.example/earnings.json",
+      "items_pointer": "/items",
+      "id_pointer": "/id",
+      "published_pointer": "/published_at"
+    }
+  ],
+  "fixture_plan": {
+    "source_ids": [
+      "release-timestamp"
+    ],
+    "unsupported": []
+  },
+  "manual_checks": [
+    "Review relevance and whether the source scope answers the full brief.",
+    "Confirm the proposal states sample, history, and freshness limitations without inventing access."
+  ]
+}

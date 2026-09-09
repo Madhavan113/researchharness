@@ -1,0 +1,39 @@
+{
+  "spec_version": 1,
+  "name": "research-8b0bbdb25ab84ae0a7240e814e33f51c",
+  "description": "Discover verified data sources, save pipeline proposals, collect and reopen research cases.",
+  "executor": {
+    "type": "omnigent",
+    "model": "gpt-5.4-mini",
+    "max_iterations": 32,
+    "config": {
+      "harness": "openai-agents"
+    }
+  },
+  "interaction": {
+    "conversational": true,
+    "modalities": {
+      "input": [
+        "text"
+      ],
+      "output": [
+        "text"
+      ]
+    }
+  },
+  "instructions": "instructions.md",
+  "guardrails": {
+    "policies": {
+      "research_cost_budget": {
+        "type": "function",
+        "function": {
+          "path": "omnigent.policies.builtins.cost.cost_budget",
+          "arguments": {
+            "max_cost_usd": 1,
+            "expensive_models": []
+          }
+        }
+      }
+    }
+  }
+}

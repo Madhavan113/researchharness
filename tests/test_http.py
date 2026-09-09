@@ -42,7 +42,7 @@ def test_429_retries_with_server_delay_and_saves_both_responses(store, spec, sou
         capture = worker.fetch(source.url)
     assert capture.status_code == 200
     assert sleeps == [2]
-    assert store.db.execute("SELECT COUNT(*) FROM captures").fetchone()[0] == 2
+    assert store.count("captures") == 2
 
 
 def test_long_retry_after_defers_instead_of_retrying_too_soon(store, spec, source, clock):
@@ -69,7 +69,7 @@ def test_timeout_retries_are_bounded_and_audited(store, spec, source, clock):
         worker.sleep = lambda _: None
         with pytest.raises(FetchError, match="2 attempts"):
             worker.fetch(source.url)
-    assert store.db.execute("SELECT COUNT(*) FROM captures").fetchone()[0] == 2
+    assert store.count("captures") == 2
 
 
 def test_size_limit_saves_truncated_evidence_without_accepting_it(store, spec, source, clock):
@@ -79,7 +79,7 @@ def test_size_limit_saves_truncated_evidence_without_accepting_it(store, spec, s
         worker = fetcher(store, spec, source, client, clock, max_response_bytes=1024)
         with pytest.raises(FetchError, match="limit"):
             worker.fetch(source.url)
-    row = store.db.execute("SELECT * FROM captures").fetchone()
+    row = store.query_one("SELECT * FROM captures")
     assert len(store.read_blob(row["body_hash"])) == 1024
     assert row["error"]
     assert '"truncated":true' in row["context_json"]
@@ -147,7 +147,7 @@ def test_redirect_is_validated_before_second_request(store, spec, source, clock,
     assert len(calls) == 1
 
 
-def test_reused_body_integrity_is_checked(store, spec, source, clock):
+def test_reused_body_integrity_is_checked(store, spec, source, clock, tamper):
     with httpx.Client(
         transport=httpx.MockTransport(
             lambda _: httpx.Response(200, content=b"original", headers={"etag": "v1"})
@@ -155,7 +155,7 @@ def test_reused_body_integrity_is_checked(store, spec, source, clock):
     ) as client:
         worker = fetcher(store, spec, source, client, clock)
         first = worker.fetch(source.url)
-    (store.root / "raw" / first.body_hash[:2] / first.body_hash).write_bytes(b"changed")
+    tamper(store, first.body_hash, b"changed")
     with httpx.Client(transport=httpx.MockTransport(lambda _: httpx.Response(304))) as client:
         worker = fetcher(store, spec, source, client, clock)
         with pytest.raises(RuntimeError, match="integrity"):

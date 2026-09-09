@@ -1,0 +1,328 @@
+{
+  "/tmp/rh-m3-m4-verified": {
+    "report": {
+      "schema_version": 1,
+      "measurement": "workflow_correctness",
+      "status": "incomplete",
+      "question_id": "c29bdb97c2ca407f80b345be952c20cd",
+      "pipeline_version_id": "ee5c2b56a535423eb26522b31324e5f8",
+      "snapshot_sha256": "466a4b596f6a7199c7774adb4d57a422e3ba8036f7e64a41eec4b0c3041e6052",
+      "before_snapshot_sha256": null,
+      "expectation_sha256": "8b47983dac3fea4bd454d943406d39b221ba382aae7e31434c0b64161f463207",
+      "counts": {
+        "passed": 23,
+        "failed": 0,
+        "unknown": 1
+      },
+      "checks": [
+        {
+          "check": "snapshot.stable_registry",
+          "status": "passed",
+          "detail": null
+        },
+        {
+          "check": "pipeline.original_configuration",
+          "status": "passed",
+          "detail": null
+        },
+        {
+          "check": "publication.lineage",
+          "status": "passed",
+          "detail": {
+            "invalid_observation_ids": []
+          }
+        },
+        {
+          "check": "capture.integrity",
+          "status": "passed",
+          "detail": {}
+        },
+        {
+          "check": "collection.c6ef4c7ff9984082beb12f820db559e9.exists_in_scope",
+          "status": "passed",
+          "detail": null
+        },
+        {
+          "check": "collection.c6ef4c7ff9984082beb12f820db559e9.request_identity",
+          "status": "passed",
+          "detail": null
+        },
+        {
+          "check": "collection.c6ef4c7ff9984082beb12f820db559e9.terminal_status",
+          "status": "passed",
+          "detail": {
+            "expected": "succeeded",
+            "observed": "succeeded"
+          }
+        },
+        {
+          "check": "collection.c6ef4c7ff9984082beb12f820db559e9.reserved_run_id",
+          "status": "passed",
+          "detail": null
+        },
+        {
+          "check": "collection.c6ef4c7ff9984082beb12f820db559e9.run_exists",
+          "status": "passed",
+          "detail": null
+        },
+        {
+          "check": "collection.c6ef4c7ff9984082beb12f820db559e9.explicit_source_expectations",
+          "status": "passed",
+          "detail": null
+        },
+        {
+          "check": "collection.c6ef4c7ff9984082beb12f820db559e9.source_configurations",
+          "status": "passed",
+          "detail": null
+        },
+        {
+          "check": "collection.c6ef4c7ff9984082beb12f820db559e9.original_configuration",
+          "status": "passed",
+          "detail": null
+        },
+        {
+          "check": "collection.c6ef4c7ff9984082beb12f820db559e9.run_status",
+          "status": "passed",
+          "detail": {
+            "expected": "succeeded",
+            "observed": "succeeded"
+          }
+        },
+        {
+          "check": "collection.c6ef4c7ff9984082beb12f820db559e9.reported_result",
+          "status": "passed",
+          "detail": null
+        },
+        {
+          "check": "collection.c6ef4c7ff9984082beb12f820db559e9.policy.status",
+          "status": "passed",
+          "detail": {
+            "expected": "succeeded",
+            "observed": "succeeded"
+          }
+        },
+        {
+          "check": "collection.c6ef4c7ff9984082beb12f820db559e9.policy.publication",
+          "status": "passed",
+          "detail": {
+            "expected_count": 1,
+            "observed_count": 1
+          }
+        },
+        {
+          "check": "export.477d0c395f2a4dd79f246769de351ac2.exists_in_scope",
+          "status": "passed",
+          "detail": null
+        },
+        {
+          "check": "export.477d0c395f2a4dd79f246769de351ac2.request_identity",
+          "status": "passed",
+          "detail": null
+        },
+        {
+          "check": "export.477d0c395f2a4dd79f246769de351ac2.terminal_status",
+          "status": "passed",
+          "detail": {
+            "expected": "succeeded",
+            "observed": "succeeded"
+          }
+        },
+        {
+          "check": "export.477d0c395f2a4dd79f246769de351ac2.fixed_cutoff_records",
+          "status": "passed",
+          "detail": null
+        },
+        {
+          "check": "export.477d0c395f2a4dd79f246769de351ac2.expected_record_count",
+          "status": "passed",
+          "detail": null
+        },
+        {
+          "check": "export.477d0c395f2a4dd79f246769de351ac2.manifest",
+          "status": "passed",
+          "detail": null
+        },
+        {
+          "check": "export.477d0c395f2a4dd79f246769de351ac2.returned_manifest",
+          "status": "passed",
+          "detail": null
+        },
+        {
+          "check": "replay.identity_and_publication",
+          "status": "unknown",
+          "detail": "No replay/reopen comparison requested"
+        }
+      ],
+      "unmeasured": [
+        "source_content_entailment",
+        "scientific_usefulness",
+        "model_cost"
+      ]
+    },
+    "evaluation_changed_authoritative_snapshot": false,
+    "scope": "Existing synthetic normal-runtime compatibility check; identifiers/config copied from trusted fixture orchestration. No independent scientific-quality or replay measurement from this single terminal snapshot."
+  },
+  "/tmp/rh-omnigent-phased-verified": {
+    "report": {
+      "schema_version": 1,
+      "measurement": "workflow_correctness",
+      "status": "incomplete",
+      "question_id": "dc4f72af522b4d2e80c821b378f1bf44",
+      "pipeline_version_id": "26e3310f897a4f619fa20921fbb7920b",
+      "snapshot_sha256": "71fe0b90e7d171e9b3fa87f216ff293cb8ad9651df79e64c8ad249e12a6649df",
+      "before_snapshot_sha256": null,
+      "expectation_sha256": "e8dda1bcecad71dc20810f0193aca1032e5acbbd43fd10701f5f7ae5d9b9b759",
+      "counts": {
+        "passed": 23,
+        "failed": 0,
+        "unknown": 1
+      },
+      "checks": [
+        {
+          "check": "snapshot.stable_registry",
+          "status": "passed",
+          "detail": null
+        },
+        {
+          "check": "pipeline.original_configuration",
+          "status": "passed",
+          "detail": null
+        },
+        {
+          "check": "publication.lineage",
+          "status": "passed",
+          "detail": {
+            "invalid_observation_ids": []
+          }
+        },
+        {
+          "check": "capture.integrity",
+          "status": "passed",
+          "detail": {}
+        },
+        {
+          "check": "collection.339491819af24ec685993a569990e87e.exists_in_scope",
+          "status": "passed",
+          "detail": null
+        },
+        {
+          "check": "collection.339491819af24ec685993a569990e87e.request_identity",
+          "status": "passed",
+          "detail": null
+        },
+        {
+          "check": "collection.339491819af24ec685993a569990e87e.terminal_status",
+          "status": "passed",
+          "detail": {
+            "expected": "succeeded",
+            "observed": "succeeded"
+          }
+        },
+        {
+          "check": "collection.339491819af24ec685993a569990e87e.reserved_run_id",
+          "status": "passed",
+          "detail": null
+        },
+        {
+          "check": "collection.339491819af24ec685993a569990e87e.run_exists",
+          "status": "passed",
+          "detail": null
+        },
+        {
+          "check": "collection.339491819af24ec685993a569990e87e.explicit_source_expectations",
+          "status": "passed",
+          "detail": null
+        },
+        {
+          "check": "collection.339491819af24ec685993a569990e87e.source_configurations",
+          "status": "passed",
+          "detail": null
+        },
+        {
+          "check": "collection.339491819af24ec685993a569990e87e.original_configuration",
+          "status": "passed",
+          "detail": null
+        },
+        {
+          "check": "collection.339491819af24ec685993a569990e87e.run_status",
+          "status": "passed",
+          "detail": {
+            "expected": "succeeded",
+            "observed": "succeeded"
+          }
+        },
+        {
+          "check": "collection.339491819af24ec685993a569990e87e.reported_result",
+          "status": "passed",
+          "detail": null
+        },
+        {
+          "check": "collection.339491819af24ec685993a569990e87e.policy.status",
+          "status": "passed",
+          "detail": {
+            "expected": "succeeded",
+            "observed": "succeeded"
+          }
+        },
+        {
+          "check": "collection.339491819af24ec685993a569990e87e.policy.publication",
+          "status": "passed",
+          "detail": {
+            "expected_count": 1,
+            "observed_count": 1
+          }
+        },
+        {
+          "check": "export.d384977836984e4a8a628850d688b168.exists_in_scope",
+          "status": "passed",
+          "detail": null
+        },
+        {
+          "check": "export.d384977836984e4a8a628850d688b168.request_identity",
+          "status": "passed",
+          "detail": null
+        },
+        {
+          "check": "export.d384977836984e4a8a628850d688b168.terminal_status",
+          "status": "passed",
+          "detail": {
+            "expected": "succeeded",
+            "observed": "succeeded"
+          }
+        },
+        {
+          "check": "export.d384977836984e4a8a628850d688b168.fixed_cutoff_records",
+          "status": "passed",
+          "detail": null
+        },
+        {
+          "check": "export.d384977836984e4a8a628850d688b168.expected_record_count",
+          "status": "passed",
+          "detail": null
+        },
+        {
+          "check": "export.d384977836984e4a8a628850d688b168.manifest",
+          "status": "passed",
+          "detail": null
+        },
+        {
+          "check": "export.d384977836984e4a8a628850d688b168.returned_manifest",
+          "status": "passed",
+          "detail": null
+        },
+        {
+          "check": "replay.identity_and_publication",
+          "status": "unknown",
+          "detail": "No replay/reopen comparison requested"
+        }
+      ],
+      "unmeasured": [
+        "source_content_entailment",
+        "scientific_usefulness",
+        "model_cost"
+      ]
+    },
+    "evaluation_changed_authoritative_snapshot": false,
+    "scope": "Existing synthetic normal-runtime compatibility check; identifiers/config copied from trusted fixture orchestration. No independent scientific-quality or replay measurement from this single terminal snapshot."
+  }
+}

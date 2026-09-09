@@ -1,0 +1,1 @@
+The integration launcher writes research.yaml here with absolute Research Harness Python and case-manifest paths. Generate a case bundle with the integration module; this template alone is not runnable. Per-case configuration prevents Omnigent's MCP pool from mixing independent research cases.

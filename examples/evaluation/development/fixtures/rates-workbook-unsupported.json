@@ -1,0 +1,10 @@
+{
+  "authorship": "Synthetic fixture authored by Codex; no live source was sampled",
+  "search_results": [
+    {
+      "url": "https://central-bank.fixture.example/rates.xlsx",
+      "title": "Authored search result"
+    }
+  ],
+  "responses": []
+}

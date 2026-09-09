@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "scope": "Local Postgres/MinIO workflow, exact fixture program, full selected pytest output and research/job/export artifacts. Runtime service credentials and database volumes excluded.",
+  "archive": "artifacts.tar.gz",
+  "archive_sha256": "344894a6c5d90571f44b7a97ce1ade859864c9b8fe756c6fec125834a29df44b",
+  "files": {
+    "acceptance.json": "51eb9dd4b47d0aa57484f352ad3a608852459a5674ee7b95ba95a57acc6b2288",
+    "files.json": "f8199a942ba98c03c8e822cc992a2cee83ea008e6cf4f846d8b313550599f126",
+    "fixture-programs/examples/evaluation/shared_storage_fixture.py": "9fdecc6eec445ade3f8f95848b75b0bbf93d2c9040da34d8e5f4f0071d76bbc0",
+    "foreign/context.json": "6c5d13fd67783176ac6cd4b4cb4fe313c828be4a94116e6a555653a4b32189cb",
+    "pytest.log": "912d2bf0c2a3e7c9adea356834a68cf14c554410b16ea8d240df25a13b94fe1b",
+    "pytest.xml": "adcd7135622ed9d490e342fa5d9f09f0dc9c9675f502f63a3817a6e979698894",
+    "recovered-export.jsonl": "f98060646e97011067caedf6789d3165eb3348d33b46ec36d959d2b62e2be44b",
+    "research/context.json": "c6203c87f8c3fc479337e2bba508ccbe74b9d4c9f0afb8c9eac19e34526be024",
+    "research/jobs/54d40003367d46fd9e5005c52972fd13/job.json": "6c611c2209add6263859fb4605c5860b23869e1a260cbb6d633f1ae1edd7b43b",
+    "research/jobs/54d40003367d46fd9e5005c52972fd13/worker.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "research/jobs/92466518ff0945dbb73d59aabc04d9e0/job.json": "28429856c11af3cd3b220cfee7fa6e75cc14a8fa6c3993820e86a2e02025c8eb",
+    "research/jobs/92466518ff0945dbb73d59aabc04d9e0/worker.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "research/jobs/d81732dfa005450bb70b28766b5033aa/job.json": "29df610162f8e07e0a72bd7635192f4a999041cea5c19b0483232318fbc2da53",
+    "research/jobs/d81732dfa005450bb70b28766b5033aa/worker.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "research/pipeline.json": "74c5d706db733f95b965e63c61762d0b4934765c5337acf7d158826a1d2bf0d0",
+    "research/probes.json": "ef40798ab1083efcabae1d69f32998bf104991db68e27b7a038f0d7118d3fece",
+    "research/proposal.json": "bf15f39971b38b4b021f5fda7b5349b203152ce9bd862deec269825326bf30fe",
+    "research/proposal.md": "45964871f9d8ef9f1cdb1fd00125e8436a25668f9c16360bf8ccb64cf9107901",
+    "research/receipts.json": "1550900f8b01c772b94f65966e1406b6baa98d7665da5ef397634cc916483bab",
+    "research/trace.jsonl": "ea959484364c8659d7c2e73155e1c87ac0d43e805b982010d7aa6b519de93fcb",
+    "workflow.json": "e97601aea866a518949931d23063badafe77511c93efd8231551a8f99566308f"
+  },
+  "verification": {
+    "file_hashes": true,
+    "tests_passed": 125,
+    "postgres_s3_parameterizations": 49,
+    "workflow": "passed"
+  }
+}

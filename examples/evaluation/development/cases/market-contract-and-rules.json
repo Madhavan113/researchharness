@@ -1,0 +1,77 @@
+{
+  "id": "market-contract-and-rules",
+  "title": "Contract metadata and settlement text",
+  "brief": "Collect prediction-market contract metadata plus authoritative settlement wording. A market title or price series alone does not establish the resolution criteria. Do not generate trading advice.",
+  "topic_group": "prediction-contracts",
+  "source_families": [
+    "prediction-exchange"
+  ],
+  "tags": [
+    "multiple-needs",
+    "settlement-evidence"
+  ],
+  "review_status": "authored",
+  "review_notes": "Authored development contract, not independently human-reviewed. Endpoints, records, and search ordering are synthetic.",
+  "specification": {
+    "requirements": [
+      {
+        "id": "contract-metadata",
+        "weight": 1,
+        "any_of": [
+          {
+            "url": "https://prediction-exchange.fixture.example/contracts.json",
+            "connector": "json"
+          }
+        ]
+      },
+      {
+        "id": "settlement-wording",
+        "weight": 2,
+        "any_of": [
+          {
+            "url": "https://prediction-exchange.fixture.example/rules.json",
+            "connector": "json",
+            "required_pointers": [
+              "/settlement_text"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "fixtures": {
+    "path": "fixtures/market-contract-and-rules.json",
+    "sha256": "426418c3b2d06dae3f4de093f23add48d91c51e29ede06476387cf80763b4e3a"
+  },
+  "sources": [
+    {
+      "id": "contract-catalog",
+      "name": "Contract Catalog",
+      "connector": "json",
+      "url": "https://prediction-exchange.fixture.example/contracts.json",
+      "items_pointer": "/items",
+      "id_pointer": "/id"
+    },
+    {
+      "id": "contract-rules",
+      "name": "Contract Rules",
+      "connector": "json",
+      "url": "https://prediction-exchange.fixture.example/rules.json",
+      "items_pointer": "/items",
+      "id_pointer": "/id",
+      "required_pointers": [
+        "/settlement_text"
+      ]
+    }
+  ],
+  "fixture_plan": {
+    "source_ids": [
+      "contract-catalog",
+      "contract-rules"
+    ],
+    "unsupported": []
+  },
+  "manual_checks": [
+    "Read the source wording and verify the proposed join preserves the correct contract's criteria."
+  ]
+}

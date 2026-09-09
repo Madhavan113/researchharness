@@ -1,0 +1,51 @@
+{
+  "id": "weather-alert-feed",
+  "title": "Official weather alerts",
+  "brief": "Monitor the official weather alert feed and retain stable alert ids and publication dates. State that feed retention does not establish a historical alert archive.",
+  "topic_group": "weather-alerts",
+  "source_families": [
+    "weather-office"
+  ],
+  "tags": [
+    "rss",
+    "freshness-limit"
+  ],
+  "review_status": "authored",
+  "review_notes": "Authored development contract, not independently human-reviewed. Endpoints, records, and search ordering are synthetic.",
+  "specification": {
+    "requirements": [
+      {
+        "id": "weather-alerts",
+        "weight": 1,
+        "any_of": [
+          {
+            "url": "https://weather-office.fixture.example/alerts.xml",
+            "connector": "rss"
+          }
+        ]
+      }
+    ]
+  },
+  "fixtures": {
+    "path": "fixtures/weather-alert-feed.json",
+    "sha256": "146fc0302eef52b4b64811b8ddf7ae8e18c19afb7ebe71282f8b68b2dccc55ff"
+  },
+  "sources": [
+    {
+      "id": "official-alerts",
+      "name": "Weather alert feed",
+      "connector": "rss",
+      "url": "https://weather-office.fixture.example/alerts.xml"
+    }
+  ],
+  "fixture_plan": {
+    "source_ids": [
+      "official-alerts"
+    ],
+    "unsupported": []
+  },
+  "manual_checks": [
+    "Review relevance and whether the source scope answers the full brief.",
+    "Confirm the proposal states sample, history, and freshness limitations without inventing access."
+  ]
+}

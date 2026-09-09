@@ -1,0 +1,64 @@
+{
+  "status": "passed",
+  "verification": "Playwright browser with synthetic model HTTP responses and real local source/worker processes",
+  "date": "2026-09-08",
+  "live_model_quality_verified": false,
+  "session_id": "30cc67d594f74ad4bcefdabc496d2782",
+  "server_restart_generation": 1,
+  "saved": {
+    "discovery_id": "849fd65b7a934ea68c57a5484df20151",
+    "pipeline_version_id": "39611da64a9e443c912e66e19d1b6f76",
+    "proposal_id": "71a52a421ece42fcaec2a5dbc015f9fc",
+    "question_id": "414771de510348e6ada6c619aec148d7"
+  },
+  "checks": {
+    "brief_submitted_through_chat": true,
+    "saved_proposal_rendered": true,
+    "collection_and_export_requested_through_chat": true,
+    "tool_output_provenance_inspected": true,
+    "reopened_same_session_after_full_restart": true,
+    "reopened_export_id_unchanged": true,
+    "unchanged_publication_snapshot": true
+  },
+  "state": {
+    "jobs": [
+      {
+        "id": "764b461093534c27bcd3ceb1d82c9fd1",
+        "operation_id": "export-1",
+        "status": "succeeded",
+        "run_id": null
+      },
+      {
+        "id": "818799e7b30446e88abed92692c8c88f",
+        "operation_id": "collect-1",
+        "status": "succeeded",
+        "run_id": "840a6556653b4f669da6eb90dba4c786"
+      }
+    ],
+    "counts": {
+      "runs": 1,
+      "source_runs": 1,
+      "captures": 1,
+      "observations": 1,
+      "versions": 1
+    }
+  },
+  "usage": {
+    "phase": "workflow",
+    "complete": false,
+    "lower_bound": {
+      "input_tokens": 2000,
+      "output_tokens": 200,
+      "total_tokens": 2200
+    }
+  },
+  "limitations": [
+    "Fixture response wording does not establish live model usefulness.",
+    "Optional upstream resources/github request returns 404; workflow operations succeeded.",
+    "Raw tool outputs are inspectable; polished research summary depends on model behavior."
+  ],
+  "screenshots": {
+    "omnigent-discovery.png": "5d7360aee269db21f65e1a9eefb3a36f19dd9edc3f72757708eee665aa3a3760",
+    "omnigent-reopened.png": "fb8585704f825db04bc720195346b4139ffede94cf50efca4e38c289bfdd5866"
+  }
+}

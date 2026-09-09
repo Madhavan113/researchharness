@@ -1,0 +1,29 @@
+{
+  "authorship": "Synthetic fixture authored by Codex; no live source was sampled",
+  "search_results": [
+    {
+      "url": "https://filings-registry.fixture.example/index.json",
+      "title": "Authored search result"
+    }
+  ],
+  "responses": [
+    {
+      "url": "https://filings-registry.fixture.example/index.json",
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "synthetic": true,
+        "items": [
+          {
+            "row": "1",
+            "accession": "000-fixture-2026",
+            "form": "ANNUAL",
+            "filed_at": "2026-09-01T10:00:00Z"
+          }
+        ]
+      }
+    }
+  ]
+}

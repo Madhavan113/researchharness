@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "id": "research-discovery-development-v1",
+  "split": "development",
+  "description": "Twenty authored synthetic development contracts. No independent human review or live model quality claims.",
+  "cases": [
+    {
+      "path": "cases/export-notices.json",
+      "sha256": "c53ebbdfd6cfe5cd5c217f65cb6f5427bd0408138007f5d614d0335f6c2eddf0"
+    },
+    {
+      "path": "cases/license-history-access.json",
+      "sha256": "a6ccf211298241ae83bcd40c43915734ff250276be4fe0c0f97cbc306e7eb091"
+    },
+    {
+      "path": "cases/tariff-pagination.json",
+      "sha256": "a334a032e86b2ec3831931e3be9eaa6e0376e4e470951438c75eca574764f0c8"
+    },
+    {
+      "path": "cases/customs-relevance.json",
+      "sha256": "2a2412641bc9481670bb7e0227ab8e8090e8280fded6d9c553732eaa9ed65c6f"
+    },
+    {
+      "path": "cases/sanctions-current-history.json",
+      "sha256": "065ed136b1ca6064f2d876331b305577304b40c56fcac35f0cc3a42196e8b579"
+    },
+    {
+      "path": "cases/central-bank-publication-time.json",
+      "sha256": "4306dcdce071b37b5b49da93982e311f76b22ed867bbf8f07d608d1366c37a2b"
+    },
+    {
+      "path": "cases/rates-workbook-unsupported.json",
+      "sha256": "028d5dc5557149ec10c30616d9836a0f7131250e7ed0ae3b266667bc8eb3299b"
+    },
+    {
+      "path": "cases/procurement-stable-identity.json",
+      "sha256": "7f1329e757e26b6b70161501472db9d3c4cc1a042d0ffa17092d822147fffa05"
+    },
+    {
+      "path": "cases/award-terminal-pagination.json",
+      "sha256": "9528fc85fd507e16cd7df60c199712896bf966612940911b47318bb439779504"
+    },
+    {
+      "path": "cases/cyber-advisory-dates.json",
+      "sha256": "1a9c0b627380dd0150bba8e6e9bf0ae725579729b6ee6fbb85bc12e9b1cd913f"
+    },
+    {
+      "path": "cases/vendor-valid-alternatives.json",
+      "sha256": "14a159c05cd285c38c7fe5f37da80cb4d3dc2f32b35af7315983282345c7450c"
+    },
+    {
+      "path": "cases/energy-series-relevance.json",
+      "sha256": "a6ca22df6b9f21e91db6e4325799fa0b74f748257997d94d45792631dd1f6417"
+    },
+    {
+      "path": "cases/grid-next-url-pagination.json",
+      "sha256": "3bf1c93bfbebb4c5680eb838aae40c72f5bc96ad3f6a0d5646fc5d0eb918db43"
+    },
+    {
+      "path": "cases/port-page-budget.json",
+      "sha256": "0ad97c15b0c74223b31889b8b8c73c93c15b862d2895a1c4dd90649ee981a575"
+    },
+    {
+      "path": "cases/weather-alert-feed.json",
+      "sha256": "3da8ab987af0f28b12cef8838bba4853bc3262092004d8253ee718782e3fdf9d"
+    },
+    {
+      "path": "cases/recall-source-relevance.json",
+      "sha256": "b92ae480d85b426965814915a076ed0ebdc5a883d28c4f7c6d95f17a77299e2a"
+    },
+    {
+      "path": "cases/issuer-release-timestamp.json",
+      "sha256": "87a50f039e029027666b401b6116ae4ee5c833dae4dae204239577498324497b"
+    },
+    {
+      "path": "cases/filing-stable-accession.json",
+      "sha256": "a82bcf368c4ba6198523740378a1fc5ca5476238bf43f227746f496ab6cd3f67"
+    },
+    {
+      "path": "cases/market-contract-and-rules.json",
+      "sha256": "a8396315d89c16b4a894fb3f4182cc0117e3bcaaa2b8917c44fd3fce14111b8a"
+    },
+    {
+      "path": "cases/legislation-unsupported-votes.json",
+      "sha256": "7724057eedcdb163ce4b0f6ade975d429db62cfafd4257ecf6946c605fb139de"
+    }
+  ]
+}

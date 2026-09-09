@@ -1,0 +1,305 @@
+{
+  "id": "4c7e3952a92043baa96d8ae73a26d533",
+  "agent_id": "b4b2625b0ebf4905b2776873ecf6f75e",
+  "agent_name": "research-6e419deba3b7483190d553e1a3642afe",
+  "status": "idle",
+  "background_task_count": null,
+  "background_tasks": null,
+  "created_at": 1788893861,
+  "updated_at": 1788893864,
+  "title": "Find a public feed of official policy changes with stable ids and publication timestamps.",
+  "labels": {
+    "omnigent.last_task_error_cause": "",
+    "omnigent.last_task_error_code": "",
+    "omnigent.last_task_error_message": "",
+    "omnigent.last_task_error_remediation": "",
+    "omnigent.last_task_error_title": "",
+    "omnigent.ui": "terminal"
+  },
+  "runner_id": "runner_token_864c6104db7849abfb824e0f5896e4ed",
+  "host_id": null,
+  "runner_online": true,
+  "host_online": null,
+  "host_resumable": false,
+  "reasoning_effort": null,
+  "items": [
+    {
+      "id": "243dad6da82b42bdae883ea7826b16f7",
+      "type": "resource_event",
+      "status": "completed",
+      "response_id": "4c7e3952a92043baa96d8ae73a26d533",
+      "created_at": 1788893863,
+      "data": {
+        "event_type": "session.resource.created",
+        "resource_id": "terminal_tui_main",
+        "resource_type": "terminal",
+        "resource": {
+          "id": "terminal_tui_main",
+          "object": "session.resource",
+          "type": "terminal",
+          "session_id": "4c7e3952a92043baa96d8ae73a26d533",
+          "name": "tui:main",
+          "metadata": {
+            "terminal_name": "tui",
+            "session_key": "main",
+            "running": true,
+            "tmux_socket": "/var/folders/j0/55gy5p7s4_1fpc01kcrvcy_00000gn/T/omnigent-terminal-le9v10pz/tmux.sock",
+            "tmux_target": "main"
+          },
+          "environment": "env_terminal_tui_main"
+        }
+      },
+      "created_by": null
+    },
+    {
+      "id": "89a94003a3ee412cb318d1de433190d6",
+      "type": "message",
+      "status": "completed",
+      "response_id": "turn_690b1867f56543019b66ea35c0b6aa5b",
+      "created_at": 1788893863,
+      "data": {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Find a public feed of official policy changes with stable ids and publication timestamps."
+          }
+        ],
+        "model": null
+      },
+      "created_by": null
+    },
+    {
+      "id": "7dcc55053c9b4f6e85a4b7866644aa87",
+      "type": "function_call",
+      "status": "completed",
+      "response_id": "resp_5209c4c81a92441984220f91",
+      "created_at": 1788893864,
+      "data": {
+        "model": "research-6e419deba3b7483190d553e1a3642afe",
+        "name": "research__get_research_context",
+        "arguments": "{}",
+        "call_id": "call_0"
+      },
+      "created_by": null
+    },
+    {
+      "id": "cfdc4f80a8b9482da1566a8725b69545",
+      "type": "function_call_output",
+      "status": "completed",
+      "response_id": "resp_5209c4c81a92441984220f91",
+      "created_at": 1788893864,
+      "data": {
+        "call_id": "call_0",
+        "output": "{\n  \"operation_id\": \"a1e2e192fe90424492bdcda0594a8de2\",\n  \"status\": \"error\",\n  \"data\": null,\n  \"evidence_refs\": [],\n  \"error\": {\n    \"code\": \"not_initialized\",\n    \"message\": \"Begin or resume a research discovery first\",\n    \"retryable\": false\n  },\n  \"remaining\": null\n}"
+      },
+      "created_by": null
+    },
+    {
+      "id": "5a4c7e90c95043c594971a66dd42961f",
+      "type": "function_call",
+      "status": "completed",
+      "response_id": "resp_5209c4c81a92441984220f91",
+      "created_at": 1788893864,
+      "data": {
+        "model": "research-6e419deba3b7483190d553e1a3642afe",
+        "name": "research__begin_research",
+        "arguments": "{\"brief\": \"Find a public feed of official policy changes with stable ids and publication timestamps.\"}",
+        "call_id": "call_1"
+      },
+      "created_by": null
+    },
+    {
+      "id": "746edabd331b4c338296890afc436cde",
+      "type": "function_call_output",
+      "status": "completed",
+      "response_id": "resp_5209c4c81a92441984220f91",
+      "created_at": 1788893864,
+      "data": {
+        "call_id": "call_1",
+        "output": "{\n  \"operation_id\": \"6ebf1d646bce455c886ab5e46c1495a5\",\n  \"status\": \"ok\",\n  \"data\": {\n    \"question_id\": \"de0f7b0683d04c448d2c1dae64b92a1f\",\n    \"discovery_id\": \"c21c1c177f5e4b1d9f289be8e2d3fc79\",\n    \"brief\": \"Find a public feed of official policy changes with stable ids and publication timestamps.\",\n    \"model\": \"gpt-5.4-mini\",\n    \"runtime\": {\n      \"adapter\": \"openai-agents\",\n      \"authored_bundle_sha256\": \"c3bd1afb97577f28e9349b07c2cff3e11864d4c2171e2adaa3d72c6afad38a42\",\n      \"authored_config_sha256\": \"3e41404785db39ff84e6dc6d8013b4f6fc023088948d3fcb5bdaa1301ed4ba0e\",\n      \"case_id\": \"research-6e419deba3b7483190d553e1a3642afe\",\n      \"model\": \"gpt-5.4-mini\",\n      \"runtime_version\": \"be042b390e293a8d586cbb7e403a2ce0ce38fc62\",\n      \"server_url\": \"http://127.0.0.1:57380\",\n      \"session_id\": \"4c7e3952a92043baa96d8ae73a26d533\",\n      \"strategy_sha256\": \"28b67d3de67ee65b42ba107baa368b8fd1b2b05a0cd970782e2875f42c9d347c\"\n    },\n    \"status\": \"running\",\n    \"deadline_at\": \"2026-09-08T19:07:44.123807Z\"\n  },\n  \"evidence_refs\": [],\n  \"error\": null,\n  \"remaining\": {\n    \"inspection\": 16,\n    \"probe\": 12,\n    \"search\": 8\n  }\n}"
+      },
+      "created_by": null
+    },
+    {
+      "id": "9ca16b87621c4e15aa91bb61099e871f",
+      "type": "function_call",
+      "status": "completed",
+      "response_id": "resp_5209c4c81a92441984220f91",
+      "created_at": 1788893864,
+      "data": {
+        "model": "research-6e419deba3b7483190d553e1a3642afe",
+        "name": "research__search_sources",
+        "arguments": "{\"query\": \"official policy feed\", \"operation_id\": \"search-1\"}",
+        "call_id": "call_2"
+      },
+      "created_by": null
+    },
+    {
+      "id": "66a59a3ae1c64ea99fa8b16f3c5c7837",
+      "type": "function_call_output",
+      "status": "completed",
+      "response_id": "resp_5209c4c81a92441984220f91",
+      "created_at": 1788893864,
+      "data": {
+        "call_id": "call_2",
+        "output": "{\n  \"operation_id\": \"search-1\",\n  \"status\": \"ok\",\n  \"data\": {\n    \"results\": [\n      {\n        \"url\": \"http://127.0.0.1:57377/policy.json\",\n        \"title\": \"Fixture policy feed\"\n      }\n    ],\n    \"provider_response\": {\n      \"structuredContent\": {\n        \"results\": [\n          {\n            \"url\": \"http://127.0.0.1:57377/policy.json\",\n            \"title\": \"Fixture policy feed\"\n          }\n        ]\n      },\n      \"isError\": false\n    },\n    \"provider_arguments\": {\n      \"query\": \"official policy feed\",\n      \"filters\": {}\n    },\n    \"provider_usage\": {\n      \"fixture_calls\": 1\n    },\n    \"provider\": \"normal-omnigent-offline-fixture\",\n    \"query\": \"official policy feed\",\n    \"filters\": {},\n    \"operation_id\": \"search-1\",\n    \"discovery_id\": \"c21c1c177f5e4b1d9f289be8e2d3fc79\",\n    \"receipt_id\": \"d6c11fb7e9034b1fa7fbf5cea73c1b7f\"\n  },\n  \"evidence_refs\": [\n    {\n      \"receipt_id\": \"d6c11fb7e9034b1fa7fbf5cea73c1b7f\",\n      \"discovery_id\": \"c21c1c177f5e4b1d9f289be8e2d3fc79\"\n    }\n  ],\n  \"error\": null,\n  \"remaining\": {\n    \"inspection\": 16,\n    \"probe\": 12,\n    \"search\": 7\n  }\n}"
+      },
+      "created_by": null
+    },
+    {
+      "id": "b13cc8421d95479892faae5e96de2efe",
+      "type": "function_call",
+      "status": "completed",
+      "response_id": "resp_5209c4c81a92441984220f91",
+      "created_at": 1788893864,
+      "data": {
+        "model": "research-6e419deba3b7483190d553e1a3642afe",
+        "name": "research__inspect_source",
+        "arguments": "{\"url\": \"http://127.0.0.1:57377/policy.json\", \"operation_id\": \"inspect-1\"}",
+        "call_id": "call_3"
+      },
+      "created_by": null
+    },
+    {
+      "id": "ad4616fe75d0462f8c256bcf9d68b6fb",
+      "type": "function_call_output",
+      "status": "completed",
+      "response_id": "resp_5209c4c81a92441984220f91",
+      "created_at": 1788893864,
+      "data": {
+        "call_id": "call_3",
+        "output": "{\n  \"operation_id\": \"inspect-1\",\n  \"status\": \"ok\",\n  \"data\": {\n    \"capture_id\": \"c7658cce3bf64525927d7638cd7ade84\",\n    \"requested_url\": \"http://127.0.0.1:57377/policy.json\",\n    \"url\": \"http://127.0.0.1:57377/policy.json\",\n    \"status_code\": 200,\n    \"observed_at\": \"2026-09-08T18:57:44.184043Z\",\n    \"body_sha256\": \"6eae91360f7dd2b109fb4959240e6350ebc965a53a7ac85913835f9b6bbecb6a\",\n    \"content_type\": \"application/json\",\n    \"top_level_type\": \"dict\",\n    \"top_level_keys\": [\n      \"items\"\n    ],\n    \"preview\": \"{\\\"items\\\":[{\\\"id\\\":\\\"policy-1\\\",\\\"published_at\\\":\\\"2026-09-01T00:00:00Z\\\",\\\"title\\\":\\\"Fixture export policy\\\"}]}\",\n    \"operation_id\": \"inspect-1\",\n    \"discovery_id\": \"c21c1c177f5e4b1d9f289be8e2d3fc79\",\n    \"receipt_id\": \"639d2244368a4ce0b43f871192f09a9b\"\n  },\n  \"evidence_refs\": [\n    {\n      \"receipt_id\": \"639d2244368a4ce0b43f871192f09a9b\",\n      \"capture_id\": \"c7658cce3bf64525927d7638cd7ade84\",\n      \"discovery_id\": \"c21c1c177f5e4b1d9f289be8e2d3fc79\"\n    }\n  ],\n  \"error\": null,\n  \"remaining\": {\n    \"inspection\": 15,\n    \"probe\": 12,\n    \"search\": 7\n  }\n}"
+      },
+      "created_by": null
+    },
+    {
+      "id": "880f7829943a4c42b74fc1a3df34bec2",
+      "type": "function_call",
+      "status": "completed",
+      "response_id": "resp_5209c4c81a92441984220f91",
+      "created_at": 1788893864,
+      "data": {
+        "model": "research-6e419deba3b7483190d553e1a3642afe",
+        "name": "research__probe_source",
+        "arguments": "{\"source\": {\"id\": \"policy\", \"name\": \"Fixture policy feed\", \"connector\": \"json\", \"url\": \"http://127.0.0.1:57377/policy.json\", \"parameters\": [], \"pagination\": {\"mode\": \"none\", \"next_pointer\": null, \"cursor_parameter\": null, \"stop_when_missing\": false}, \"items_pointer\": \"/items\", \"id_pointer\": \"/id\", \"published_pointer\": \"/published_at\", \"required_pointers\": [\"/title\"], \"include_orderbooks\": false, \"poll_interval_seconds\": 900, \"max_pages\": 10, \"max_records\": 5000, \"min_records\": 1, \"enabled\": true}, \"operation_id\": \"probe-1\"}",
+        "call_id": "call_4"
+      },
+      "created_by": null
+    },
+    {
+      "id": "99aa90a6446842238cd6ff6aecf7615a",
+      "type": "function_call_output",
+      "status": "completed",
+      "response_id": "resp_5209c4c81a92441984220f91",
+      "created_at": 1788893864,
+      "data": {
+        "call_id": "call_4",
+        "output": "{\n  \"operation_id\": \"probe-1\",\n  \"status\": \"ok\",\n  \"data\": {\n    \"probe_id\": \"fd6400412dfc42baaa7774a9e8a3c3f3\",\n    \"source_id\": \"policy\",\n    \"source_fingerprint\": \"d24af31f0a3efba1d6f1e3b756d4dabe2600fcf0ed798a5d18d5574e3667020d\",\n    \"status\": \"verified_sample\",\n    \"url\": \"http://127.0.0.1:57377/policy.json\",\n    \"observed_at\": \"2026-09-08T18:57:44.213243Z\",\n    \"record_count\": 1,\n    \"record_kinds\": [\n      \"observation\"\n    ],\n    \"publication_profile\": {\n      \"records_with_declared_timestamp\": 1,\n      \"oldest_declared_timestamp\": \"2026-09-01T00:00:00.000000Z\",\n      \"newest_declared_timestamp\": \"2026-09-01T00:00:00.000000Z\"\n    },\n    \"sample_fields\": [\n      \"id\",\n      \"published_at\",\n      \"title\"\n    ],\n    \"samples\": [\n      {\n        \"kind\": \"observation\",\n        \"key\": \"policy-1\",\n        \"title\": \"Fixture export policy\",\n        \"published_at\": \"2026-09-01T00:00:00.000000Z\",\n        \"content_scope\": null,\n        \"data_preview\": \"{\\\"id\\\":\\\"policy-1\\\",\\\"published_at\\\":\\\"2026-09-01T00:00:00Z\\\",\\\"title\\\":\\\"Fixture export policy\\\"}\"\n      }\n    ],\n    \"issues\": [],\n    \"error\": null,\n    \"captures\": [\n      {\n        \"capture_id\": \"2db273d1ce544beaada4a71de8c5a0c5\",\n        \"url\": \"http://127.0.0.1:57377/policy.json\",\n        \"body_sha256\": \"6eae91360f7dd2b109fb4959240e6350ebc965a53a7ac85913835f9b6bbecb6a\",\n        \"status_code\": 200\n      }\n    ],\n    \"limits\": [\n      \"One-page structural sample; pagination completeness, historical coverage, and sustained availability are not established.\",\n      \"Order-book follow-up requests are tested during pipeline execution.\"\n    ],\n    \"operation_id\": \"probe-1\",\n    \"discovery_id\": \"c21c1c177f5e4b1d9f289be8e2d3fc79\",\n    \"receipt_id\": \"1f7444642c094ab5b38638229e39dd3f\"\n  },\n  \"evidence_refs\": [\n    {\n      \"receipt_id\": \"1f7444642c094ab5b38638229e39dd3f\",\n      \"discovery_id\": \"c21c1c177f5e4b1d9f289be8e2d3fc79\"\n    }\n  ],\n  \"error\": null,\n  \"remaining\": {\n    \"inspection\": 15,\n    \"probe\": 11,\n    \"search\": 7\n  }\n}"
+      },
+      "created_by": null
+    },
+    {
+      "id": "9d61abdb866941f28b74ba46a5e83c02",
+      "type": "function_call",
+      "status": "completed",
+      "response_id": "resp_5209c4c81a92441984220f91",
+      "created_at": 1788893864,
+      "data": {
+        "model": "research-6e419deba3b7483190d553e1a3642afe",
+        "name": "research__submit_proposal",
+        "arguments": "{\"draft\": {\"name\": \"fixture-policy\", \"title\": \"Policy feed\", \"research_question\": \"Find a public feed of official policy changes with stable ids and publication timestamps.\", \"needs\": [{\"id\": \"policy\", \"description\": \"Official policy changes\", \"required\": true}], \"candidates\": [{\"name\": \"Policy feed\", \"purpose\": \"Monitor official changes\", \"covers\": [\"policy\"], \"status\": \"ready\", \"evidence_urls\": [\"http://127.0.0.1:57377/policy.json\"], \"source\": {\"id\": \"policy\", \"name\": \"Fixture policy feed\", \"connector\": \"json\", \"url\": \"http://127.0.0.1:57377/policy.json\", \"parameters\": [], \"pagination\": {\"mode\": \"none\", \"next_pointer\": null, \"cursor_parameter\": null, \"stop_when_missing\": false}, \"items_pointer\": \"/items\", \"id_pointer\": \"/id\", \"published_pointer\": \"/published_at\", \"required_pointers\": [\"/title\"], \"include_orderbooks\": false, \"poll_interval_seconds\": 900, \"max_pages\": 10, \"max_records\": 5000, \"min_records\": 1, \"enabled\": true}, \"probe_id\": \"fd6400412dfc42baaa7774a9e8a3c3f3\", \"freshness_assessment\": \"Current sample\", \"historical_coverage\": \"No historical claim\", \"access_notes\": \"Offline fixture\", \"limitations\": [\"Fixture does not measure live source quality\"]}], \"open_questions\": []}, \"operation_id\": \"submit-1\"}",
+        "call_id": "call_5"
+      },
+      "created_by": null
+    },
+    {
+      "id": "68f7e7e730394a699d3b19837a36d92d",
+      "type": "function_call_output",
+      "status": "completed",
+      "response_id": "resp_5209c4c81a92441984220f91",
+      "created_at": 1788893864,
+      "data": {
+        "call_id": "call_5",
+        "output": "{\n  \"operation_id\": \"submit-1\",\n  \"status\": \"ok\",\n  \"data\": {\n    \"status\": \"proposed\",\n    \"created_at\": \"2026-09-08T18:57:44.238029Z\",\n    \"model\": \"gpt-5.4-mini\",\n    \"usage\": {},\n    \"web_search_calls\": 1,\n    \"successful_searches\": 1,\n    \"proposal\": {\n      \"name\": \"fixture-policy\",\n      \"title\": \"Policy feed\",\n      \"research_question\": \"Find a public feed of official policy changes with stable ids and publication timestamps.\",\n      \"needs\": [\n        {\n          \"id\": \"policy\",\n          \"description\": \"Official policy changes\",\n          \"required\": true\n        }\n      ],\n      \"candidates\": [\n        {\n          \"name\": \"Policy feed\",\n          \"purpose\": \"Monitor official changes\",\n          \"covers\": [\n            \"policy\"\n          ],\n          \"status\": \"ready\",\n          \"evidence_urls\": [\n            \"http://127.0.0.1:57377/policy.json\"\n          ],\n          \"source\": {\n            \"id\": \"policy\",\n            \"name\": \"Fixture policy feed\",\n            \"connector\": \"json\",\n            \"url\": \"http://127.0.0.1:57377/policy.json\",\n            \"parameters\": [],\n            \"pagination\": {\n              \"mode\": \"none\",\n              \"next_pointer\": null,\n              \"cursor_parameter\": null,\n              \"stop_when_missing\": false\n            },\n            \"items_pointer\": \"/items\",\n            \"id_pointer\": \"/id\",\n            \"published_pointer\": \"/published_at\",\n            \"required_pointers\": [\n              \"/title\"\n            ],\n            \"include_orderbooks\": false,\n            \"poll_interval_seconds\": 900,\n            \"max_pages\": 10,\n            \"max_records\": 5000,\n            \"min_records\": 1,\n            \"enabled\": true\n          },\n          \"probe_id\": \"fd6400412dfc42baaa7774a9e8a3c3f3\",\n          \"freshness_assessment\": \"Current sample\",\n          \"historical_coverage\": \"No historical claim\",\n          \"access_notes\": \"Offline fixture\",\n          \"limitations\": [\n            \"Fixture does not measure live source quality\"\n          ]\n        }\n      ],\n      \"open_questions\": []\n    },\n    \"uncovered_required_needs\": [],\n    \"verified_source_count\": 1,\n    \"observed_urls\": [\n      \"http://127.0.0.1:57377/policy.json\"\n    ],\n    \"registry\": {\n      \"question_id\": \"de0f7b0683d04c448d2c1dae64b92a1f\",\n      \"discovery_id\": \"c21c1c177f5e4b1d9f289be8e2d3fc79\",\n      \"proposal_id\": \"81a967a8ed014076b14690f7401d267d\",\n      \"pipeline_version_id\": \"4743031071e045b4a19db3ae142bf9ce\"\n    },\n    \"operation_id\": \"submit-1\",\n    \"discovery_id\": \"c21c1c177f5e4b1d9f289be8e2d3fc79\"\n  },\n  \"evidence_refs\": [],\n  \"error\": null,\n  \"remaining\": {\n    \"inspection\": 15,\n    \"probe\": 11,\n    \"search\": 7\n  }\n}"
+      },
+      "created_by": null
+    },
+    {
+      "id": "2bb7dbbd81b74433b48bca12c0c534c7",
+      "type": "message",
+      "status": "completed",
+      "response_id": "resp_5209c4c81a92441984220f91",
+      "created_at": 1788893864,
+      "data": {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "Saved verified pipeline {\"discovery_id\": \"c21c1c177f5e4b1d9f289be8e2d3fc79\", \"pipeline_version_id\": \"4743031071e045b4a19db3ae142bf9ce\", \"proposal_id\": \"81a967a8ed014076b14690f7401d267d\", \"question_id\": \"de0f7b0683d04c448d2c1dae64b92a1f\"}"
+          }
+        ],
+        "model": "research-6e419deba3b7483190d553e1a3642afe"
+      },
+      "created_by": null
+    },
+    {
+      "id": "8c9319f8078e4cbb8e1e61711886bc40",
+      "type": "message",
+      "status": "completed",
+      "response_id": "deny_6d6955e8d5a347289693777aa6dc69e5",
+      "created_at": 1788893864,
+      "data": {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "[Denied by policy: Blocked by the session cost-budget policy: spend $0.00 reached the $0.00 limit. You've hit the $0.00 cost budget. All model calls are blocked over budget.]"
+          }
+        ],
+        "model": "research-6e419deba3b7483190d553e1a3642afe"
+      },
+      "created_by": null
+    }
+  ],
+  "permission_level": 4,
+  "sub_agent_name": null,
+  "kind": "default",
+  "parent_session_id": null,
+  "root_conversation_id": "4c7e3952a92043baa96d8ae73a26d533",
+  "llm_model": "gpt-5.4-mini",
+  "harness": "openai-agents",
+  "model_override": null,
+  "cost_control_mode_override": null,
+  "subagent_routing_override": null,
+  "share_workspace_files": false,
+  "context_window": 272000,
+  "last_total_tokens": null,
+  "total_cost_usd": 0.00084,
+  "usage_by_model": {
+    "gpt-5.4-mini": {
+      "input_tokens": 700,
+      "output_tokens": 70,
+      "total_tokens": 770,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 0,
+      "total_cost_usd": 0.00084
+    }
+  },
+  "last_task_error": null,
+  "external_session_id": null,
+  "terminal_launch_args": null,
+  "pending_elicitations": [],
+  "pending_inputs": [],
+  "workspace": null,
+  "git_branch": null,
+  "archived": false,
+  "todos": [],
+  "skills": [],
+  "model_options": [],
+  "terminal_pending": false,
+  "sandbox_status": null,
+  "mcp_startup": null,
+  "active_response_id": null,
+  "project_id": null
+}

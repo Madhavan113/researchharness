@@ -1,0 +1,78 @@
+{
+  "id": "port-page-budget",
+  "title": "Port arrival catalog bounds",
+  "brief": "Collect the three-page arrival catalog within a declared request budget. A one-page cap must not be described as full enumeration.",
+  "topic_group": "port-arrivals",
+  "source_families": [
+    "port-authority"
+  ],
+  "tags": [
+    "pagination",
+    "page-budget"
+  ],
+  "review_status": "authored",
+  "review_notes": "Authored development contract, not independently human-reviewed. Endpoints, records, and search ordering are synthetic.",
+  "specification": {
+    "requirements": [
+      {
+        "id": "arrival-catalog",
+        "weight": 1,
+        "any_of": [
+          {
+            "url": "https://port-authority.fixture.example/arrivals",
+            "connector": "json",
+            "max_pages": 3,
+            "pagination": {
+              "mode": "cursor",
+              "next_pointer": "/next",
+              "cursor_parameter": "cursor"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "fixtures": {
+    "path": "fixtures/port-page-budget.json",
+    "sha256": "abc3a5358d73e5e4ea5712d4e3375a908c4d861c95b3281fc656f8e162bbd7ff"
+  },
+  "sources": [
+    {
+      "id": "single-page-budget",
+      "name": "Single Page Budget",
+      "connector": "json",
+      "url": "https://port-authority.fixture.example/arrivals",
+      "items_pointer": "/items",
+      "id_pointer": "/id",
+      "pagination": {
+        "mode": "cursor",
+        "next_pointer": "/next",
+        "cursor_parameter": "cursor"
+      },
+      "max_pages": 1
+    },
+    {
+      "id": "three-page-budget",
+      "name": "Three Page Budget",
+      "connector": "json",
+      "url": "https://port-authority.fixture.example/arrivals",
+      "items_pointer": "/items",
+      "id_pointer": "/id",
+      "pagination": {
+        "mode": "cursor",
+        "next_pointer": "/next",
+        "cursor_parameter": "cursor"
+      },
+      "max_pages": 3
+    }
+  ],
+  "fixture_plan": {
+    "source_ids": [
+      "three-page-budget"
+    ],
+    "unsupported": []
+  },
+  "manual_checks": [
+    "Verify all three pages during ingestion and reject partial publication when the page limit is exhausted."
+  ]
+}

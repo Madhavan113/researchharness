@@ -1,0 +1,9 @@
+{
+  "version": "0.13.0.dev0",
+  "commit": "be042b390e293a8d586cbb7e403a2ce0ce38fc62",
+  "tracked_source_clean": true,
+  "session_id": "638a55a99bed444fbde67c44fbbfe8f4",
+  "server_url": "http://127.0.0.1:57379",
+  "runner_id": "runner_token_2531b3a81db2cfc3205da1989b0f0af5",
+  "model": "gpt-5.4-mini"
+}

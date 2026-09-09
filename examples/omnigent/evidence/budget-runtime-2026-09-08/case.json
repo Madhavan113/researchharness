@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "case_id": "research-6e419deba3b7483190d553e1a3642afe",
+  "created_at": "2026-09-08T18:57:40.021825Z",
+  "brief": "Find a public feed of official policy changes with stable ids and publication timestamps.",
+  "model": "gpt-5.4-mini",
+  "adapter": "openai-agents",
+  "omnigent_commit": "be042b390e293a8d586cbb7e403a2ce0ce38fc62",
+  "strategy_sha256": "28b67d3de67ee65b42ba107baa368b8fd1b2b05a0cd970782e2875f42c9d347c",
+  "output": "/private/tmp/rh-omnigent-phased-budget",
+  "research_output": "/private/tmp/rh-omnigent-phased-budget/research",
+  "backend_root": "/private/tmp/rh-omnigent-phased-budget/backend",
+  "search_endpoint": "https://api.keenable.ai/mcp",
+  "max_spend_usd": 1e-09,
+  "binding": {
+    "session_id": "4c7e3952a92043baa96d8ae73a26d533",
+    "server_url": "http://127.0.0.1:57380"
+  },
+  "authored_bundle_sha256": "c3bd1afb97577f28e9349b07c2cff3e11864d4c2171e2adaa3d72c6afad38a42",
+  "authored_config_sha256": "3e41404785db39ff84e6dc6d8013b4f6fc023088948d3fcb5bdaa1301ed4ba0e"
+}

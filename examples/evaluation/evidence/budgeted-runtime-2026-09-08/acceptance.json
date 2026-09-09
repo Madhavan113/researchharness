@@ -1,0 +1,170 @@
+{
+  "schema_version": 1,
+  "execution": "fixture",
+  "paid_calls": false,
+  "source_network": false,
+  "fixture_program_sha256": {
+    "examples/evaluation/budgeted_runtime_fixture.py": "9f6492332a611a6f8e2611a7e2974f2d8f28385082dd959b754628d86595613e",
+    "examples/evaluation/controlled_runtime_fixture.py": "865dae7247a01062a90cd77235a14d6c0f01c7197fd931f41156af0da3e9db15",
+    "examples/omnigent/normal_runtime_fixture.py": "011fc9fa6fd2d7763da26feed8fc15732867a6f8ea19b3a69bfd3431c71a339f"
+  },
+  "arms": [
+    {
+      "name": "direct",
+      "summary": {
+        "cases": 1,
+        "correctness": {
+          "scope": "artifact_consistency_and_sampled_source_evidence",
+          "valid": 1,
+          "invalid": 0,
+          "execution_failed": 0,
+          "artifact_error": 0,
+          "unmeasured": [
+            "complete_collection",
+            "publication_cutoffs",
+            "recovery",
+            "citation_entailment"
+          ]
+        },
+        "usefulness": {
+          "scope": "independent_source_predicates",
+          "macro_quality": 1.0,
+          "macro_requirement_recall": 1.0,
+          "macro_source_precision": 1.0,
+          "qualitative_review": "not_measured"
+        },
+        "efficiency": {
+          "model_tokens": {
+            "known_runs": 1,
+            "unknown_runs": 0,
+            "known_subtotal": 440,
+            "total": 440
+          },
+          "completed_token_lower_bounds": {
+            "known_runs": 1,
+            "unknown_runs": 0,
+            "known_subtotal": 440,
+            "total": 440
+          },
+          "elapsed_seconds": {
+            "known_runs": 1,
+            "unknown_runs": 0,
+            "known_subtotal": 0.9058237909994205,
+            "total": 0.9058237909994205
+          },
+          "model_cost_usd": {
+            "known_runs": 0,
+            "unknown_runs": 1,
+            "known_subtotal": 0,
+            "total": null
+          },
+          "provider_cost_usd": {
+            "known_runs": 0,
+            "unknown_runs": 1,
+            "known_subtotal": 0,
+            "total": null
+          }
+        }
+      }
+    },
+    {
+      "name": "omnigent",
+      "summary": {
+        "cases": 1,
+        "correctness": {
+          "scope": "artifact_consistency_and_sampled_source_evidence",
+          "valid": 1,
+          "invalid": 0,
+          "execution_failed": 0,
+          "artifact_error": 0,
+          "unmeasured": [
+            "complete_collection",
+            "publication_cutoffs",
+            "recovery",
+            "citation_entailment"
+          ]
+        },
+        "usefulness": {
+          "scope": "independent_source_predicates",
+          "macro_quality": 1.0,
+          "macro_requirement_recall": 1.0,
+          "macro_source_precision": 1.0,
+          "qualitative_review": "not_measured"
+        },
+        "efficiency": {
+          "model_tokens": {
+            "known_runs": 1,
+            "unknown_runs": 0,
+            "known_subtotal": 770,
+            "total": 770
+          },
+          "completed_token_lower_bounds": {
+            "known_runs": 1,
+            "unknown_runs": 0,
+            "known_subtotal": 770,
+            "total": 770
+          },
+          "elapsed_seconds": {
+            "known_runs": 1,
+            "unknown_runs": 0,
+            "known_subtotal": 33.190696708999894,
+            "total": 33.190696708999894
+          },
+          "model_cost_usd": {
+            "known_runs": 0,
+            "unknown_runs": 1,
+            "known_subtotal": 0,
+            "total": null
+          },
+          "provider_cost_usd": {
+            "known_runs": 0,
+            "unknown_runs": 1,
+            "known_subtotal": 0,
+            "total": null
+          }
+        }
+      }
+    }
+  ],
+  "dispatches": {
+    "direct": 4,
+    "omnigent": 7
+  },
+  "budget": {
+    "purpose": "compatibility",
+    "execution": "fixture",
+    "cost_semantics": "Supplied token-rate accounting, not a provider invoice; fixture amounts are synthetic",
+    "rates": {
+      "model": "gpt-5.4-mini",
+      "snapshot": "gpt-5.4-mini",
+      "input_usd_per_million": "0.75",
+      "output_usd_per_million": "4.5",
+      "max_input_tokens_per_request": 400000,
+      "price_source_url": "https://developers.openai.com/api/docs/models/gpt-5.4-mini",
+      "price_as_of": "2026-09-08"
+    },
+    "accounting_observed_at": "2026-09-08T22:20:42.476951Z",
+    "comparison_settlement_complete": true,
+    "comparison_settled_nanodollars": 1320000,
+    "comparison_held_nanodollars": 0,
+    "shared_ledger_accounting": {
+      "settled_nanodollars": 1320000,
+      "held_nanodollars": 0,
+      "committed_nanodollars": 1320000,
+      "remaining_nanodollars": 9998680000,
+      "committed_usd": "0.001320000",
+      "remaining_usd": "9.998680000"
+    },
+    "authorization": {
+      "status": "draft",
+      "reference": null
+    }
+  },
+  "ledger_sha256": "6077701c00b6110b1b27cc0968e98a33b93adb690189a7b56d1f3bf671ef43f5",
+  "report_sha256": "61bf3703881a3caaffdb118e353f125fd3059bd3179f8c5cda01ce3f90d60d44",
+  "limitations": [
+    "Synthetic model/source responses; no live model-quality or billing result",
+    "Rate-based fixture accounting, not real money",
+    "Discovery acceptance only; workflow behavior is verified separately"
+  ]
+}

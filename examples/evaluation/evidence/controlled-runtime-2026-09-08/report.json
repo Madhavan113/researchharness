@@ -1,0 +1,672 @@
+{
+  "schema_version": 1,
+  "benchmark_id": "controlled-runtime-acceptance",
+  "benchmark_sha256": "9a74b449e71576faa6cf2e719ffc8ddf05eb58e47f1a157119411ef4e5fdd365",
+  "split": "development",
+  "review_status_counts": {
+    "authored": 1,
+    "reviewed": 0
+  },
+  "comparison_axis": "runtime",
+  "fixed_controls": {
+    "execution": "fixture",
+    "model": "gpt-5.4-mini",
+    "model_settings": {
+      "max_output_tokens": 6000,
+      "reasoning": {
+        "effort": "none"
+      }
+    },
+    "provider": "authored-development-fixtures",
+    "provider_settings": {
+      "mode": "authored-fixtures",
+      "external_source_network": false
+    },
+    "budgets": {
+      "search": 8,
+      "inspection": 16,
+      "probe": 12,
+      "deadline_seconds": 600,
+      "model_rounds": 8,
+      "max_output_tokens": 6000
+    },
+    "fixture_sha256": "cc64e5825582c8219a5f714baab940d07a0ed9c3fc9c2dccc6dcd7168d92b21f",
+    "strategy_sha256": "906cbefdce59bd40ae36f047980346d8f8212d526d5f19cdfa9101b2e82ad668",
+    "backend_sha256": "d7bddb02043674ca244c8d1627d136dd2532d9a3b5690f34de4a6e066b44fa8a"
+  },
+  "arms": [
+    {
+      "name": "direct",
+      "manifest_sha256": "81d2a9fb225af10e7406dd0ca38eaaae7dab6f08ce6d4dac3dc03f60fc2db6d5",
+      "controls": {
+        "execution": "fixture",
+        "runtime": "direct-controlled-responses",
+        "model": "gpt-5.4-mini",
+        "model_settings": {
+          "max_output_tokens": 6000,
+          "reasoning": {
+            "effort": "none"
+          }
+        },
+        "provider": "authored-development-fixtures",
+        "provider_settings": {
+          "mode": "authored-fixtures",
+          "external_source_network": false
+        },
+        "budgets": {
+          "search": 8,
+          "inspection": 16,
+          "probe": 12,
+          "deadline_seconds": 600,
+          "model_rounds": 8,
+          "max_output_tokens": 6000
+        },
+        "fixture_sha256": "cc64e5825582c8219a5f714baab940d07a0ed9c3fc9c2dccc6dcd7168d92b21f",
+        "strategy_sha256": "906cbefdce59bd40ae36f047980346d8f8212d526d5f19cdfa9101b2e82ad668",
+        "backend_sha256": "d7bddb02043674ca244c8d1627d136dd2532d9a3b5690f34de4a6e066b44fa8a"
+      },
+      "summary": {
+        "cases": 1,
+        "correctness": {
+          "scope": "artifact_consistency_and_sampled_source_evidence",
+          "valid": 1,
+          "invalid": 0,
+          "execution_failed": 0,
+          "artifact_error": 0,
+          "unmeasured": [
+            "complete_collection",
+            "publication_cutoffs",
+            "recovery",
+            "citation_entailment"
+          ]
+        },
+        "usefulness": {
+          "scope": "independent_source_predicates",
+          "macro_quality": 1.0,
+          "macro_requirement_recall": 1.0,
+          "macro_source_precision": 1.0,
+          "qualitative_review": "not_measured"
+        },
+        "efficiency": {
+          "model_tokens": {
+            "known_runs": 1,
+            "unknown_runs": 0,
+            "known_subtotal": 440,
+            "total": 440
+          },
+          "completed_token_lower_bounds": {
+            "known_runs": 1,
+            "unknown_runs": 0,
+            "known_subtotal": 440,
+            "total": 440
+          },
+          "elapsed_seconds": {
+            "known_runs": 1,
+            "unknown_runs": 0,
+            "known_subtotal": 0.8908486249993075,
+            "total": 0.8908486249993075
+          },
+          "model_cost_usd": {
+            "known_runs": 0,
+            "unknown_runs": 1,
+            "known_subtotal": 0,
+            "total": null
+          },
+          "provider_cost_usd": {
+            "known_runs": 0,
+            "unknown_runs": 1,
+            "known_subtotal": 0,
+            "total": null
+          }
+        }
+      },
+      "results": [
+        {
+          "case_id": "controlled-policy",
+          "run": {
+            "case_id": "controlled-policy",
+            "status": "completed",
+            "artifacts": "cases/controlled-policy/research",
+            "runtime_usage": null,
+            "error": null,
+            "elapsed_seconds": 0.8908486249993075,
+            "model_cost_usd": null,
+            "provider_cost_usd": null,
+            "failed_run_tokens": null
+          },
+          "score": {
+            "evaluator_version": 1,
+            "scope": "sampled_source_selection",
+            "status": "ok",
+            "quality": 1.0,
+            "requirement_recall": 1.0,
+            "source_precision": 1.0,
+            "total_tokens": 440,
+            "completed_token_lower_bound": 440,
+            "runtime_usage": null,
+            "reported_model": "gpt-5.4-mini",
+            "reported_search_providers": [
+              "authored-development-fixtures"
+            ],
+            "coverage": [
+              {
+                "id": "policy",
+                "covered": true,
+                "source_ids": [
+                  "policy"
+                ]
+              }
+            ],
+            "errors": [],
+            "artifacts": "/private/tmp/rh-controlled-comparison-20260908-verified/comparison/direct/cases/controlled-policy/research",
+            "specification_sha256": "7fa57d462e33193b4ffa8cee98257bb695015806d8dca4b2295959855e84eec6",
+            "artifact_sha256": {
+              "proposal.json": "79867bc0f5952a702268ac8b6ea6e7b63e91dd5672c1c32a80f6dc22c66ccd58",
+              "trace.jsonl": "10da4d5cd50f7d71cd977621fbc35fc20aa5ded64a0562a27848130a16c89f45",
+              "probes.json": "e3e76d24df56273cd375f663891be4ab457b83f664e1e5596e8460eb42cee488",
+              "receipts.json": "bd44ba238f5111bed234150a602b1c96922134f269cfb7cc4f6071407dc49aa7",
+              "pipeline.json": "d488fbc47cb434a15dc26b68a7e5b435fa1aa7a9f26b8640233aa6daf1dcfb78"
+            }
+          },
+          "control_evidence": {
+            "scope": "observed_artifact_metadata",
+            "model": {
+              "configured": "gpt-5.4-mini",
+              "observed": "gpt-5.4-mini",
+              "status": "matched"
+            },
+            "search_provider": {
+              "configured": "authored-development-fixtures",
+              "observed": [
+                "authored-development-fixtures"
+              ],
+              "status": "matched",
+              "reason": null
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "omnigent",
+      "manifest_sha256": "fcd6d966e4da3a559839314938bf28cefbb5270bb23e94e2a821f8954549246a",
+      "controls": {
+        "execution": "fixture",
+        "runtime": "omnigent-controlled-responses",
+        "model": "gpt-5.4-mini",
+        "model_settings": {
+          "max_output_tokens": 6000,
+          "reasoning": {
+            "effort": "none"
+          }
+        },
+        "provider": "authored-development-fixtures",
+        "provider_settings": {
+          "mode": "authored-fixtures",
+          "external_source_network": false
+        },
+        "budgets": {
+          "search": 8,
+          "inspection": 16,
+          "probe": 12,
+          "deadline_seconds": 600,
+          "model_rounds": 8,
+          "max_output_tokens": 6000
+        },
+        "fixture_sha256": "cc64e5825582c8219a5f714baab940d07a0ed9c3fc9c2dccc6dcd7168d92b21f",
+        "strategy_sha256": "906cbefdce59bd40ae36f047980346d8f8212d526d5f19cdfa9101b2e82ad668",
+        "backend_sha256": "d7bddb02043674ca244c8d1627d136dd2532d9a3b5690f34de4a6e066b44fa8a"
+      },
+      "summary": {
+        "cases": 1,
+        "correctness": {
+          "scope": "artifact_consistency_and_sampled_source_evidence",
+          "valid": 1,
+          "invalid": 0,
+          "execution_failed": 0,
+          "artifact_error": 0,
+          "unmeasured": [
+            "complete_collection",
+            "publication_cutoffs",
+            "recovery",
+            "citation_entailment"
+          ]
+        },
+        "usefulness": {
+          "scope": "independent_source_predicates",
+          "macro_quality": 1.0,
+          "macro_requirement_recall": 1.0,
+          "macro_source_precision": 1.0,
+          "qualitative_review": "not_measured"
+        },
+        "efficiency": {
+          "model_tokens": {
+            "known_runs": 0,
+            "unknown_runs": 1,
+            "known_subtotal": 0,
+            "total": null
+          },
+          "completed_token_lower_bounds": {
+            "known_runs": 1,
+            "unknown_runs": 0,
+            "known_subtotal": 770,
+            "total": 770
+          },
+          "elapsed_seconds": {
+            "known_runs": 1,
+            "unknown_runs": 0,
+            "known_subtotal": 32.510581374999674,
+            "total": 32.510581374999674
+          },
+          "model_cost_usd": {
+            "known_runs": 0,
+            "unknown_runs": 1,
+            "known_subtotal": 0,
+            "total": null
+          },
+          "provider_cost_usd": {
+            "known_runs": 0,
+            "unknown_runs": 1,
+            "known_subtotal": 0,
+            "total": null
+          }
+        }
+      },
+      "results": [
+        {
+          "case_id": "controlled-policy",
+          "run": {
+            "case_id": "controlled-policy",
+            "status": "completed",
+            "artifacts": "cases/controlled-policy/runtime/research",
+            "runtime_usage": "cases/controlled-policy/runtime/omnigent/runtime-usage.discovery.json",
+            "error": null,
+            "elapsed_seconds": 32.510581374999674,
+            "model_cost_usd": null,
+            "provider_cost_usd": null,
+            "failed_run_tokens": null
+          },
+          "score": {
+            "evaluator_version": 1,
+            "scope": "sampled_source_selection",
+            "status": "ok",
+            "quality": 1.0,
+            "requirement_recall": 1.0,
+            "source_precision": 1.0,
+            "total_tokens": null,
+            "completed_token_lower_bound": 770,
+            "runtime_usage": {
+              "status": "verified_lower_bound",
+              "total_tokens": null,
+              "completed_token_lower_bound": 770,
+              "errors": [],
+              "files": {
+                "runtime_usage": {
+                  "path": "/private/tmp/rh-controlled-comparison-20260908-verified/comparison/omnigent/cases/controlled-policy/runtime/omnigent/runtime-usage.discovery.json",
+                  "sha256": "e8c486dcee28e0078d6f83fa5aa812be588b41a4879cbbfbbd93e16e8dcc9359"
+                },
+                "runtime_usage_events": {
+                  "path": "/private/tmp/rh-controlled-comparison-20260908-verified/comparison/omnigent/cases/controlled-policy/runtime/omnigent/events/922ecac04aa4a2731d5554ba08f00c162ddac8ca971a91a6563b53c855bc894a.jsonl",
+                  "sha256": "922ecac04aa4a2731d5554ba08f00c162ddac8ca971a91a6563b53c855bc894a"
+                }
+              },
+              "response_count": 1,
+              "auxiliary_usage_unknown": true,
+              "interrupted": false
+            },
+            "reported_model": "gpt-5.4-mini",
+            "reported_search_providers": [
+              "authored-development-fixtures"
+            ],
+            "coverage": [
+              {
+                "id": "policy",
+                "covered": true,
+                "source_ids": [
+                  "policy"
+                ]
+              }
+            ],
+            "errors": [],
+            "artifacts": "/private/tmp/rh-controlled-comparison-20260908-verified/comparison/omnigent/cases/controlled-policy/runtime/research",
+            "specification_sha256": "7fa57d462e33193b4ffa8cee98257bb695015806d8dca4b2295959855e84eec6",
+            "artifact_sha256": {
+              "proposal.json": "0caa14f0b9a32949003ac160ef185c39f349dd9aa4ee8eeb63ab4c08bdccaa58",
+              "runtime_usage": "e8c486dcee28e0078d6f83fa5aa812be588b41a4879cbbfbbd93e16e8dcc9359",
+              "runtime_usage_events": "922ecac04aa4a2731d5554ba08f00c162ddac8ca971a91a6563b53c855bc894a",
+              "trace.jsonl": "7890bceeac9cef05684c5e20fa50bccae26e82973baac7aabf21041688fe51ad",
+              "probes.json": "336e0b73fa8878fa0bcf503846a54474ef8902911aad35dd01536f3574bdfa78",
+              "receipts.json": "e05b3caaeae4c2e52959ad31df0db95608a1d46fecd20afa23ec490592b30715",
+              "pipeline.json": "d488fbc47cb434a15dc26b68a7e5b435fa1aa7a9f26b8640233aa6daf1dcfb78"
+            }
+          },
+          "control_evidence": {
+            "scope": "observed_artifact_metadata",
+            "model": {
+              "configured": "gpt-5.4-mini",
+              "observed": "gpt-5.4-mini",
+              "status": "matched"
+            },
+            "search_provider": {
+              "configured": "authored-development-fixtures",
+              "observed": [
+                "authored-development-fixtures"
+              ],
+              "status": "matched",
+              "reason": null
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "paired_differences": [
+    {
+      "reference": "direct",
+      "candidate": "omnigent",
+      "macro_quality_difference": 0.0
+    }
+  ],
+  "limitations": [
+    "Fixture execution measures software behavior, not model performance.",
+    "Controls are recorded by the trusted runner; matching metadata does not authenticate execution.",
+    "No observed search provider leaves provider use unverified; the configured provider is not evidence that a search occurred.",
+    "Source predicates require qualitative review and cannot prove complete collection or recovery.",
+    "No confidence interval or broad scientific conclusion is inferred from this case set."
+  ],
+  "workflow": {
+    "direct": {
+      "schema_version": 1,
+      "measurement": "workflow_correctness_summary",
+      "scope": "recorded_checks_from_trusted_workflow_evaluations",
+      "status": "incomplete",
+      "cases": 1,
+      "case_counts": {
+        "passed": 0,
+        "failed": 0,
+        "incomplete": 0,
+        "missing": 1,
+        "invalid": 0
+      },
+      "valid_reports": 0,
+      "unavailable_reports": 1,
+      "recorded_check_counts": {
+        "passed": 0,
+        "failed": 0,
+        "unknown": 0
+      },
+      "dimensions": {
+        "capture": {
+          "case_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0,
+            "not_measured": 0,
+            "missing": 1,
+            "invalid": 0
+          },
+          "recorded_check_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0
+          }
+        },
+        "collection": {
+          "case_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0,
+            "not_measured": 0,
+            "missing": 1,
+            "invalid": 0
+          },
+          "recorded_check_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0
+          }
+        },
+        "export": {
+          "case_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0,
+            "not_measured": 0,
+            "missing": 1,
+            "invalid": 0
+          },
+          "recorded_check_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0
+          }
+        },
+        "pipeline": {
+          "case_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0,
+            "not_measured": 0,
+            "missing": 1,
+            "invalid": 0
+          },
+          "recorded_check_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0
+          }
+        },
+        "publication": {
+          "case_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0,
+            "not_measured": 0,
+            "missing": 1,
+            "invalid": 0
+          },
+          "recorded_check_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0
+          }
+        },
+        "replay": {
+          "case_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0,
+            "not_measured": 0,
+            "missing": 1,
+            "invalid": 0
+          },
+          "recorded_check_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0
+          }
+        },
+        "snapshot": {
+          "case_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0,
+            "not_measured": 0,
+            "missing": 1,
+            "invalid": 0
+          },
+          "recorded_check_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0
+          }
+        }
+      },
+      "unmeasured": [],
+      "results": [
+        {
+          "case_id": "controlled-policy",
+          "status": "missing",
+          "report_sha256": null
+        }
+      ],
+      "limitations": [
+        "Every expected case remains in the denominator, including executions with no workflow report.",
+        "A passed case means its recorded checks passed; absent workflow dimensions are not measured.",
+        "Missing, invalid, and unknown evidence cannot establish workflow correctness.",
+        "Report validation does not authenticate execution, case ownership, or artifact provenance.",
+        "No research usefulness, model quality, or cost score is inferred."
+      ]
+    },
+    "omnigent": {
+      "schema_version": 1,
+      "measurement": "workflow_correctness_summary",
+      "scope": "recorded_checks_from_trusted_workflow_evaluations",
+      "status": "incomplete",
+      "cases": 1,
+      "case_counts": {
+        "passed": 0,
+        "failed": 0,
+        "incomplete": 0,
+        "missing": 1,
+        "invalid": 0
+      },
+      "valid_reports": 0,
+      "unavailable_reports": 1,
+      "recorded_check_counts": {
+        "passed": 0,
+        "failed": 0,
+        "unknown": 0
+      },
+      "dimensions": {
+        "capture": {
+          "case_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0,
+            "not_measured": 0,
+            "missing": 1,
+            "invalid": 0
+          },
+          "recorded_check_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0
+          }
+        },
+        "collection": {
+          "case_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0,
+            "not_measured": 0,
+            "missing": 1,
+            "invalid": 0
+          },
+          "recorded_check_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0
+          }
+        },
+        "export": {
+          "case_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0,
+            "not_measured": 0,
+            "missing": 1,
+            "invalid": 0
+          },
+          "recorded_check_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0
+          }
+        },
+        "pipeline": {
+          "case_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0,
+            "not_measured": 0,
+            "missing": 1,
+            "invalid": 0
+          },
+          "recorded_check_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0
+          }
+        },
+        "publication": {
+          "case_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0,
+            "not_measured": 0,
+            "missing": 1,
+            "invalid": 0
+          },
+          "recorded_check_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0
+          }
+        },
+        "replay": {
+          "case_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0,
+            "not_measured": 0,
+            "missing": 1,
+            "invalid": 0
+          },
+          "recorded_check_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0
+          }
+        },
+        "snapshot": {
+          "case_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0,
+            "not_measured": 0,
+            "missing": 1,
+            "invalid": 0
+          },
+          "recorded_check_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0
+          }
+        }
+      },
+      "unmeasured": [],
+      "results": [
+        {
+          "case_id": "controlled-policy",
+          "status": "missing",
+          "report_sha256": null
+        }
+      ],
+      "limitations": [
+        "Every expected case remains in the denominator, including executions with no workflow report.",
+        "A passed case means its recorded checks passed; absent workflow dimensions are not measured.",
+        "Missing, invalid, and unknown evidence cannot establish workflow correctness.",
+        "Report validation does not authenticate execution, case ownership, or artifact provenance.",
+        "No research usefulness, model quality, or cost score is inferred."
+      ]
+    }
+  },
+  "controller_limitations": [
+    "Shared semantic instructions are identical; assembled prompts and tool schemas differ.",
+    "Model requests require a host gateway; native Omnigent drops some authored limits.",
+    "Source fixtures measure behavior on authored data, not live-source freshness.",
+    "Generation and operation limits are not an exact provider billing cap.",
+    "This directory is trusted controller state, not an M6 candidate sandbox."
+  ]
+}

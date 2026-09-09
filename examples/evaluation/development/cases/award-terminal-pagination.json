@@ -1,0 +1,76 @@
+{
+  "id": "award-terminal-pagination",
+  "title": "Award catalog terminal page",
+  "brief": "Enumerate contract awards from an API whose documented last page omits the continuation field. Configure that terminal-page convention explicitly and verify full collection later.",
+  "topic_group": "procurement",
+  "source_families": [
+    "tender-service"
+  ],
+  "tags": [
+    "pagination",
+    "missing-terminal-cursor"
+  ],
+  "review_status": "authored",
+  "review_notes": "Authored development contract, not independently human-reviewed. Endpoints, records, and search ordering are synthetic.",
+  "specification": {
+    "requirements": [
+      {
+        "id": "awards",
+        "weight": 1,
+        "any_of": [
+          {
+            "url": "https://tender-service.fixture.example/awards",
+            "connector": "json",
+            "pagination": {
+              "stop_when_missing": true,
+              "mode": "cursor"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "fixtures": {
+    "path": "fixtures/award-terminal-pagination.json",
+    "sha256": "7d83e715fa21e42d095fb5df50842388f4cbe0eafed3aacb341d94642c7a0bba"
+  },
+  "sources": [
+    {
+      "id": "missing-terminal-rule",
+      "name": "Missing Terminal Rule",
+      "connector": "json",
+      "url": "https://tender-service.fixture.example/awards",
+      "items_pointer": "/items",
+      "id_pointer": "/id",
+      "pagination": {
+        "mode": "cursor",
+        "next_pointer": "/next",
+        "cursor_parameter": "after"
+      }
+    },
+    {
+      "id": "documented-terminal-rule",
+      "name": "Documented Terminal Rule",
+      "connector": "json",
+      "url": "https://tender-service.fixture.example/awards",
+      "items_pointer": "/items",
+      "id_pointer": "/id",
+      "pagination": {
+        "mode": "cursor",
+        "next_pointer": "/next",
+        "cursor_parameter": "after",
+        "stop_when_missing": true
+      }
+    }
+  ],
+  "fixture_plan": {
+    "source_ids": [
+      "documented-terminal-rule"
+    ],
+    "unsupported": []
+  },
+  "manual_checks": [
+    "Confirm missing continuation is documented as terminal, not a transient malformed response.",
+    "Run complete collection; the sample-probe score does not validate termination."
+  ]
+}

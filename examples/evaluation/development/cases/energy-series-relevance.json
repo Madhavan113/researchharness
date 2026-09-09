@@ -1,0 +1,69 @@
+{
+  "id": "energy-series-relevance",
+  "title": "Weekly energy storage series",
+  "brief": "Find weekly energy storage observations with the reporting week and storage value. An agency press-release count is not a substitute for the requested series.",
+  "topic_group": "energy-storage",
+  "source_families": [
+    "energy-agency"
+  ],
+  "tags": [
+    "irrelevant-parseable",
+    "required-fields"
+  ],
+  "review_status": "authored",
+  "review_notes": "Authored development contract, not independently human-reviewed. Endpoints, records, and search ordering are synthetic.",
+  "specification": {
+    "requirements": [
+      {
+        "id": "weekly-storage",
+        "weight": 1,
+        "any_of": [
+          {
+            "url": "https://energy-agency.fixture.example/storage.json",
+            "connector": "json",
+            "required_pointers": [
+              "/week_start",
+              "/storage"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "fixtures": {
+    "path": "fixtures/energy-series-relevance.json",
+    "sha256": "4723ae3e3c41934dd5e17c4017b76193ad6bd3966d05bb328aeb051b05fd42d0"
+  },
+  "sources": [
+    {
+      "id": "press-office-stats",
+      "name": "Press Office Stats",
+      "connector": "json",
+      "url": "https://energy-agency.fixture.example/press-stats.json",
+      "items_pointer": "/items",
+      "id_pointer": "/id"
+    },
+    {
+      "id": "weekly-storage",
+      "name": "Weekly Storage",
+      "connector": "json",
+      "url": "https://energy-agency.fixture.example/storage.json",
+      "items_pointer": "/items",
+      "id_pointer": "/id",
+      "required_pointers": [
+        "/week_start",
+        "/storage"
+      ]
+    }
+  ],
+  "fixture_plan": {
+    "source_ids": [
+      "weekly-storage"
+    ],
+    "unsupported": []
+  },
+  "manual_checks": [
+    "Review relevance and whether the source scope answers the full brief.",
+    "Confirm the proposal states sample, history, and freshness limitations without inventing access."
+  ]
+}

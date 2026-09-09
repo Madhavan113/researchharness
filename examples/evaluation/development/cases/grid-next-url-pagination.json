@@ -1,0 +1,69 @@
+{
+  "id": "grid-next-url-pagination",
+  "title": "Outage event pagination",
+  "brief": "Collect all active outage events from an endpoint that provides an absolute next-page URL. Retain outage identity and explicit continuation behavior.",
+  "topic_group": "grid-outages",
+  "source_families": [
+    "grid-operator"
+  ],
+  "tags": [
+    "pagination",
+    "next-url"
+  ],
+  "review_status": "authored",
+  "review_notes": "Authored development contract, not independently human-reviewed. Endpoints, records, and search ordering are synthetic.",
+  "specification": {
+    "requirements": [
+      {
+        "id": "outage-catalog",
+        "weight": 1,
+        "any_of": [
+          {
+            "url": "https://grid-operator.fixture.example/outages",
+            "connector": "json",
+            "pagination": {
+              "mode": "next_url",
+              "next_pointer": "/next"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "fixtures": {
+    "path": "fixtures/grid-next-url-pagination.json",
+    "sha256": "c2dc5248e2d3ef2108658241afa965acfeb19dceb64e504a430a2ca1d871e5a8"
+  },
+  "sources": [
+    {
+      "id": "outages-page-one",
+      "name": "Outages Page One",
+      "connector": "json",
+      "url": "https://grid-operator.fixture.example/outages",
+      "items_pointer": "/items",
+      "id_pointer": "/id"
+    },
+    {
+      "id": "outages-next-url",
+      "name": "Outages Next Url",
+      "connector": "json",
+      "url": "https://grid-operator.fixture.example/outages",
+      "items_pointer": "/items",
+      "id_pointer": "/id",
+      "pagination": {
+        "mode": "next_url",
+        "next_pointer": "/next"
+      }
+    }
+  ],
+  "fixture_plan": {
+    "source_ids": [
+      "outages-next-url"
+    ],
+    "unsupported": []
+  },
+  "manual_checks": [
+    "Review relevance and whether the source scope answers the full brief.",
+    "Confirm the proposal states sample, history, and freshness limitations without inventing access."
+  ]
+}

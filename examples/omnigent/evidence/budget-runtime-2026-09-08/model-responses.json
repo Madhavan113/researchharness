@@ -1,0 +1,224 @@
+[
+  {
+    "id": "resp_0",
+    "object": "response",
+    "created_at": 1788825600,
+    "status": "completed",
+    "model": "gpt-5.4-mini",
+    "output": [
+      {
+        "type": "function_call",
+        "id": "fc_0",
+        "call_id": "call_0",
+        "name": "research__get_research_context",
+        "arguments": "{}",
+        "status": "completed"
+      }
+    ],
+    "parallel_tool_calls": false,
+    "tool_choice": "auto",
+    "tools": [],
+    "usage": {
+      "input_tokens": 100,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 10,
+      "output_tokens_details": {
+        "reasoning_tokens": 0
+      },
+      "total_tokens": 110
+    }
+  },
+  {
+    "id": "resp_1",
+    "object": "response",
+    "created_at": 1788825600,
+    "status": "completed",
+    "model": "gpt-5.4-mini",
+    "output": [
+      {
+        "type": "function_call",
+        "id": "fc_1",
+        "call_id": "call_1",
+        "name": "research__begin_research",
+        "arguments": "{\"brief\": \"Find a public feed of official policy changes with stable ids and publication timestamps.\"}",
+        "status": "completed"
+      }
+    ],
+    "parallel_tool_calls": false,
+    "tool_choice": "auto",
+    "tools": [],
+    "usage": {
+      "input_tokens": 100,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 10,
+      "output_tokens_details": {
+        "reasoning_tokens": 0
+      },
+      "total_tokens": 110
+    }
+  },
+  {
+    "id": "resp_2",
+    "object": "response",
+    "created_at": 1788825600,
+    "status": "completed",
+    "model": "gpt-5.4-mini",
+    "output": [
+      {
+        "type": "function_call",
+        "id": "fc_2",
+        "call_id": "call_2",
+        "name": "research__search_sources",
+        "arguments": "{\"query\": \"official policy feed\", \"operation_id\": \"search-1\"}",
+        "status": "completed"
+      }
+    ],
+    "parallel_tool_calls": false,
+    "tool_choice": "auto",
+    "tools": [],
+    "usage": {
+      "input_tokens": 100,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 10,
+      "output_tokens_details": {
+        "reasoning_tokens": 0
+      },
+      "total_tokens": 110
+    }
+  },
+  {
+    "id": "resp_3",
+    "object": "response",
+    "created_at": 1788825600,
+    "status": "completed",
+    "model": "gpt-5.4-mini",
+    "output": [
+      {
+        "type": "function_call",
+        "id": "fc_3",
+        "call_id": "call_3",
+        "name": "research__inspect_source",
+        "arguments": "{\"url\": \"http://127.0.0.1:57377/policy.json\", \"operation_id\": \"inspect-1\"}",
+        "status": "completed"
+      }
+    ],
+    "parallel_tool_calls": false,
+    "tool_choice": "auto",
+    "tools": [],
+    "usage": {
+      "input_tokens": 100,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 10,
+      "output_tokens_details": {
+        "reasoning_tokens": 0
+      },
+      "total_tokens": 110
+    }
+  },
+  {
+    "id": "resp_4",
+    "object": "response",
+    "created_at": 1788825600,
+    "status": "completed",
+    "model": "gpt-5.4-mini",
+    "output": [
+      {
+        "type": "function_call",
+        "id": "fc_4",
+        "call_id": "call_4",
+        "name": "research__probe_source",
+        "arguments": "{\"source\": {\"id\": \"policy\", \"name\": \"Fixture policy feed\", \"connector\": \"json\", \"url\": \"http://127.0.0.1:57377/policy.json\", \"parameters\": [], \"pagination\": {\"mode\": \"none\", \"next_pointer\": null, \"cursor_parameter\": null, \"stop_when_missing\": false}, \"items_pointer\": \"/items\", \"id_pointer\": \"/id\", \"published_pointer\": \"/published_at\", \"required_pointers\": [\"/title\"], \"include_orderbooks\": false, \"poll_interval_seconds\": 900, \"max_pages\": 10, \"max_records\": 5000, \"min_records\": 1, \"enabled\": true}, \"operation_id\": \"probe-1\"}",
+        "status": "completed"
+      }
+    ],
+    "parallel_tool_calls": false,
+    "tool_choice": "auto",
+    "tools": [],
+    "usage": {
+      "input_tokens": 100,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 10,
+      "output_tokens_details": {
+        "reasoning_tokens": 0
+      },
+      "total_tokens": 110
+    }
+  },
+  {
+    "id": "resp_5",
+    "object": "response",
+    "created_at": 1788825600,
+    "status": "completed",
+    "model": "gpt-5.4-mini",
+    "output": [
+      {
+        "type": "function_call",
+        "id": "fc_5",
+        "call_id": "call_5",
+        "name": "research__submit_proposal",
+        "arguments": "{\"draft\": {\"name\": \"fixture-policy\", \"title\": \"Policy feed\", \"research_question\": \"Find a public feed of official policy changes with stable ids and publication timestamps.\", \"needs\": [{\"id\": \"policy\", \"description\": \"Official policy changes\", \"required\": true}], \"candidates\": [{\"name\": \"Policy feed\", \"purpose\": \"Monitor official changes\", \"covers\": [\"policy\"], \"status\": \"ready\", \"evidence_urls\": [\"http://127.0.0.1:57377/policy.json\"], \"source\": {\"id\": \"policy\", \"name\": \"Fixture policy feed\", \"connector\": \"json\", \"url\": \"http://127.0.0.1:57377/policy.json\", \"parameters\": [], \"pagination\": {\"mode\": \"none\", \"next_pointer\": null, \"cursor_parameter\": null, \"stop_when_missing\": false}, \"items_pointer\": \"/items\", \"id_pointer\": \"/id\", \"published_pointer\": \"/published_at\", \"required_pointers\": [\"/title\"], \"include_orderbooks\": false, \"poll_interval_seconds\": 900, \"max_pages\": 10, \"max_records\": 5000, \"min_records\": 1, \"enabled\": true}, \"probe_id\": \"fd6400412dfc42baaa7774a9e8a3c3f3\", \"freshness_assessment\": \"Current sample\", \"historical_coverage\": \"No historical claim\", \"access_notes\": \"Offline fixture\", \"limitations\": [\"Fixture does not measure live source quality\"]}], \"open_questions\": []}, \"operation_id\": \"submit-1\"}",
+        "status": "completed"
+      }
+    ],
+    "parallel_tool_calls": false,
+    "tool_choice": "auto",
+    "tools": [],
+    "usage": {
+      "input_tokens": 100,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 10,
+      "output_tokens_details": {
+        "reasoning_tokens": 0
+      },
+      "total_tokens": 110
+    }
+  },
+  {
+    "id": "resp_6",
+    "object": "response",
+    "created_at": 1788825600,
+    "status": "completed",
+    "model": "gpt-5.4-mini",
+    "output": [
+      {
+        "type": "message",
+        "id": "msg_6",
+        "role": "assistant",
+        "status": "completed",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "Saved verified pipeline {\"discovery_id\": \"c21c1c177f5e4b1d9f289be8e2d3fc79\", \"pipeline_version_id\": \"4743031071e045b4a19db3ae142bf9ce\", \"proposal_id\": \"81a967a8ed014076b14690f7401d267d\", \"question_id\": \"de0f7b0683d04c448d2c1dae64b92a1f\"}",
+            "annotations": []
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "tool_choice": "auto",
+    "tools": [],
+    "usage": {
+      "input_tokens": 100,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 10,
+      "output_tokens_details": {
+        "reasoning_tokens": 0
+      },
+      "total_tokens": 110
+    }
+  }
+]

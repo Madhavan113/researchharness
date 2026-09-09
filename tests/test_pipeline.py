@@ -27,9 +27,9 @@ def test_idempotent_versions_and_conditional_reobservation(spec, store, clock, i
     assert first["status"] == second["status"] == "succeeded"
     assert first["sources"][0]["new_versions"] == 1
     assert second["sources"][0]["new_versions"] == 0
-    assert store.db.execute("SELECT COUNT(*) FROM versions").fetchone()[0] == 1
-    assert store.db.execute("SELECT COUNT(*) FROM observations").fetchone()[0] == 2
-    assert len(list((store.root / "raw").rglob("?" * 64))) == 1
+    assert store.count("versions") == 1
+    assert store.count("observations") == 2
+    assert store.blobs.count() == 1
     record = store.as_of(spec.name, timestamp(clock()))[0]
     assert record["first_observed_at"] == first_time
     assert record["observed_at"] == timestamp(clock())
@@ -58,7 +58,7 @@ def test_asof_selects_revisions_and_reversions_without_publication_leakage(
     assert store.as_of(spec.name, first)[0]["data"]["title"] == item["title"]
     assert store.as_of(spec.name, second)[0]["data"]["title"] == "Revised rule"
     assert store.as_of(spec.name, timestamp(clock()))[0]["data"]["title"] == item["title"]
-    assert store.db.execute("SELECT COUNT(*) FROM versions").fetchone()[0] == 2
+    assert store.count("versions") == 2
     output = tmp_path / "records.jsonl"
     export = export_dataset(spec, store, clock(), output)
     again = export_dataset(spec, store, clock(), tmp_path / "again.jsonl")
@@ -184,17 +184,17 @@ def test_sample_probe_never_publishes_or_advances_ingestion_state(source, store,
         report = probe_source(source, store, client=client, public_only=False, clock=clock)
     assert report["status"] == "verified_sample"
     assert report["source_fingerprint"] == source.fingerprint()
-    assert store.db.execute("SELECT COUNT(*) FROM observations").fetchone()[0] == 0
+    assert store.count("observations") == 0
     assert store.state("source-probes", source.id) is None
 
 
-def test_blob_tampering_is_detected_during_replay(spec, store, clock, item):
+def test_blob_tampering_is_detected_during_replay(spec, store, clock, item, tamper):
     with httpx.Client(
         transport=httpx.MockTransport(lambda _: httpx.Response(200, json={"items": [item]}))
     ) as client:
         run = run_pipeline(spec, store, client=client, public_only=False, clock=clock)
     hashed = store.captures_for_run(run["run_id"])[0].body_hash
-    (store.root / "raw" / hashed[:2] / hashed).write_bytes(b"tampered")
+    tamper(store, hashed, b"tampered")
     replay = replay_run(store, run["run_id"])
     assert replay["issues"]
     assert not replay["records"]

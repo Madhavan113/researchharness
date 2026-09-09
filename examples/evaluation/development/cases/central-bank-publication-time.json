@@ -1,0 +1,64 @@
+{
+  "id": "central-bank-publication-time",
+  "title": "Central bank release timing",
+  "brief": "Collect policy release timestamps for point-in-time analysis. Preserve the institution's release time; today's download timestamp must not become historical publication time.",
+  "topic_group": "monetary-policy",
+  "source_families": [
+    "central-bank"
+  ],
+  "tags": [
+    "timestamps",
+    "parseable-wrong-semantics"
+  ],
+  "review_status": "authored",
+  "review_notes": "Authored development contract, not independently human-reviewed. Endpoints, records, and search ordering are synthetic.",
+  "specification": {
+    "requirements": [
+      {
+        "id": "policy-releases",
+        "weight": 1,
+        "any_of": [
+          {
+            "url": "https://central-bank.fixture.example/releases.json",
+            "connector": "json",
+            "published_pointer": "/published_at"
+          }
+        ]
+      }
+    ]
+  },
+  "fixtures": {
+    "path": "fixtures/central-bank-publication-time.json",
+    "sha256": "dae022dd826b4e26fe26a7e4f69b3fb79fce6fc18169a2aa5146fd1d62eb46b5"
+  },
+  "sources": [
+    {
+      "id": "download-date",
+      "name": "Download Date",
+      "connector": "json",
+      "url": "https://central-bank.fixture.example/releases.json",
+      "items_pointer": "/items",
+      "id_pointer": "/id",
+      "published_pointer": "/downloaded_at"
+    },
+    {
+      "id": "release-date",
+      "name": "Release Date",
+      "connector": "json",
+      "url": "https://central-bank.fixture.example/releases.json",
+      "items_pointer": "/items",
+      "id_pointer": "/id",
+      "published_pointer": "/published_at"
+    }
+  ],
+  "fixture_plan": {
+    "source_ids": [
+      "release-date"
+    ],
+    "unsupported": []
+  },
+  "manual_checks": [
+    "Review relevance and whether the source scope answers the full brief.",
+    "Confirm the proposal states sample, history, and freshness limitations without inventing access."
+  ]
+}

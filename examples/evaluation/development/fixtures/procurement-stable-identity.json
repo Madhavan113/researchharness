@@ -1,0 +1,27 @@
+{
+  "authorship": "Synthetic fixture authored by Codex; no live source was sampled",
+  "search_results": [
+    {
+      "url": "https://procurement-office.fixture.example/notices.json",
+      "title": "Authored search result"
+    }
+  ],
+  "responses": [
+    {
+      "url": "https://procurement-office.fixture.example/notices.json",
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "synthetic": true,
+        "items": [
+          {
+            "notice_id": "P-2026-1",
+            "title": "Bridge materials"
+          }
+        ]
+      }
+    }
+  ]
+}

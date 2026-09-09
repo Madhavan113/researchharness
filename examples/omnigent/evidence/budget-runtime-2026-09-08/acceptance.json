@@ -1,0 +1,14 @@
+{
+  "status": "passed",
+  "normal_server_runner": true,
+  "model_and_source_fixtures": true,
+  "live_provider_verified": false,
+  "configured_cap_usd": 1e-09,
+  "first_turn_catalog_cost_usd": 0.00084,
+  "first_turn_exceeded_cap": true,
+  "next_request_denied": true,
+  "provider_requests_before_denial": 7,
+  "provider_requests_after_denial": 7,
+  "all_models_blocked": true,
+  "auxiliary_usage_unknown": true
+}

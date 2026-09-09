@@ -1,0 +1,173 @@
+{
+  "339491819af24ec685993a569990e87e": {
+    "id": "339491819af24ec685993a569990e87e",
+    "discovery_id": "af34b394a912440a95779a264bd69076",
+    "question_id": "dc4f72af522b4d2e80c821b378f1bf44",
+    "pipeline_version_id": "26e3310f897a4f619fa20921fbb7920b",
+    "operation_id": "collect-1",
+    "kind": "collection",
+    "request_hash": "99f92576a0f2a60af6f815bd199a725005693c0b26791a50c7a1472a2bec1e80",
+    "status": "succeeded",
+    "run_id": "262340d291734b0da740f8c6d8a214d3",
+    "created_at": "2026-09-08T18:57:44.500233Z",
+    "deadline_at": "2026-09-08T19:07:44.500235Z",
+    "started_at": "2026-09-08T18:57:44.598162Z",
+    "finished_at": "2026-09-08T18:57:44.613702Z",
+    "cancel_requested_at": null,
+    "worker_pid": 9581,
+    "error": null,
+    "request": {
+      "due_only": false,
+      "pipeline_version_id": "26e3310f897a4f619fa20921fbb7920b",
+      "source_id": null
+    },
+    "result": {
+      "pipeline": "fixture-policy",
+      "run_id": "262340d291734b0da740f8c6d8a214d3",
+      "sources": [
+        {
+          "error": null,
+          "new_versions": 1,
+          "pages": 1,
+          "quarantined": 0,
+          "records": 1,
+          "requests": 1,
+          "source_id": "policy",
+          "source_run_id": "95bccabb612c40d8b00ba36bce39a5df",
+          "status": "succeeded"
+        }
+      ],
+      "status": "succeeded"
+    },
+    "worker_active": false,
+    "recovery_pending": false,
+    "collection": {
+      "id": "262340d291734b0da740f8c6d8a214d3",
+      "pipeline": "fixture-policy",
+      "config_hash": "c416207c4bd6e822ed47aea505258f89f6c453654147ce976d3ca3a02c39fa99",
+      "started_at": "2026-09-08T18:57:44.610850Z",
+      "finished_at": "2026-09-08T18:57:44.613338Z",
+      "status": "succeeded",
+      "error": null,
+      "config": {
+        "data_dir": ".researchharness/data",
+        "description": "Find a public feed of official policy changes with stable ids and publication timestamps.",
+        "http": {
+          "max_attempts": 3,
+          "max_requests_per_source": 100,
+          "max_response_bytes": 5000000,
+          "max_retry_delay_seconds": 30.0,
+          "min_interval_seconds": 0.25,
+          "timeout_seconds": 20.0
+        },
+        "name": "fixture-policy",
+        "schema_version": 1,
+        "sources": [
+          {
+            "connector": "json",
+            "enabled": true,
+            "id": "policy",
+            "id_pointer": "/id",
+            "include_orderbooks": false,
+            "items_pointer": "/items",
+            "max_pages": 10,
+            "max_records": 5000,
+            "min_records": 1,
+            "name": "Fixture policy feed",
+            "pagination": {
+              "cursor_parameter": null,
+              "mode": "none",
+              "next_pointer": null,
+              "stop_when_missing": false
+            },
+            "parameters": [],
+            "poll_interval_seconds": 900,
+            "published_pointer": "/published_at",
+            "required_pointers": [
+              "/title"
+            ],
+            "url": "http://127.0.0.1:57378/policy.json"
+          }
+        ]
+      },
+      "dataset_scope": "dc4f72af522b4d2e80c821b378f1bf44",
+      "sources": [
+        {
+          "id": "95bccabb612c40d8b00ba36bce39a5df",
+          "run_id": "262340d291734b0da740f8c6d8a214d3",
+          "source_id": "policy",
+          "config_hash": "7127e6c28eb102ad338f0ea41e8679113498307b2391e15863409f212ab4927f",
+          "started_at": "2026-09-08T18:57:44.611103Z",
+          "finished_at": "2026-09-08T18:57:44.613077Z",
+          "status": "succeeded",
+          "record_count": 1,
+          "new_versions": 1,
+          "quarantined": 0,
+          "error": null
+        }
+      ]
+    }
+  },
+  "d384977836984e4a8a628850d688b168": {
+    "id": "d384977836984e4a8a628850d688b168",
+    "discovery_id": "af34b394a912440a95779a264bd69076",
+    "question_id": "dc4f72af522b4d2e80c821b378f1bf44",
+    "pipeline_version_id": "26e3310f897a4f619fa20921fbb7920b",
+    "operation_id": "export-1",
+    "kind": "export",
+    "request_hash": "fd26807db5d62722b68c99dbca538a9837f8bc79beeb29eca1fa2cf966fba6bd",
+    "status": "succeeded",
+    "run_id": null,
+    "created_at": "2026-09-08T18:57:44.664755Z",
+    "deadline_at": "2026-09-08T19:07:44.664756Z",
+    "started_at": "2026-09-08T18:57:44.761461Z",
+    "finished_at": "2026-09-08T18:57:44.763602Z",
+    "cancel_requested_at": null,
+    "worker_pid": 9583,
+    "error": null,
+    "request": {
+      "as_of": "2026-09-08T18:57:44.656392Z",
+      "kind": null,
+      "pipeline_version_id": "26e3310f897a4f619fa20921fbb7920b"
+    },
+    "result": {
+      "artifact_refs": [
+        {
+          "bytes": 857,
+          "kind": "observations",
+          "sha256": "f4cd539faba67a76e00a4cb8509ee96c5a55c8f254eb59ade819c5c0b9bf5217"
+        },
+        {
+          "kind": "manifest",
+          "sha256": "aba85c3d1903a9283c05a05a1612faa93de66392bc6c05b941a5497ef46a5055"
+        }
+      ],
+      "as_of": "2026-09-08T18:57:44.656392Z",
+      "config_fingerprint": "c416207c4bd6e822ed47aea505258f89f6c453654147ce976d3ca3a02c39fa99",
+      "data_sha256": "f4cd539faba67a76e00a4cb8509ee96c5a55c8f254eb59ade819c5c0b9bf5217",
+      "dataset_scope": "dc4f72af522b4d2e80c821b378f1bf44",
+      "kind_filter": null,
+      "manifest": "/private/tmp/rh-omnigent-phased-verified/research/jobs/d384977836984e4a8a628850d688b168/observations.jsonl.manifest.json",
+      "normalizer_version": "1",
+      "output": "/private/tmp/rh-omnigent-phased-verified/research/jobs/d384977836984e4a8a628850d688b168/observations.jsonl",
+      "pipeline": "fixture-policy",
+      "pipeline_version_id": "26e3310f897a4f619fa20921fbb7920b",
+      "record_count": 1,
+      "selection": "Latest successfully published observation per source/kind/key available by the cutoff, limited to source ids in this configuration. Use a saved historical configuration to reproduce its source universe. Absence from a later response is not interpreted as deletion.",
+      "sources": [
+        {
+          "configuration_matches_latest_run": true,
+          "enabled": true,
+          "error": null,
+          "last_success_at": "2026-09-08T18:57:44.613077Z",
+          "latest_run_status": "succeeded",
+          "poll_interval_seconds": 900,
+          "source_id": "policy",
+          "stale": false
+        }
+      ]
+    },
+    "worker_active": false,
+    "recovery_pending": false
+  }
+}

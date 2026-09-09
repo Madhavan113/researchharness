@@ -1,0 +1,47 @@
+{
+  "authorship": "Synthetic fixture authored by Codex; no live source was sampled",
+  "search_results": [
+    {
+      "url": "https://customs-office.fixture.example/port-holidays.json",
+      "title": "Authored search result"
+    },
+    {
+      "url": "https://customs-office.fixture.example/rulings.json",
+      "title": "Authored search result"
+    }
+  ],
+  "responses": [
+    {
+      "url": "https://customs-office.fixture.example/port-holidays.json",
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "synthetic": true,
+        "items": [
+          {
+            "id": "holiday-1",
+            "title": "Port holiday"
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://customs-office.fixture.example/rulings.json",
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "synthetic": true,
+        "items": [
+          {
+            "id": "ruling-1",
+            "title": "Classification ruling"
+          }
+        ]
+      }
+    }
+  ]
+}

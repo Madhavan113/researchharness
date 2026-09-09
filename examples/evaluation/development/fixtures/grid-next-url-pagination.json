@@ -1,0 +1,41 @@
+{
+  "authorship": "Synthetic fixture authored by Codex; no live source was sampled",
+  "search_results": [
+    {
+      "url": "https://grid-operator.fixture.example/outages",
+      "title": "Authored search result"
+    }
+  ],
+  "responses": [
+    {
+      "url": "https://grid-operator.fixture.example/outages",
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "items": [
+          {
+            "id": "outage-1"
+          }
+        ],
+        "next": "https://grid-operator.fixture.example/outages/page-2"
+      }
+    },
+    {
+      "url": "https://grid-operator.fixture.example/outages/page-2",
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "items": [
+          {
+            "id": "outage-2"
+          }
+        ],
+        "next": null
+      }
+    }
+  ]
+}

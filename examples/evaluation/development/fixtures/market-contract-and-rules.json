@@ -1,0 +1,47 @@
+{
+  "authorship": "Synthetic fixture authored by Codex; no live source was sampled",
+  "search_results": [
+    {
+      "url": "https://prediction-exchange.fixture.example/contracts.json",
+      "title": "Authored search result"
+    },
+    {
+      "url": "https://prediction-exchange.fixture.example/rules.json",
+      "title": "Authored search result"
+    }
+  ],
+  "responses": [
+    {
+      "url": "https://prediction-exchange.fixture.example/contracts.json",
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "synthetic": true,
+        "items": [
+          {
+            "id": "contract-1",
+            "title": "Authored trade announcement question"
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://prediction-exchange.fixture.example/rules.json",
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "synthetic": true,
+        "items": [
+          {
+            "id": "contract-1",
+            "settlement_text": "Illustrative official release criterion"
+          }
+        ]
+      }
+    }
+  ]
+}

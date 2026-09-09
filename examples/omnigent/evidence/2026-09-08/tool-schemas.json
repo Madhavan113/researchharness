@@ -1,0 +1,68 @@
+[
+  {
+    "type": "function",
+    "name": "research_fixture__fixture_probe",
+    "description": "Verify JSON transport and return a synthetic receipt; never fetch a URL.",
+    "parameters": {
+      "$defs": {
+        "FixtureSource": {
+          "properties": {
+            "url": {
+              "title": "Url",
+              "type": "string"
+            },
+            "connector": {
+              "title": "Connector",
+              "type": "string"
+            },
+            "labels": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Labels",
+              "type": "array"
+            },
+            "options": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "title": "Options",
+              "type": "object"
+            }
+          },
+          "required": [
+            "url",
+            "connector"
+          ],
+          "title": "FixtureSource",
+          "type": "object"
+        }
+      },
+      "properties": {
+        "operation_id": {
+          "title": "Operation Id",
+          "type": "string"
+        },
+        "source": {
+          "$ref": "#/$defs/FixtureSource"
+        }
+      },
+      "required": [
+        "operation_id",
+        "source"
+      ],
+      "title": "fixture_probeArguments",
+      "type": "object"
+    }
+  },
+  {
+    "type": "function",
+    "name": "research_fixture__structured_only",
+    "description": "Expose whether a client preserves MCP structuredContent without text.",
+    "parameters": {
+      "properties": {},
+      "title": "structured_onlyArguments",
+      "type": "object"
+    }
+  }
+]

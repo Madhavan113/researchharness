@@ -1,0 +1,1210 @@
+{
+  "schema_version": 1,
+  "benchmark_id": "controlled-runtime-acceptance",
+  "benchmark_sha256": "9a74b449e71576faa6cf2e719ffc8ddf05eb58e47f1a157119411ef4e5fdd365",
+  "split": "development",
+  "review_status_counts": {
+    "authored": 1,
+    "reviewed": 0
+  },
+  "comparison_axis": "runtime",
+  "fixed_controls": {
+    "execution": "fixture",
+    "model": "gpt-5.4-mini",
+    "model_settings": {
+      "max_output_tokens": 6000,
+      "reasoning": {
+        "effort": "none"
+      }
+    },
+    "provider": "authored-development-fixtures",
+    "provider_settings": {
+      "mode": "authored-fixtures",
+      "external_source_network": false
+    },
+    "budgets": {
+      "search": 8,
+      "inspection": 16,
+      "probe": 12,
+      "deadline_seconds": 600,
+      "model_rounds": 8,
+      "max_output_tokens": 6000
+    },
+    "fixture_sha256": "cc64e5825582c8219a5f714baab940d07a0ed9c3fc9c2dccc6dcd7168d92b21f",
+    "strategy_sha256": "906cbefdce59bd40ae36f047980346d8f8212d526d5f19cdfa9101b2e82ad668",
+    "backend_sha256": "acaddd66241ea449b75c06e29aee68ae6c589820f35f9db2f3d89deb5e969c46"
+  },
+  "arms": [
+    {
+      "name": "direct",
+      "manifest_sha256": "e3b5a09c1683747b1649383566ca88c802f73ad2ff887f1078eb59fe2547c6c3",
+      "controls": {
+        "execution": "fixture",
+        "runtime": "direct-controlled-responses",
+        "model": "gpt-5.4-mini",
+        "model_settings": {
+          "max_output_tokens": 6000,
+          "reasoning": {
+            "effort": "none"
+          }
+        },
+        "provider": "authored-development-fixtures",
+        "provider_settings": {
+          "mode": "authored-fixtures",
+          "external_source_network": false
+        },
+        "budgets": {
+          "search": 8,
+          "inspection": 16,
+          "probe": 12,
+          "deadline_seconds": 600,
+          "model_rounds": 8,
+          "max_output_tokens": 6000
+        },
+        "fixture_sha256": "cc64e5825582c8219a5f714baab940d07a0ed9c3fc9c2dccc6dcd7168d92b21f",
+        "strategy_sha256": "906cbefdce59bd40ae36f047980346d8f8212d526d5f19cdfa9101b2e82ad668",
+        "backend_sha256": "acaddd66241ea449b75c06e29aee68ae6c589820f35f9db2f3d89deb5e969c46"
+      },
+      "summary": {
+        "cases": 1,
+        "correctness": {
+          "scope": "artifact_consistency_and_sampled_source_evidence",
+          "valid": 1,
+          "invalid": 0,
+          "execution_failed": 0,
+          "artifact_error": 0,
+          "unmeasured": [
+            "complete_collection",
+            "publication_cutoffs",
+            "recovery",
+            "citation_entailment"
+          ]
+        },
+        "usefulness": {
+          "scope": "independent_source_predicates",
+          "macro_quality": 1.0,
+          "macro_requirement_recall": 1.0,
+          "macro_source_precision": 1.0,
+          "qualitative_review": "not_measured"
+        },
+        "efficiency": {
+          "model_tokens": {
+            "known_runs": 1,
+            "unknown_runs": 0,
+            "known_subtotal": 440,
+            "total": 440
+          },
+          "completed_token_lower_bounds": {
+            "known_runs": 1,
+            "unknown_runs": 0,
+            "known_subtotal": 440,
+            "total": 440
+          },
+          "elapsed_seconds": {
+            "known_runs": 1,
+            "unknown_runs": 0,
+            "known_subtotal": 0.8826627090002148,
+            "total": 0.8826627090002148
+          },
+          "model_cost_usd": {
+            "known_runs": 0,
+            "unknown_runs": 1,
+            "known_subtotal": 0,
+            "total": null
+          },
+          "provider_cost_usd": {
+            "known_runs": 0,
+            "unknown_runs": 1,
+            "known_subtotal": 0,
+            "total": null
+          }
+        }
+      },
+      "results": [
+        {
+          "case_id": "controlled-policy",
+          "run": {
+            "case_id": "controlled-policy",
+            "status": "completed",
+            "artifacts": "cases/controlled-policy/research",
+            "runtime_usage": null,
+            "gateway_usage": "cases/controlled-policy/gateway/archive.json",
+            "execution_id": "6a953c244e494e05aa05563a2e3b84ed",
+            "error": null,
+            "elapsed_seconds": 0.8826627090002148,
+            "model_cost_usd": null,
+            "provider_cost_usd": null,
+            "failed_run_tokens": null
+          },
+          "score": {
+            "evaluator_version": 1,
+            "scope": "sampled_source_selection",
+            "status": "ok",
+            "quality": 1.0,
+            "requirement_recall": 1.0,
+            "source_precision": 1.0,
+            "total_tokens": 440,
+            "completed_token_lower_bound": 440,
+            "runtime_usage": null,
+            "gateway_usage": {
+              "status": "verified_complete",
+              "total_tokens": 440,
+              "completed_token_lower_bound": 440,
+              "input_tokens": 400,
+              "output_tokens": 40,
+              "cached_input_tokens": 0,
+              "cached_input_token_lower_bound": 0,
+              "returned_models": [
+                "gpt-5.4-mini"
+              ],
+              "dispatched_requests": 4,
+              "reserved_attempts": 4,
+              "response_count": 4,
+              "files": {
+                "archive.json": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/direct/cases/controlled-policy/gateway/archive.json",
+                  "sha256": "86fd658e0eea20ebb7eff7f7536140233c0ffd4244ba2c520997e4befd285c0f"
+                },
+                "gateway.json": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/direct/cases/controlled-policy/gateway/gateway.json",
+                  "sha256": "ab1efd7d74cc1e677f4711fd3013eac01271f42209bf9b1a6d59c17bd56d3e2c"
+                },
+                "report.json": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/direct/cases/controlled-policy/gateway/report.json",
+                  "sha256": "24837f4fb04296864e845e9c7efe1eb51aed94d765a185e19b1230edad39c04a"
+                },
+                "request-0001/forwarded.json": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/direct/cases/controlled-policy/gateway/request-0001/forwarded.json",
+                  "sha256": "07c89121e227607d16396bbc7928ecf35ea3e79bf83d93491bb7f0b3a606008b"
+                },
+                "request-0001/incoming.json": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/direct/cases/controlled-policy/gateway/request-0001/incoming.json",
+                  "sha256": "a8f905f09cb0e3acb26cacc13e3553b5054553ba5a12ed8098981dd0ac5f4c03"
+                },
+                "request-0001/record.json": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/direct/cases/controlled-policy/gateway/request-0001/record.json",
+                  "sha256": "e6e1118ba0222fd49280975d8a025d8c9f275058d45e573babfbc43836881a9f"
+                },
+                "request-0001/response.body": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/direct/cases/controlled-policy/gateway/request-0001/response.body",
+                  "sha256": "80b76e306f56043e60116bd28491d5b9553cca3ea3adf9d40ab713bf2bef764a"
+                },
+                "request-0002/forwarded.json": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/direct/cases/controlled-policy/gateway/request-0002/forwarded.json",
+                  "sha256": "4982bd1b782511f456d3793c0dc91bfbf1a17349db0731087259a9e3e9b2451f"
+                },
+                "request-0002/incoming.json": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/direct/cases/controlled-policy/gateway/request-0002/incoming.json",
+                  "sha256": "7ff1ad1b7201a623c65549814d30c97122bc193c676ceed1d47c697fc8e20806"
+                },
+                "request-0002/record.json": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/direct/cases/controlled-policy/gateway/request-0002/record.json",
+                  "sha256": "099e93c0cf44e58ff6b468808cff6b469ce091150e6e7e51f73121aa656886f8"
+                },
+                "request-0002/response.body": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/direct/cases/controlled-policy/gateway/request-0002/response.body",
+                  "sha256": "ca88f85169619b732061ad63c5fd143b63e53845de2ba56a3a1710a75a8d55b6"
+                },
+                "request-0003/forwarded.json": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/direct/cases/controlled-policy/gateway/request-0003/forwarded.json",
+                  "sha256": "a724e63e6ab28444c362060d902e7440e51284481d475bc2672e0a4b7d978198"
+                },
+                "request-0003/incoming.json": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/direct/cases/controlled-policy/gateway/request-0003/incoming.json",
+                  "sha256": "3e243083edc07797d7a299c5ab970971e558feba055a341c018ff6e0132ca3d7"
+                },
+                "request-0003/record.json": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/direct/cases/controlled-policy/gateway/request-0003/record.json",
+                  "sha256": "319e15fa83c1799419ac331ad08bd1babfb16f7950bf3748ca80abf2c279841b"
+                },
+                "request-0003/response.body": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/direct/cases/controlled-policy/gateway/request-0003/response.body",
+                  "sha256": "6937c7d2ffc76702a83bb19f648cd8b03d27c2a68b112d1109952f137e2ac21f"
+                },
+                "request-0004/forwarded.json": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/direct/cases/controlled-policy/gateway/request-0004/forwarded.json",
+                  "sha256": "b4d2aff168b516b6dee94df9bd3a5477ca12d66c7b8df4605d20a586902f3c98"
+                },
+                "request-0004/incoming.json": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/direct/cases/controlled-policy/gateway/request-0004/incoming.json",
+                  "sha256": "5beefcb1d39a8b83f9cdd12fa31f7b1255e15c4d2ad3e0ba7fe81f92a2a1ea3b"
+                },
+                "request-0004/record.json": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/direct/cases/controlled-policy/gateway/request-0004/record.json",
+                  "sha256": "2fe33902ac14accc04b78e26a2389c09e87f888e0cb7a798fa05664e73315ba9"
+                },
+                "request-0004/response.body": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/direct/cases/controlled-policy/gateway/request-0004/response.body",
+                  "sha256": "6d56e774a6cd546fb5611dd597022ff393c04a87ea9f0505f7055979fe701ddd"
+                }
+              },
+              "errors": [],
+              "unknown_requests": [],
+              "responses": [
+                {
+                  "response_id": "resp_direct_1",
+                  "model": "gpt-5.4-mini",
+                  "status": "completed",
+                  "input_tokens": 100,
+                  "output_tokens": 10,
+                  "provider_usage": {
+                    "input_tokens": 100,
+                    "input_tokens_details": {
+                      "cached_tokens": 0
+                    },
+                    "output_tokens": 10,
+                    "output_tokens_details": {
+                      "reasoning_tokens": 0
+                    },
+                    "total_tokens": 110
+                  }
+                },
+                {
+                  "response_id": "resp_direct_2",
+                  "model": "gpt-5.4-mini",
+                  "status": "completed",
+                  "input_tokens": 100,
+                  "output_tokens": 10,
+                  "provider_usage": {
+                    "input_tokens": 100,
+                    "input_tokens_details": {
+                      "cached_tokens": 0
+                    },
+                    "output_tokens": 10,
+                    "output_tokens_details": {
+                      "reasoning_tokens": 0
+                    },
+                    "total_tokens": 110
+                  }
+                },
+                {
+                  "response_id": "resp_direct_3",
+                  "model": "gpt-5.4-mini",
+                  "status": "completed",
+                  "input_tokens": 100,
+                  "output_tokens": 10,
+                  "provider_usage": {
+                    "input_tokens": 100,
+                    "input_tokens_details": {
+                      "cached_tokens": 0
+                    },
+                    "output_tokens": 10,
+                    "output_tokens_details": {
+                      "reasoning_tokens": 0
+                    },
+                    "total_tokens": 110
+                  }
+                },
+                {
+                  "response_id": "resp_direct_4",
+                  "model": "gpt-5.4-mini",
+                  "status": "completed",
+                  "input_tokens": 100,
+                  "output_tokens": 10,
+                  "provider_usage": {
+                    "input_tokens": 100,
+                    "input_tokens_details": {
+                      "cached_tokens": 0
+                    },
+                    "output_tokens": 10,
+                    "output_tokens_details": {
+                      "reasoning_tokens": 0
+                    },
+                    "total_tokens": 110
+                  }
+                }
+              ],
+              "cost_usd": null,
+              "limitations": [
+                "Host archive consistency is not a signature or access-isolation proof.",
+                "Token accounting does not establish task success or provider billing."
+              ],
+              "binding": {
+                "execution_id": "6a953c244e494e05aa05563a2e3b84ed",
+                "case_id": "controlled-policy",
+                "runtime": "direct-controlled-responses",
+                "phase": "discovery",
+                "task_sha256": "61666a8cc032b72bc568fd0bd843ad2a9dd2b366262cbcea48410278fe5ce659"
+              },
+              "interrupted": false,
+              "auxiliary_usage_unknown": false
+            },
+            "token_evidence_source": "gateway",
+            "reported_model": "gpt-5.4-mini",
+            "reported_search_providers": [
+              "authored-development-fixtures"
+            ],
+            "coverage": [
+              {
+                "id": "policy",
+                "covered": true,
+                "source_ids": [
+                  "policy"
+                ]
+              }
+            ],
+            "errors": [],
+            "artifacts": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/direct/cases/controlled-policy/research",
+            "specification_sha256": "7fa57d462e33193b4ffa8cee98257bb695015806d8dca4b2295959855e84eec6",
+            "artifact_sha256": {
+              "proposal.json": "3ddf9e2a8387b5dc4f6d3a978cc6067b125dfae81bfdfd80e3a1cebb6b2305e5",
+              "trace.jsonl": "3302b20f0c26ab180e0dbc6aa7bbc9959982036364be818398ddf7bb3995c811",
+              "probes.json": "cb407e9e35222e4612046e32ab207395a22dccde32b366e927dd6b2d726b982a",
+              "receipts.json": "4c2c3793c3c89d1bf5ce22ea1b0a5930550da9638d552242bab990e77d172872",
+              "pipeline.json": "d488fbc47cb434a15dc26b68a7e5b435fa1aa7a9f26b8640233aa6daf1dcfb78"
+            }
+          },
+          "control_evidence": {
+            "scope": "observed_artifact_metadata",
+            "model": {
+              "configured": "gpt-5.4-mini",
+              "observed": "gpt-5.4-mini",
+              "status": "matched"
+            },
+            "search_provider": {
+              "configured": "authored-development-fixtures",
+              "observed": [
+                "authored-development-fixtures"
+              ],
+              "status": "matched",
+              "reason": null
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "omnigent",
+      "manifest_sha256": "4f20e2f3cdf3f5642aa8f87aeefc4b58e2e2c4187c44078b72af0903d16b1dda",
+      "controls": {
+        "execution": "fixture",
+        "runtime": "omnigent-controlled-responses",
+        "model": "gpt-5.4-mini",
+        "model_settings": {
+          "max_output_tokens": 6000,
+          "reasoning": {
+            "effort": "none"
+          }
+        },
+        "provider": "authored-development-fixtures",
+        "provider_settings": {
+          "mode": "authored-fixtures",
+          "external_source_network": false
+        },
+        "budgets": {
+          "search": 8,
+          "inspection": 16,
+          "probe": 12,
+          "deadline_seconds": 600,
+          "model_rounds": 8,
+          "max_output_tokens": 6000
+        },
+        "fixture_sha256": "cc64e5825582c8219a5f714baab940d07a0ed9c3fc9c2dccc6dcd7168d92b21f",
+        "strategy_sha256": "906cbefdce59bd40ae36f047980346d8f8212d526d5f19cdfa9101b2e82ad668",
+        "backend_sha256": "acaddd66241ea449b75c06e29aee68ae6c589820f35f9db2f3d89deb5e969c46"
+      },
+      "summary": {
+        "cases": 1,
+        "correctness": {
+          "scope": "artifact_consistency_and_sampled_source_evidence",
+          "valid": 1,
+          "invalid": 0,
+          "execution_failed": 0,
+          "artifact_error": 0,
+          "unmeasured": [
+            "complete_collection",
+            "publication_cutoffs",
+            "recovery",
+            "citation_entailment"
+          ]
+        },
+        "usefulness": {
+          "scope": "independent_source_predicates",
+          "macro_quality": 1.0,
+          "macro_requirement_recall": 1.0,
+          "macro_source_precision": 1.0,
+          "qualitative_review": "not_measured"
+        },
+        "efficiency": {
+          "model_tokens": {
+            "known_runs": 1,
+            "unknown_runs": 0,
+            "known_subtotal": 770,
+            "total": 770
+          },
+          "completed_token_lower_bounds": {
+            "known_runs": 1,
+            "unknown_runs": 0,
+            "known_subtotal": 770,
+            "total": 770
+          },
+          "elapsed_seconds": {
+            "known_runs": 1,
+            "unknown_runs": 0,
+            "known_subtotal": 33.54467925000063,
+            "total": 33.54467925000063
+          },
+          "model_cost_usd": {
+            "known_runs": 0,
+            "unknown_runs": 1,
+            "known_subtotal": 0,
+            "total": null
+          },
+          "provider_cost_usd": {
+            "known_runs": 0,
+            "unknown_runs": 1,
+            "known_subtotal": 0,
+            "total": null
+          }
+        }
+      },
+      "results": [
+        {
+          "case_id": "controlled-policy",
+          "run": {
+            "case_id": "controlled-policy",
+            "status": "completed",
+            "artifacts": "cases/controlled-policy/runtime/research",
+            "runtime_usage": "cases/controlled-policy/runtime/omnigent/runtime-usage.discovery.json",
+            "gateway_usage": "cases/controlled-policy/gateway/archive.json",
+            "execution_id": "13d0823c5a064c948a2ec42c7f1220e1",
+            "error": null,
+            "elapsed_seconds": 33.54467925000063,
+            "model_cost_usd": null,
+            "provider_cost_usd": null,
+            "failed_run_tokens": null
+          },
+          "score": {
+            "evaluator_version": 1,
+            "scope": "sampled_source_selection",
+            "status": "ok",
+            "quality": 1.0,
+            "requirement_recall": 1.0,
+            "source_precision": 1.0,
+            "total_tokens": 770,
+            "completed_token_lower_bound": 770,
+            "runtime_usage": {
+              "status": "verified_lower_bound",
+              "total_tokens": null,
+              "completed_token_lower_bound": 770,
+              "errors": [],
+              "files": {
+                "runtime_usage": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/omnigent/cases/controlled-policy/runtime/omnigent/runtime-usage.discovery.json",
+                  "sha256": "81930fad8d05e104370d9146cb4b87dfeab88f3b463c132556ae230f1354be9a"
+                },
+                "runtime_usage_events": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/omnigent/cases/controlled-policy/runtime/omnigent/events/ba425995ab8583852987837ea7bc390d217200e0571168182b126682e060758b.jsonl",
+                  "sha256": "ba425995ab8583852987837ea7bc390d217200e0571168182b126682e060758b"
+                }
+              },
+              "response_count": 1,
+              "auxiliary_usage_unknown": true,
+              "interrupted": false
+            },
+            "gateway_usage": {
+              "status": "verified_complete",
+              "total_tokens": 770,
+              "completed_token_lower_bound": 770,
+              "input_tokens": 700,
+              "output_tokens": 70,
+              "cached_input_tokens": 0,
+              "cached_input_token_lower_bound": 0,
+              "returned_models": [
+                "gpt-5.4-mini"
+              ],
+              "dispatched_requests": 7,
+              "reserved_attempts": 7,
+              "response_count": 7,
+              "files": {
+                "archive.json": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/omnigent/cases/controlled-policy/gateway/archive.json",
+                  "sha256": "eeb483ba28048a6eaf968b18bcc5f79e16a21242e18918b6e02b6b0025799418"
+                },
+                "gateway.json": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/omnigent/cases/controlled-policy/gateway/gateway.json",
+                  "sha256": "c34d7cf1697ef27e0440ca99319db06b69eab722fc2f2408c54aec08439c4bc5"
+                },
+                "report.json": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/omnigent/cases/controlled-policy/gateway/report.json",
+                  "sha256": "3d271cf7b7830fe8ed6196a328a044b9d34a838747efe252c6357233ab32ded2"
+                },
+                "request-0001/forwarded.json": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0001/forwarded.json",
+                  "sha256": "bb38766b5a620e45acc42ee22dd4098673a9e2cdfecc83b5478587badf7f515d"
+                },
+                "request-0001/incoming.json": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0001/incoming.json",
+                  "sha256": "03cea9482fc0016c61c7f3694e31543bf7bf4e8eac04a68aa3bf9fa32646c204"
+                },
+                "request-0001/record.json": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0001/record.json",
+                  "sha256": "11c14a47f10c5ac8fe1a22604429e56306acc5f24d5c0bd33bd9e4304bb71651"
+                },
+                "request-0001/response.body": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0001/response.body",
+                  "sha256": "0fd2baf69d6940b394935b47943e7c269cea43a8fb0de238e7a71b1c4a6340b1"
+                },
+                "request-0002/forwarded.json": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0002/forwarded.json",
+                  "sha256": "3df2f26fe04f041532bd3f731d387a63500e3a7316f37ec0f2ad9ab3701c6a19"
+                },
+                "request-0002/incoming.json": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0002/incoming.json",
+                  "sha256": "6adb911750d89a1f6c0e112caed9889ad89f01daaaa7dbfa48fb64b6027ad8aa"
+                },
+                "request-0002/record.json": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0002/record.json",
+                  "sha256": "38d99643fad176abc187e4d963c6f65c65bb2d3bec333a0a66c210d36399bf8f"
+                },
+                "request-0002/response.body": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0002/response.body",
+                  "sha256": "7c5e213ec2b5e94e56e3fde6b7037ade969d12f0d1bedb8827ba93a82f36e800"
+                },
+                "request-0003/forwarded.json": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0003/forwarded.json",
+                  "sha256": "67a96db9901c6ae94f557ed443c127988c07552a59fede4c465294971af11f8d"
+                },
+                "request-0003/incoming.json": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0003/incoming.json",
+                  "sha256": "1dec0cbb8ab237ae712fc4ff81e4788a4657770d19315e47543f197b35ac56d7"
+                },
+                "request-0003/record.json": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0003/record.json",
+                  "sha256": "477623143f90669146fce22dfb42f0a9bb569cf11a476c83ff9644537cab3567"
+                },
+                "request-0003/response.body": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0003/response.body",
+                  "sha256": "d9d4bb26e5409a852bcf4e97fa412c0a59415910f1025f8b5506bba45cb2edb7"
+                },
+                "request-0004/forwarded.json": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0004/forwarded.json",
+                  "sha256": "8156d3437287cf2bef0a26daa2e1597eb3b51148fe84aeb8522f398d7a84ea49"
+                },
+                "request-0004/incoming.json": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0004/incoming.json",
+                  "sha256": "814bf15c480ce3ac15d25820020532ad30b87f992af5f6a5c7ec62165453b8d8"
+                },
+                "request-0004/record.json": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0004/record.json",
+                  "sha256": "b52dd3da6e1c8184079a6a839c8a78bee30aa25c2b82837f0e3090675986f534"
+                },
+                "request-0004/response.body": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0004/response.body",
+                  "sha256": "3956441b02e957fcf4ef4b93a5c495e5264e9903854e41fd32e5305f71e2fc92"
+                },
+                "request-0005/forwarded.json": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0005/forwarded.json",
+                  "sha256": "2a860866f7acf46b35349bb69ffe6885fb714613dde877365e8df66dff1fb2fe"
+                },
+                "request-0005/incoming.json": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0005/incoming.json",
+                  "sha256": "054031e2aa188a620ce3a556eb04936689fdbe5b13cd911c72f1566e2b5f89c2"
+                },
+                "request-0005/record.json": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0005/record.json",
+                  "sha256": "6a08b729a9b482b5825bec9845d539bea91a0462a37d487280d1cf75cb344677"
+                },
+                "request-0005/response.body": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0005/response.body",
+                  "sha256": "ee310bc827103fc94453625b943610a3ca1d448bbc0b381ac4a2978d1fb2ab5f"
+                },
+                "request-0006/forwarded.json": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0006/forwarded.json",
+                  "sha256": "c7f780624464e4d968a27d7abb40c0559cd36fd06df28e1d7f11c0a7f318e204"
+                },
+                "request-0006/incoming.json": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0006/incoming.json",
+                  "sha256": "5faaa34b5b3bd55a25ce262ca0f69a20451935c5b52fa6d0b1be9887e5743a15"
+                },
+                "request-0006/record.json": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0006/record.json",
+                  "sha256": "18db9eb26ecc43070a8452b2491cb973260809032446cc43301a67d7ce9652a0"
+                },
+                "request-0006/response.body": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0006/response.body",
+                  "sha256": "c8f3d501e682de2d7adf6012f9f3857767ec2682a64665eb5391e28314c4f776"
+                },
+                "request-0007/forwarded.json": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0007/forwarded.json",
+                  "sha256": "ffa8f552c69fc07d65f872a41385d9dc2a040f5042196276ac08dc7f29b99068"
+                },
+                "request-0007/incoming.json": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0007/incoming.json",
+                  "sha256": "23f547b5c33cbfd4b55fc6a4e3ffa21701d4453141f9ac759d9de68705e1d651"
+                },
+                "request-0007/record.json": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0007/record.json",
+                  "sha256": "755b0729470197449766e29dbdc971566a3b0cf49cad908a2ea81738ff30e48f"
+                },
+                "request-0007/response.body": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0007/response.body",
+                  "sha256": "56d8bfb6d72aca4a4ace148c0d948cc67266a4c9850bdad3c43c3199161d0ab7"
+                },
+                "request-0008/incoming.json": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0008/incoming.json",
+                  "sha256": "345999de560a89ed86bb7f5ae933d0f53c326b13807e54a347134e0a4a74f70d"
+                },
+                "request-0008/record.json": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0008/record.json",
+                  "sha256": "b13a461fc87cfdd813a035a496064d1a7da3f8eabe6d834b00420214fb68d2ad"
+                },
+                "request-0009/incoming.json": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0009/incoming.json",
+                  "sha256": "345999de560a89ed86bb7f5ae933d0f53c326b13807e54a347134e0a4a74f70d"
+                },
+                "request-0009/record.json": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0009/record.json",
+                  "sha256": "c2334ec0260831e097d1fa4dc44e838729a2e17b56dc81021f06022b4999d478"
+                },
+                "request-0010/incoming.json": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0010/incoming.json",
+                  "sha256": "345999de560a89ed86bb7f5ae933d0f53c326b13807e54a347134e0a4a74f70d"
+                },
+                "request-0010/record.json": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0010/record.json",
+                  "sha256": "332d8fc8b95e4f019c939037f2b86b129802d48a4b56695ebf575a4400993970"
+                },
+                "request-0011/incoming.json": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0011/incoming.json",
+                  "sha256": "345999de560a89ed86bb7f5ae933d0f53c326b13807e54a347134e0a4a74f70d"
+                },
+                "request-0011/record.json": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0011/record.json",
+                  "sha256": "20573a107a4e717ef002b6a11f85ea9be6a31f7e8de1e7e6013cb18e92fe9939"
+                },
+                "request-0012/incoming.json": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0012/incoming.json",
+                  "sha256": "345999de560a89ed86bb7f5ae933d0f53c326b13807e54a347134e0a4a74f70d"
+                },
+                "request-0012/record.json": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0012/record.json",
+                  "sha256": "40456b66dbab19515d4cc027a72abc85a38893270fc36923c4e237db13c853a5"
+                },
+                "request-0013/incoming.json": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0013/incoming.json",
+                  "sha256": "345999de560a89ed86bb7f5ae933d0f53c326b13807e54a347134e0a4a74f70d"
+                },
+                "request-0013/record.json": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0013/record.json",
+                  "sha256": "9146ba8a50a3d90541308efcc2ea259c8b54b7bea9f52274d344bb83e200cf15"
+                },
+                "request-0014/incoming.json": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0014/incoming.json",
+                  "sha256": "345999de560a89ed86bb7f5ae933d0f53c326b13807e54a347134e0a4a74f70d"
+                },
+                "request-0014/record.json": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0014/record.json",
+                  "sha256": "46f7efe5360c9051d94021a3b9f0b302ec2f33321096ff09d78297410d4da48f"
+                },
+                "request-0015/incoming.json": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0015/incoming.json",
+                  "sha256": "345999de560a89ed86bb7f5ae933d0f53c326b13807e54a347134e0a4a74f70d"
+                },
+                "request-0015/record.json": {
+                  "path": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0015/record.json",
+                  "sha256": "0354f81713d8c226ed07674b1e2990bbeeaf7d8586f697b4b69a49bde64576ea"
+                }
+              },
+              "errors": [],
+              "unknown_requests": [],
+              "responses": [
+                {
+                  "response_id": "resp_0",
+                  "model": "gpt-5.4-mini",
+                  "status": "completed",
+                  "input_tokens": 100,
+                  "output_tokens": 10,
+                  "provider_usage": {
+                    "input_tokens": 100,
+                    "input_tokens_details": {
+                      "cached_tokens": 0
+                    },
+                    "output_tokens": 10,
+                    "output_tokens_details": {
+                      "reasoning_tokens": 0
+                    },
+                    "total_tokens": 110
+                  }
+                },
+                {
+                  "response_id": "resp_1",
+                  "model": "gpt-5.4-mini",
+                  "status": "completed",
+                  "input_tokens": 100,
+                  "output_tokens": 10,
+                  "provider_usage": {
+                    "input_tokens": 100,
+                    "input_tokens_details": {
+                      "cached_tokens": 0
+                    },
+                    "output_tokens": 10,
+                    "output_tokens_details": {
+                      "reasoning_tokens": 0
+                    },
+                    "total_tokens": 110
+                  }
+                },
+                {
+                  "response_id": "resp_2",
+                  "model": "gpt-5.4-mini",
+                  "status": "completed",
+                  "input_tokens": 100,
+                  "output_tokens": 10,
+                  "provider_usage": {
+                    "input_tokens": 100,
+                    "input_tokens_details": {
+                      "cached_tokens": 0
+                    },
+                    "output_tokens": 10,
+                    "output_tokens_details": {
+                      "reasoning_tokens": 0
+                    },
+                    "total_tokens": 110
+                  }
+                },
+                {
+                  "response_id": "resp_3",
+                  "model": "gpt-5.4-mini",
+                  "status": "completed",
+                  "input_tokens": 100,
+                  "output_tokens": 10,
+                  "provider_usage": {
+                    "input_tokens": 100,
+                    "input_tokens_details": {
+                      "cached_tokens": 0
+                    },
+                    "output_tokens": 10,
+                    "output_tokens_details": {
+                      "reasoning_tokens": 0
+                    },
+                    "total_tokens": 110
+                  }
+                },
+                {
+                  "response_id": "resp_4",
+                  "model": "gpt-5.4-mini",
+                  "status": "completed",
+                  "input_tokens": 100,
+                  "output_tokens": 10,
+                  "provider_usage": {
+                    "input_tokens": 100,
+                    "input_tokens_details": {
+                      "cached_tokens": 0
+                    },
+                    "output_tokens": 10,
+                    "output_tokens_details": {
+                      "reasoning_tokens": 0
+                    },
+                    "total_tokens": 110
+                  }
+                },
+                {
+                  "response_id": "resp_5",
+                  "model": "gpt-5.4-mini",
+                  "status": "completed",
+                  "input_tokens": 100,
+                  "output_tokens": 10,
+                  "provider_usage": {
+                    "input_tokens": 100,
+                    "input_tokens_details": {
+                      "cached_tokens": 0
+                    },
+                    "output_tokens": 10,
+                    "output_tokens_details": {
+                      "reasoning_tokens": 0
+                    },
+                    "total_tokens": 110
+                  }
+                },
+                {
+                  "response_id": "resp_6",
+                  "model": "gpt-5.4-mini",
+                  "status": "completed",
+                  "input_tokens": 100,
+                  "output_tokens": 10,
+                  "provider_usage": {
+                    "input_tokens": 100,
+                    "input_tokens_details": {
+                      "cached_tokens": 0
+                    },
+                    "output_tokens": 10,
+                    "output_tokens_details": {
+                      "reasoning_tokens": 0
+                    },
+                    "total_tokens": 110
+                  }
+                }
+              ],
+              "cost_usd": null,
+              "limitations": [
+                "Host archive consistency is not a signature or access-isolation proof.",
+                "Token accounting does not establish task success or provider billing."
+              ],
+              "binding": {
+                "execution_id": "13d0823c5a064c948a2ec42c7f1220e1",
+                "case_id": "controlled-policy",
+                "runtime": "omnigent-controlled-responses",
+                "phase": "discovery",
+                "task_sha256": "9f7035bd1ae172880e8b8fffd37fb847838fc71c3430e58f97abb52da6eb5527"
+              },
+              "interrupted": false,
+              "auxiliary_usage_unknown": false
+            },
+            "token_evidence_source": "gateway",
+            "reported_model": "gpt-5.4-mini",
+            "reported_search_providers": [
+              "authored-development-fixtures"
+            ],
+            "coverage": [
+              {
+                "id": "policy",
+                "covered": true,
+                "source_ids": [
+                  "policy"
+                ]
+              }
+            ],
+            "errors": [],
+            "artifacts": "/private/tmp/rh-controlled-provider-usage-20260908/comparison/omnigent/cases/controlled-policy/runtime/research",
+            "specification_sha256": "7fa57d462e33193b4ffa8cee98257bb695015806d8dca4b2295959855e84eec6",
+            "artifact_sha256": {
+              "proposal.json": "fcd3c83296c848b7da05427388562671e0ea2db4ad6edc4170820ab61442430d",
+              "runtime_usage": "81930fad8d05e104370d9146cb4b87dfeab88f3b463c132556ae230f1354be9a",
+              "runtime_usage_events": "ba425995ab8583852987837ea7bc390d217200e0571168182b126682e060758b",
+              "trace.jsonl": "be7a1f0940dd54385920d6fb3c606fdf736c7d3500b9c4a94508c1d10fdc9ec1",
+              "probes.json": "4609ac93a3663fe67eb677ab64c458136a0d1f0898474a8f0fcf4e087d41e777",
+              "receipts.json": "d2ff5abd5929fab70363ce21c3740b2a6d04cf3f8cb440c948251c9147b438ee",
+              "pipeline.json": "d488fbc47cb434a15dc26b68a7e5b435fa1aa7a9f26b8640233aa6daf1dcfb78"
+            }
+          },
+          "control_evidence": {
+            "scope": "observed_artifact_metadata",
+            "model": {
+              "configured": "gpt-5.4-mini",
+              "observed": "gpt-5.4-mini",
+              "status": "matched"
+            },
+            "search_provider": {
+              "configured": "authored-development-fixtures",
+              "observed": [
+                "authored-development-fixtures"
+              ],
+              "status": "matched",
+              "reason": null
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "paired_differences": [
+    {
+      "reference": "direct",
+      "candidate": "omnigent",
+      "macro_quality_difference": 0.0
+    }
+  ],
+  "limitations": [
+    "Fixture execution measures software behavior, not model performance.",
+    "Controls are recorded by the trusted runner; matching metadata does not authenticate execution.",
+    "No observed search provider leaves provider use unverified; the configured provider is not evidence that a search occurred.",
+    "Source predicates require qualitative review and cannot prove complete collection or recovery.",
+    "No confidence interval or broad scientific conclusion is inferred from this case set."
+  ],
+  "workflow": {
+    "direct": {
+      "schema_version": 1,
+      "measurement": "workflow_correctness_summary",
+      "scope": "recorded_checks_from_trusted_workflow_evaluations",
+      "status": "incomplete",
+      "cases": 1,
+      "case_counts": {
+        "passed": 0,
+        "failed": 0,
+        "incomplete": 0,
+        "missing": 1,
+        "invalid": 0
+      },
+      "valid_reports": 0,
+      "unavailable_reports": 1,
+      "recorded_check_counts": {
+        "passed": 0,
+        "failed": 0,
+        "unknown": 0
+      },
+      "dimensions": {
+        "capture": {
+          "case_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0,
+            "not_measured": 0,
+            "missing": 1,
+            "invalid": 0
+          },
+          "recorded_check_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0
+          }
+        },
+        "collection": {
+          "case_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0,
+            "not_measured": 0,
+            "missing": 1,
+            "invalid": 0
+          },
+          "recorded_check_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0
+          }
+        },
+        "export": {
+          "case_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0,
+            "not_measured": 0,
+            "missing": 1,
+            "invalid": 0
+          },
+          "recorded_check_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0
+          }
+        },
+        "pipeline": {
+          "case_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0,
+            "not_measured": 0,
+            "missing": 1,
+            "invalid": 0
+          },
+          "recorded_check_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0
+          }
+        },
+        "publication": {
+          "case_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0,
+            "not_measured": 0,
+            "missing": 1,
+            "invalid": 0
+          },
+          "recorded_check_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0
+          }
+        },
+        "replay": {
+          "case_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0,
+            "not_measured": 0,
+            "missing": 1,
+            "invalid": 0
+          },
+          "recorded_check_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0
+          }
+        },
+        "snapshot": {
+          "case_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0,
+            "not_measured": 0,
+            "missing": 1,
+            "invalid": 0
+          },
+          "recorded_check_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0
+          }
+        }
+      },
+      "unmeasured": [],
+      "results": [
+        {
+          "case_id": "controlled-policy",
+          "status": "missing",
+          "report_sha256": null
+        }
+      ],
+      "limitations": [
+        "Every expected case remains in the denominator, including executions with no workflow report.",
+        "A passed case means its recorded checks passed; absent workflow dimensions are not measured.",
+        "Missing, invalid, and unknown evidence cannot establish workflow correctness.",
+        "Report validation does not authenticate execution, case ownership, or artifact provenance.",
+        "No research usefulness, model quality, or cost score is inferred."
+      ]
+    },
+    "omnigent": {
+      "schema_version": 1,
+      "measurement": "workflow_correctness_summary",
+      "scope": "recorded_checks_from_trusted_workflow_evaluations",
+      "status": "incomplete",
+      "cases": 1,
+      "case_counts": {
+        "passed": 0,
+        "failed": 0,
+        "incomplete": 0,
+        "missing": 1,
+        "invalid": 0
+      },
+      "valid_reports": 0,
+      "unavailable_reports": 1,
+      "recorded_check_counts": {
+        "passed": 0,
+        "failed": 0,
+        "unknown": 0
+      },
+      "dimensions": {
+        "capture": {
+          "case_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0,
+            "not_measured": 0,
+            "missing": 1,
+            "invalid": 0
+          },
+          "recorded_check_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0
+          }
+        },
+        "collection": {
+          "case_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0,
+            "not_measured": 0,
+            "missing": 1,
+            "invalid": 0
+          },
+          "recorded_check_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0
+          }
+        },
+        "export": {
+          "case_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0,
+            "not_measured": 0,
+            "missing": 1,
+            "invalid": 0
+          },
+          "recorded_check_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0
+          }
+        },
+        "pipeline": {
+          "case_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0,
+            "not_measured": 0,
+            "missing": 1,
+            "invalid": 0
+          },
+          "recorded_check_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0
+          }
+        },
+        "publication": {
+          "case_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0,
+            "not_measured": 0,
+            "missing": 1,
+            "invalid": 0
+          },
+          "recorded_check_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0
+          }
+        },
+        "replay": {
+          "case_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0,
+            "not_measured": 0,
+            "missing": 1,
+            "invalid": 0
+          },
+          "recorded_check_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0
+          }
+        },
+        "snapshot": {
+          "case_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0,
+            "not_measured": 0,
+            "missing": 1,
+            "invalid": 0
+          },
+          "recorded_check_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0
+          }
+        }
+      },
+      "unmeasured": [],
+      "results": [
+        {
+          "case_id": "controlled-policy",
+          "status": "missing",
+          "report_sha256": null
+        }
+      ],
+      "limitations": [
+        "Every expected case remains in the denominator, including executions with no workflow report.",
+        "A passed case means its recorded checks passed; absent workflow dimensions are not measured.",
+        "Missing, invalid, and unknown evidence cannot establish workflow correctness.",
+        "Report validation does not authenticate execution, case ownership, or artifact provenance.",
+        "No research usefulness, model quality, or cost score is inferred."
+      ]
+    }
+  },
+  "controller_limitations": [
+    "Shared semantic instructions are identical; assembled prompts and tool schemas differ.",
+    "Model requests require a host gateway; native Omnigent drops some authored limits.",
+    "Source fixtures measure behavior on authored data, not live-source freshness.",
+    "Generation and operation limits are not an exact provider billing cap.",
+    "This directory is trusted controller state, not an M6 candidate sandbox."
+  ]
+}

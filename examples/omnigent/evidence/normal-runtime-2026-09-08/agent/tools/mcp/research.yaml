@@ -1,0 +1,16 @@
+{
+  "name": "research",
+  "transport": "stdio",
+  "command": "/Users/madhavanp/researchharness/.venv/bin/python",
+  "args": [
+    "/Users/madhavanp/researchharness/examples/omnigent/fixture_research_mcp.py",
+    "--case",
+    "/private/tmp/rh-omnigent-phased-verified/case.json",
+    "--fixture",
+    "/private/tmp/rh-omnigent-phased-verified/fixture.json"
+  ],
+  "env": {
+    "RH_LOCAL_ROOT": "/private/tmp/rh-omnigent-phased-verified/backend"
+  },
+  "timeout": 90
+}

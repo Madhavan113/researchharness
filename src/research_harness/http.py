@@ -22,6 +22,10 @@ class FetchError(RuntimeError):
     pass
 
 
+class OperationCancelled(RuntimeError):
+    pass
+
+
 def validate_public_url(url: str) -> None:
     """Reject local destinations before requests and again on every redirect."""
     http_url(url)
@@ -79,6 +83,7 @@ class Fetcher:
         clock: Callable[[], datetime] = utcnow,
         sleep: Callable[[float], None] = time.sleep,
         public_only: bool = True,
+        check_cancelled: Callable[[], None] | None = None,
     ):
         self.store = store
         self.pipeline = pipeline
@@ -89,8 +94,24 @@ class Fetcher:
         self.clock = clock
         self.sleep = sleep
         self.public_only = public_only
+        self.check_cancelled = check_cancelled
         self.requests = 0
         self.last_request = 0.0
+
+    def _check_cancelled(self) -> None:
+        if self.check_cancelled:
+            self.check_cancelled()
+
+    def _sleep(self, seconds: float) -> None:
+        if self.check_cancelled is None:
+            self.sleep(seconds)
+            return
+        while seconds > 0:
+            self._check_cancelled()
+            interval = min(seconds, 0.25)
+            self.sleep(interval)
+            seconds -= interval
+        self._check_cancelled()
 
     def _capture(
         self,
@@ -134,6 +155,7 @@ class Fetcher:
         redirects = 0
         attempt = 0
         while True:
+            self._check_cancelled()
             if self.requests >= self.settings.max_requests_per_source:
                 raise FetchError("Source request budget exhausted; snapshot is incomplete")
             try:
@@ -160,7 +182,7 @@ class Fetcher:
                     headers["If-Modified-Since"] = cached.headers["last-modified"]
             elapsed = time.monotonic() - self.last_request
             if elapsed < self.settings.min_interval_seconds:
-                self.sleep(self.settings.min_interval_seconds - elapsed)
+                self._sleep(self.settings.min_interval_seconds - elapsed)
             self.last_request = time.monotonic()
             self.requests += 1
             attempt += 1
@@ -189,6 +211,18 @@ class Fetcher:
                     }
                     body = bytearray()
                     for chunk in response.iter_bytes():
+                        try:
+                            self._check_cancelled()
+                        except OperationCancelled as exc:
+                            self._capture(
+                                current,
+                                {**context, "interrupted": True},
+                                status,
+                                response_headers,
+                                bytes(body),
+                                str(exc),
+                            )
+                            raise
                         remaining = self.settings.max_response_bytes - len(body)
                         body.extend(chunk[:remaining])
                         if len(chunk) > remaining:
@@ -215,7 +249,7 @@ class Fetcher:
                     raise FetchError(
                         f"Request failed after {attempt} attempts: {type(exc).__name__}"
                     ) from exc
-                self.sleep(
+                self._sleep(
                     min(
                         retry_delay(None, attempt, self.clock()),
                         self.settings.max_retry_delay_seconds,
@@ -266,4 +300,4 @@ class Fetcher:
             delay = retry_delay(response_headers.get("retry-after"), attempt, self.clock())
             if delay > self.settings.max_retry_delay_seconds:
                 raise FetchError(f"Server requested retry after {delay:g}s; defer to a later run")
-            self.sleep(delay)
+            self._sleep(delay)

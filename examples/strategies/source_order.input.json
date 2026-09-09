@@ -1,0 +1,6 @@
+{
+  "sources": [
+    {"id": "a", "title": "Alpha", "url": "https://fixture.invalid/a", "priority": 0},
+    {"id": "b", "title": "Beta", "url": "https://fixture.invalid/b", "priority": 1}
+  ]
+}

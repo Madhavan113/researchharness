@@ -1,0 +1,56 @@
+{
+  "authorship": "Synthetic fixture authored by Codex; no live source was sampled",
+  "search_results": [
+    {
+      "url": "https://port-authority.fixture.example/arrivals",
+      "title": "Authored search result"
+    }
+  ],
+  "responses": [
+    {
+      "url": "https://port-authority.fixture.example/arrivals",
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "items": [
+          {
+            "id": "arrival-1"
+          }
+        ],
+        "next": "two"
+      }
+    },
+    {
+      "url": "https://port-authority.fixture.example/arrivals?cursor=two",
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "items": [
+          {
+            "id": "arrival-2"
+          }
+        ],
+        "next": "three"
+      }
+    },
+    {
+      "url": "https://port-authority.fixture.example/arrivals?cursor=three",
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "items": [
+          {
+            "id": "arrival-3"
+          }
+        ],
+        "next": null
+      }
+    }
+  ]
+}

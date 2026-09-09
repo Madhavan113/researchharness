@@ -1,0 +1,60 @@
+{
+  "id": "recall-source-relevance",
+  "title": "Official product recalls",
+  "brief": "Find official product recall notices. Do not confuse a parseable retailer promotions endpoint with evidence that a product was recalled.",
+  "topic_group": "product-recalls",
+  "source_families": [
+    "recall-catalog",
+    "recall-office"
+  ],
+  "tags": [
+    "irrelevant-parseable",
+    "rss"
+  ],
+  "review_status": "authored",
+  "review_notes": "Authored development contract, not independently human-reviewed. Endpoints, records, and search ordering are synthetic.",
+  "specification": {
+    "requirements": [
+      {
+        "id": "official-recalls",
+        "weight": 1,
+        "any_of": [
+          {
+            "url": "https://recall-office.fixture.example/recalls.xml",
+            "connector": "rss"
+          }
+        ]
+      }
+    ]
+  },
+  "fixtures": {
+    "path": "fixtures/recall-source-relevance.json",
+    "sha256": "6fffd9d9f8742d44a5cdd09ec56ca5dd12e03047edcdcdbad9e636f308c7bfa9"
+  },
+  "sources": [
+    {
+      "id": "retailer-promotions",
+      "name": "Retailer Promotions",
+      "connector": "json",
+      "url": "https://recall-catalog.fixture.example/promotions.json",
+      "items_pointer": "/items",
+      "id_pointer": "/id"
+    },
+    {
+      "id": "official-recalls",
+      "name": "Product recall feed",
+      "connector": "rss",
+      "url": "https://recall-office.fixture.example/recalls.xml"
+    }
+  ],
+  "fixture_plan": {
+    "source_ids": [
+      "official-recalls"
+    ],
+    "unsupported": []
+  },
+  "manual_checks": [
+    "Review relevance and whether the source scope answers the full brief.",
+    "Confirm the proposal states sample, history, and freshness limitations without inventing access."
+  ]
+}

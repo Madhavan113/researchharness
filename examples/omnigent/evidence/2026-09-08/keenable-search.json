@@ -1,0 +1,24 @@
+{
+  "observed_at": "2026-09-08T17:59:23.874177+00:00",
+  "endpoint": "https://api.keenable.ai/mcp",
+  "tool": "search_web_pages",
+  "arguments": {
+    "query": "Official United States government export controls China semiconductor policy",
+    "site": "bis.gov",
+    "max_results": 2,
+    "mode": "realtime"
+  },
+  "response": {
+    "meta": null,
+    "content": [
+      {
+        "type": "text",
+        "text": "Title: EAR | Bureau of Industry and Security\nURL: https://bis.gov/ear/title-15/subtitle-b/chapter-vii/subchapter-c/part-744/ss-7441-general-provisions\nAcquired: 2026-05-21\nSnippets:\n4 to this part, on entities listed in supplement no. 4 to this part for activities contrary to the national security or foreign policy interests of the United States.\n[...]\nSection 744.17 sets forth restrictions on exports, reexports, and transfers (in-country) of microprocessors and associated \u201csoftware\u201d and \u201ctechnology\u201d for military end uses and to military end users.\n[...]\nSection 744.22 imposes restrictions on exports, reexports, and transfers (in-country) for a military-intelligence end use or military-intelligence end user in Burma, China, Russia, or Venezuela; or for a country listed in Country Groups E:1 or E:2 (see supplement no. 1 to part 740 of the EAR).\n[...]\nSection 744.23 sets forth restrictions on exports, reexports, and transfers (in-country) for certain \u201csupercomputer\u201d and semiconductor manufacturing end use.\n\n---\n\nTitle: EAR 744 | Bureau of Industry and Security\nURL: https://bis.gov/entity-list\nAcquired: 2026-08-06\nSnippets:\n4 to this part for activities contrary to the national security or foreign policy interests of the United States.\n[...]\nSection 744.17 sets forth restrictions on exports, reexports, and transfers (in-country) of microprocessors and associated \u201csoftware\u201d and \u201ctechnology\u201d for military end uses and to military end users.\n[...]\nSection 744.22 imposes restrictions on exports, reexports, and transfers (in-country) for a military-intelligence end use or military-intelligence end user in Burma, China, Russia, or Venezuela; or for a country listed in Country Groups E:1 or E:2 (see supplement no. 1 to part 740 of the EAR).\n[...]\nSection 744.23 sets forth restrictions on exports, reexports, and transfers (in-country) for certain \u201csupercomputer\u201d and semiconductor manufacturing end use.",
+        "annotations": null,
+        "meta": null
+      }
+    ],
+    "structuredContent": null,
+    "isError": false
+  }
+}

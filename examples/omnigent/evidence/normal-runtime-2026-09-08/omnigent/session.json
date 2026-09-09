@@ -1,0 +1,647 @@
+{
+  "id": "638a55a99bed444fbde67c44fbbfe8f4",
+  "agent_id": "916c18b5cc244f2a92d3a16fd13c92fc",
+  "agent_name": "research-8b0bbdb25ab84ae0a7240e814e33f51c",
+  "status": "idle",
+  "background_task_count": null,
+  "background_tasks": null,
+  "created_at": 1788893861,
+  "updated_at": 1788893868,
+  "title": "Find a public feed of official policy changes with stable ids and publication timestamps.",
+  "labels": {
+    "omnigent.last_task_error_cause": "",
+    "omnigent.last_task_error_code": "",
+    "omnigent.last_task_error_message": "",
+    "omnigent.last_task_error_remediation": "",
+    "omnigent.last_task_error_title": "",
+    "omnigent.ui": "terminal"
+  },
+  "runner_id": "runner_token_2531b3a81db2cfc3205da1989b0f0af5",
+  "host_id": null,
+  "runner_online": true,
+  "host_online": null,
+  "host_resumable": false,
+  "reasoning_effort": null,
+  "items": [
+    {
+      "id": "142a7da39e6442e68d288e52a7346b6c",
+      "type": "resource_event",
+      "status": "completed",
+      "response_id": "638a55a99bed444fbde67c44fbbfe8f4",
+      "created_at": 1788893863,
+      "data": {
+        "event_type": "session.resource.created",
+        "resource_id": "terminal_tui_main",
+        "resource_type": "terminal",
+        "resource": {
+          "id": "terminal_tui_main",
+          "object": "session.resource",
+          "type": "terminal",
+          "session_id": "638a55a99bed444fbde67c44fbbfe8f4",
+          "name": "tui:main",
+          "metadata": {
+            "terminal_name": "tui",
+            "session_key": "main",
+            "running": true,
+            "tmux_socket": "/var/folders/j0/55gy5p7s4_1fpc01kcrvcy_00000gn/T/omnigent-terminal-y6acga62/tmux.sock",
+            "tmux_target": "main"
+          },
+          "environment": "env_terminal_tui_main"
+        }
+      },
+      "created_by": null
+    },
+    {
+      "id": "0ff3bd58597844a5a85fb29bd446da49",
+      "type": "message",
+      "status": "completed",
+      "response_id": "turn_de1ccb5ab3b54c2bb0d8a92000eca15c",
+      "created_at": 1788893863,
+      "data": {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Find a public feed of official policy changes with stable ids and publication timestamps."
+          }
+        ],
+        "model": null
+      },
+      "created_by": null
+    },
+    {
+      "id": "5a2cc65ccbcd47af99e7fab27a4ab32f",
+      "type": "function_call",
+      "status": "completed",
+      "response_id": "resp_4396f7a425a84dd6affac626",
+      "created_at": 1788893864,
+      "data": {
+        "model": "research-8b0bbdb25ab84ae0a7240e814e33f51c",
+        "name": "research__get_research_context",
+        "arguments": "{}",
+        "call_id": "call_0"
+      },
+      "created_by": null
+    },
+    {
+      "id": "69a1efd188fb42ed9c39b41b020d7708",
+      "type": "function_call_output",
+      "status": "completed",
+      "response_id": "resp_4396f7a425a84dd6affac626",
+      "created_at": 1788893864,
+      "data": {
+        "call_id": "call_0",
+        "output": "{\n  \"operation_id\": \"3dab82f3d11b42f7a956d6b4f3cbe7c7\",\n  \"status\": \"error\",\n  \"data\": null,\n  \"evidence_refs\": [],\n  \"error\": {\n    \"code\": \"not_initialized\",\n    \"message\": \"Begin or resume a research discovery first\",\n    \"retryable\": false\n  },\n  \"remaining\": null\n}"
+      },
+      "created_by": null
+    },
+    {
+      "id": "77d6665275304c5a8400c8f37cac259a",
+      "type": "function_call",
+      "status": "completed",
+      "response_id": "resp_4396f7a425a84dd6affac626",
+      "created_at": 1788893864,
+      "data": {
+        "model": "research-8b0bbdb25ab84ae0a7240e814e33f51c",
+        "name": "research__begin_research",
+        "arguments": "{\"brief\": \"Find a public feed of official policy changes with stable ids and publication timestamps.\"}",
+        "call_id": "call_1"
+      },
+      "created_by": null
+    },
+    {
+      "id": "fb95d492662f41168dbae01fc080a778",
+      "type": "function_call_output",
+      "status": "completed",
+      "response_id": "resp_4396f7a425a84dd6affac626",
+      "created_at": 1788893864,
+      "data": {
+        "call_id": "call_1",
+        "output": "{\n  \"operation_id\": \"e2ae4a48759248e48244110e16c5b469\",\n  \"status\": \"ok\",\n  \"data\": {\n    \"question_id\": \"dc4f72af522b4d2e80c821b378f1bf44\",\n    \"discovery_id\": \"af34b394a912440a95779a264bd69076\",\n    \"brief\": \"Find a public feed of official policy changes with stable ids and publication timestamps.\",\n    \"model\": \"gpt-5.4-mini\",\n    \"runtime\": {\n      \"adapter\": \"openai-agents\",\n      \"authored_bundle_sha256\": \"46d3bc960d2ad8c821d65a4d4bc8870bb5bf7951767eb33940edd5f1fb629844\",\n      \"authored_config_sha256\": \"75e9014aa210db7b1c8532ae2b7dc79a5fb2b2316c13831bec6197b693921990\",\n      \"case_id\": \"research-8b0bbdb25ab84ae0a7240e814e33f51c\",\n      \"model\": \"gpt-5.4-mini\",\n      \"runtime_version\": \"be042b390e293a8d586cbb7e403a2ce0ce38fc62\",\n      \"server_url\": \"http://127.0.0.1:57379\",\n      \"session_id\": \"638a55a99bed444fbde67c44fbbfe8f4\",\n      \"strategy_sha256\": \"28b67d3de67ee65b42ba107baa368b8fd1b2b05a0cd970782e2875f42c9d347c\"\n    },\n    \"status\": \"running\",\n    \"deadline_at\": \"2026-09-08T19:07:44.123798Z\"\n  },\n  \"evidence_refs\": [],\n  \"error\": null,\n  \"remaining\": {\n    \"inspection\": 16,\n    \"probe\": 12,\n    \"search\": 8\n  }\n}"
+      },
+      "created_by": null
+    },
+    {
+      "id": "bf8ac7f748f74aaaa541a79080129f0a",
+      "type": "function_call",
+      "status": "completed",
+      "response_id": "resp_4396f7a425a84dd6affac626",
+      "created_at": 1788893864,
+      "data": {
+        "model": "research-8b0bbdb25ab84ae0a7240e814e33f51c",
+        "name": "research__search_sources",
+        "arguments": "{\"query\": \"official policy feed\", \"operation_id\": \"search-1\"}",
+        "call_id": "call_2"
+      },
+      "created_by": null
+    },
+    {
+      "id": "91b71a61c350450d89427a68682f3b8d",
+      "type": "function_call_output",
+      "status": "completed",
+      "response_id": "resp_4396f7a425a84dd6affac626",
+      "created_at": 1788893864,
+      "data": {
+        "call_id": "call_2",
+        "output": "{\n  \"operation_id\": \"search-1\",\n  \"status\": \"ok\",\n  \"data\": {\n    \"results\": [\n      {\n        \"url\": \"http://127.0.0.1:57378/policy.json\",\n        \"title\": \"Fixture policy feed\"\n      }\n    ],\n    \"provider_response\": {\n      \"structuredContent\": {\n        \"results\": [\n          {\n            \"url\": \"http://127.0.0.1:57378/policy.json\",\n            \"title\": \"Fixture policy feed\"\n          }\n        ]\n      },\n      \"isError\": false\n    },\n    \"provider_arguments\": {\n      \"query\": \"official policy feed\",\n      \"filters\": {}\n    },\n    \"provider_usage\": {\n      \"fixture_calls\": 1\n    },\n    \"provider\": \"normal-omnigent-offline-fixture\",\n    \"query\": \"official policy feed\",\n    \"filters\": {},\n    \"operation_id\": \"search-1\",\n    \"discovery_id\": \"af34b394a912440a95779a264bd69076\",\n    \"receipt_id\": \"4a1ff96d55a441cfbfaafba69a7addd9\"\n  },\n  \"evidence_refs\": [\n    {\n      \"receipt_id\": \"4a1ff96d55a441cfbfaafba69a7addd9\",\n      \"discovery_id\": \"af34b394a912440a95779a264bd69076\"\n    }\n  ],\n  \"error\": null,\n  \"remaining\": {\n    \"inspection\": 16,\n    \"probe\": 12,\n    \"search\": 7\n  }\n}"
+      },
+      "created_by": null
+    },
+    {
+      "id": "7b2df3b9405e46d18b2db759f50a45c4",
+      "type": "function_call",
+      "status": "completed",
+      "response_id": "resp_4396f7a425a84dd6affac626",
+      "created_at": 1788893864,
+      "data": {
+        "model": "research-8b0bbdb25ab84ae0a7240e814e33f51c",
+        "name": "research__inspect_source",
+        "arguments": "{\"url\": \"http://127.0.0.1:57378/policy.json\", \"operation_id\": \"inspect-1\"}",
+        "call_id": "call_3"
+      },
+      "created_by": null
+    },
+    {
+      "id": "5bcb65692a4d442693435e9a23eb339c",
+      "type": "function_call_output",
+      "status": "completed",
+      "response_id": "resp_4396f7a425a84dd6affac626",
+      "created_at": 1788893864,
+      "data": {
+        "call_id": "call_3",
+        "output": "{\n  \"operation_id\": \"inspect-1\",\n  \"status\": \"ok\",\n  \"data\": {\n    \"capture_id\": \"e278eb570d5b48c98e1d7e998b2eb1ba\",\n    \"requested_url\": \"http://127.0.0.1:57378/policy.json\",\n    \"url\": \"http://127.0.0.1:57378/policy.json\",\n    \"status_code\": 200,\n    \"observed_at\": \"2026-09-08T18:57:44.183988Z\",\n    \"body_sha256\": \"6eae91360f7dd2b109fb4959240e6350ebc965a53a7ac85913835f9b6bbecb6a\",\n    \"content_type\": \"application/json\",\n    \"top_level_type\": \"dict\",\n    \"top_level_keys\": [\n      \"items\"\n    ],\n    \"preview\": \"{\\\"items\\\":[{\\\"id\\\":\\\"policy-1\\\",\\\"published_at\\\":\\\"2026-09-01T00:00:00Z\\\",\\\"title\\\":\\\"Fixture export policy\\\"}]}\",\n    \"operation_id\": \"inspect-1\",\n    \"discovery_id\": \"af34b394a912440a95779a264bd69076\",\n    \"receipt_id\": \"256a9c7ce8864a369df65190a4fde4b1\"\n  },\n  \"evidence_refs\": [\n    {\n      \"receipt_id\": \"256a9c7ce8864a369df65190a4fde4b1\",\n      \"capture_id\": \"e278eb570d5b48c98e1d7e998b2eb1ba\",\n      \"discovery_id\": \"af34b394a912440a95779a264bd69076\"\n    }\n  ],\n  \"error\": null,\n  \"remaining\": {\n    \"inspection\": 15,\n    \"probe\": 12,\n    \"search\": 7\n  }\n}"
+      },
+      "created_by": null
+    },
+    {
+      "id": "9510315ced7b41769df2067e0ee99a36",
+      "type": "function_call",
+      "status": "completed",
+      "response_id": "resp_4396f7a425a84dd6affac626",
+      "created_at": 1788893864,
+      "data": {
+        "model": "research-8b0bbdb25ab84ae0a7240e814e33f51c",
+        "name": "research__probe_source",
+        "arguments": "{\"source\": {\"id\": \"policy\", \"name\": \"Fixture policy feed\", \"connector\": \"json\", \"url\": \"http://127.0.0.1:57378/policy.json\", \"parameters\": [], \"pagination\": {\"mode\": \"none\", \"next_pointer\": null, \"cursor_parameter\": null, \"stop_when_missing\": false}, \"items_pointer\": \"/items\", \"id_pointer\": \"/id\", \"published_pointer\": \"/published_at\", \"required_pointers\": [\"/title\"], \"include_orderbooks\": false, \"poll_interval_seconds\": 900, \"max_pages\": 10, \"max_records\": 5000, \"min_records\": 1, \"enabled\": true}, \"operation_id\": \"probe-1\"}",
+        "call_id": "call_4"
+      },
+      "created_by": null
+    },
+    {
+      "id": "5444b84de79c48bb9ee88de2a68530c5",
+      "type": "function_call_output",
+      "status": "completed",
+      "response_id": "resp_4396f7a425a84dd6affac626",
+      "created_at": 1788893864,
+      "data": {
+        "call_id": "call_4",
+        "output": "{\n  \"operation_id\": \"probe-1\",\n  \"status\": \"ok\",\n  \"data\": {\n    \"probe_id\": \"de20e554dd424845a5bbe5d17498a44a\",\n    \"source_id\": \"policy\",\n    \"source_fingerprint\": \"7127e6c28eb102ad338f0ea41e8679113498307b2391e15863409f212ab4927f\",\n    \"status\": \"verified_sample\",\n    \"url\": \"http://127.0.0.1:57378/policy.json\",\n    \"observed_at\": \"2026-09-08T18:57:44.213126Z\",\n    \"record_count\": 1,\n    \"record_kinds\": [\n      \"observation\"\n    ],\n    \"publication_profile\": {\n      \"records_with_declared_timestamp\": 1,\n      \"oldest_declared_timestamp\": \"2026-09-01T00:00:00.000000Z\",\n      \"newest_declared_timestamp\": \"2026-09-01T00:00:00.000000Z\"\n    },\n    \"sample_fields\": [\n      \"id\",\n      \"published_at\",\n      \"title\"\n    ],\n    \"samples\": [\n      {\n        \"kind\": \"observation\",\n        \"key\": \"policy-1\",\n        \"title\": \"Fixture export policy\",\n        \"published_at\": \"2026-09-01T00:00:00.000000Z\",\n        \"content_scope\": null,\n        \"data_preview\": \"{\\\"id\\\":\\\"policy-1\\\",\\\"published_at\\\":\\\"2026-09-01T00:00:00Z\\\",\\\"title\\\":\\\"Fixture export policy\\\"}\"\n      }\n    ],\n    \"issues\": [],\n    \"error\": null,\n    \"captures\": [\n      {\n        \"capture_id\": \"b6627f2e96dc43a7a36820cbff13c600\",\n        \"url\": \"http://127.0.0.1:57378/policy.json\",\n        \"body_sha256\": \"6eae91360f7dd2b109fb4959240e6350ebc965a53a7ac85913835f9b6bbecb6a\",\n        \"status_code\": 200\n      }\n    ],\n    \"limits\": [\n      \"One-page structural sample; pagination completeness, historical coverage, and sustained availability are not established.\",\n      \"Order-book follow-up requests are tested during pipeline execution.\"\n    ],\n    \"operation_id\": \"probe-1\",\n    \"discovery_id\": \"af34b394a912440a95779a264bd69076\",\n    \"receipt_id\": \"a964991f6b99495a85c099b3adb9e011\"\n  },\n  \"evidence_refs\": [\n    {\n      \"receipt_id\": \"a964991f6b99495a85c099b3adb9e011\",\n      \"discovery_id\": \"af34b394a912440a95779a264bd69076\"\n    }\n  ],\n  \"error\": null,\n  \"remaining\": {\n    \"inspection\": 15,\n    \"probe\": 11,\n    \"search\": 7\n  }\n}"
+      },
+      "created_by": null
+    },
+    {
+      "id": "fc28aa82c9874496b49d2542fc63b375",
+      "type": "function_call",
+      "status": "completed",
+      "response_id": "resp_4396f7a425a84dd6affac626",
+      "created_at": 1788893864,
+      "data": {
+        "model": "research-8b0bbdb25ab84ae0a7240e814e33f51c",
+        "name": "research__submit_proposal",
+        "arguments": "{\"draft\": {\"name\": \"fixture-policy\", \"title\": \"Policy feed\", \"research_question\": \"Find a public feed of official policy changes with stable ids and publication timestamps.\", \"needs\": [{\"id\": \"policy\", \"description\": \"Official policy changes\", \"required\": true}], \"candidates\": [{\"name\": \"Policy feed\", \"purpose\": \"Monitor official changes\", \"covers\": [\"policy\"], \"status\": \"ready\", \"evidence_urls\": [\"http://127.0.0.1:57378/policy.json\"], \"source\": {\"id\": \"policy\", \"name\": \"Fixture policy feed\", \"connector\": \"json\", \"url\": \"http://127.0.0.1:57378/policy.json\", \"parameters\": [], \"pagination\": {\"mode\": \"none\", \"next_pointer\": null, \"cursor_parameter\": null, \"stop_when_missing\": false}, \"items_pointer\": \"/items\", \"id_pointer\": \"/id\", \"published_pointer\": \"/published_at\", \"required_pointers\": [\"/title\"], \"include_orderbooks\": false, \"poll_interval_seconds\": 900, \"max_pages\": 10, \"max_records\": 5000, \"min_records\": 1, \"enabled\": true}, \"probe_id\": \"de20e554dd424845a5bbe5d17498a44a\", \"freshness_assessment\": \"Current sample\", \"historical_coverage\": \"No historical claim\", \"access_notes\": \"Offline fixture\", \"limitations\": [\"Fixture does not measure live source quality\"]}], \"open_questions\": []}, \"operation_id\": \"submit-1\"}",
+        "call_id": "call_5"
+      },
+      "created_by": null
+    },
+    {
+      "id": "db5d42d1327a43048cedf24bcfd401bc",
+      "type": "function_call_output",
+      "status": "completed",
+      "response_id": "resp_4396f7a425a84dd6affac626",
+      "created_at": 1788893864,
+      "data": {
+        "call_id": "call_5",
+        "output": "{\n  \"operation_id\": \"submit-1\",\n  \"status\": \"ok\",\n  \"data\": {\n    \"status\": \"proposed\",\n    \"created_at\": \"2026-09-08T18:57:44.238037Z\",\n    \"model\": \"gpt-5.4-mini\",\n    \"usage\": {},\n    \"web_search_calls\": 1,\n    \"successful_searches\": 1,\n    \"proposal\": {\n      \"name\": \"fixture-policy\",\n      \"title\": \"Policy feed\",\n      \"research_question\": \"Find a public feed of official policy changes with stable ids and publication timestamps.\",\n      \"needs\": [\n        {\n          \"id\": \"policy\",\n          \"description\": \"Official policy changes\",\n          \"required\": true\n        }\n      ],\n      \"candidates\": [\n        {\n          \"name\": \"Policy feed\",\n          \"purpose\": \"Monitor official changes\",\n          \"covers\": [\n            \"policy\"\n          ],\n          \"status\": \"ready\",\n          \"evidence_urls\": [\n            \"http://127.0.0.1:57378/policy.json\"\n          ],\n          \"source\": {\n            \"id\": \"policy\",\n            \"name\": \"Fixture policy feed\",\n            \"connector\": \"json\",\n            \"url\": \"http://127.0.0.1:57378/policy.json\",\n            \"parameters\": [],\n            \"pagination\": {\n              \"mode\": \"none\",\n              \"next_pointer\": null,\n              \"cursor_parameter\": null,\n              \"stop_when_missing\": false\n            },\n            \"items_pointer\": \"/items\",\n            \"id_pointer\": \"/id\",\n            \"published_pointer\": \"/published_at\",\n            \"required_pointers\": [\n              \"/title\"\n            ],\n            \"include_orderbooks\": false,\n            \"poll_interval_seconds\": 900,\n            \"max_pages\": 10,\n            \"max_records\": 5000,\n            \"min_records\": 1,\n            \"enabled\": true\n          },\n          \"probe_id\": \"de20e554dd424845a5bbe5d17498a44a\",\n          \"freshness_assessment\": \"Current sample\",\n          \"historical_coverage\": \"No historical claim\",\n          \"access_notes\": \"Offline fixture\",\n          \"limitations\": [\n            \"Fixture does not measure live source quality\"\n          ]\n        }\n      ],\n      \"open_questions\": []\n    },\n    \"uncovered_required_needs\": [],\n    \"verified_source_count\": 1,\n    \"observed_urls\": [\n      \"http://127.0.0.1:57378/policy.json\"\n    ],\n    \"registry\": {\n      \"question_id\": \"dc4f72af522b4d2e80c821b378f1bf44\",\n      \"discovery_id\": \"af34b394a912440a95779a264bd69076\",\n      \"proposal_id\": \"ad8fb68943a64220aef35bdc9e5f548a\",\n      \"pipeline_version_id\": \"26e3310f897a4f619fa20921fbb7920b\"\n    },\n    \"operation_id\": \"submit-1\",\n    \"discovery_id\": \"af34b394a912440a95779a264bd69076\"\n  },\n  \"evidence_refs\": [],\n  \"error\": null,\n  \"remaining\": {\n    \"inspection\": 15,\n    \"probe\": 11,\n    \"search\": 7\n  }\n}"
+      },
+      "created_by": null
+    },
+    {
+      "id": "5d983ddd07054f9b8056c65b4a466e94",
+      "type": "message",
+      "status": "completed",
+      "response_id": "resp_4396f7a425a84dd6affac626",
+      "created_at": 1788893864,
+      "data": {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "Saved verified pipeline {\"discovery_id\": \"af34b394a912440a95779a264bd69076\", \"pipeline_version_id\": \"26e3310f897a4f619fa20921fbb7920b\", \"proposal_id\": \"ad8fb68943a64220aef35bdc9e5f548a\", \"question_id\": \"dc4f72af522b4d2e80c821b378f1bf44\"}"
+          }
+        ],
+        "model": "research-8b0bbdb25ab84ae0a7240e814e33f51c"
+      },
+      "created_by": null
+    },
+    {
+      "id": "25a9484ec076453198f45d6f0ed4a039",
+      "type": "message",
+      "status": "completed",
+      "response_id": "turn_911259f522ec49a7b462453cd6d60ee9",
+      "created_at": 1788893864,
+      "data": {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Collect the saved policy pipeline now, export the published observations, and read the export with its provenance."
+          }
+        ],
+        "model": null
+      },
+      "created_by": null
+    },
+    {
+      "id": "de7603e50ad94821a5920a8485ecb46f",
+      "type": "function_call",
+      "status": "completed",
+      "response_id": "resp_fc4c46c51f4546399b9c0419",
+      "created_at": 1788893864,
+      "data": {
+        "model": "research-8b0bbdb25ab84ae0a7240e814e33f51c",
+        "name": "research__list_pipelines",
+        "arguments": "{}",
+        "call_id": "call_7"
+      },
+      "created_by": null
+    },
+    {
+      "id": "30fbc081eec14049bbf0b16df4e03ca2",
+      "type": "function_call_output",
+      "status": "completed",
+      "response_id": "resp_fc4c46c51f4546399b9c0419",
+      "created_at": 1788893864,
+      "data": {
+        "call_id": "call_7",
+        "output": "{\n  \"operation_id\": \"0ab43d39aad34aaeb808795e7d5c2a81\",\n  \"status\": \"ok\",\n  \"data\": {\n    \"question_id\": \"dc4f72af522b4d2e80c821b378f1bf44\",\n    \"discovery_id\": \"af34b394a912440a95779a264bd69076\",\n    \"pipelines\": [\n      {\n        \"id\": \"26e3310f897a4f619fa20921fbb7920b\",\n        \"question_id\": \"dc4f72af522b4d2e80c821b378f1bf44\",\n        \"question_title\": \"Find a public feed of official policy changes with stable ids and publication timestamps.\",\n        \"proposal_id\": \"ad8fb68943a64220aef35bdc9e5f548a\",\n        \"name\": \"fixture-policy\",\n        \"fingerprint\": \"c416207c4bd6e822ed47aea505258f89f6c453654147ce976d3ca3a02c39fa99\",\n        \"status\": \"proposed\",\n        \"origin\": \"discovery\",\n        \"label\": \"Discovery with gpt-5.4-mini\",\n        \"notes\": null,\n        \"created_at\": \"2026-09-08T18:57:44.238143Z\",\n        \"updated_at\": \"2026-09-08T18:57:44.238143Z\",\n        \"sources\": [\n          \"policy\"\n        ],\n        \"latest_run\": null,\n        \"legacy_unscoped_data\": null\n      }\n    ]\n  },\n  \"evidence_refs\": [],\n  \"error\": null,\n  \"remaining\": {\n    \"inspection\": 15,\n    \"probe\": 11,\n    \"search\": 7\n  }\n}"
+      },
+      "created_by": null
+    },
+    {
+      "id": "7f93c4dbac14473abc9d3eea5f9ef9db",
+      "type": "function_call",
+      "status": "completed",
+      "response_id": "resp_fc4c46c51f4546399b9c0419",
+      "created_at": 1788893864,
+      "data": {
+        "model": "research-8b0bbdb25ab84ae0a7240e814e33f51c",
+        "name": "research__start_collection",
+        "arguments": "{\"pipeline_version_id\": \"26e3310f897a4f619fa20921fbb7920b\", \"operation_id\": \"collect-1\"}",
+        "call_id": "call_8"
+      },
+      "created_by": null
+    },
+    {
+      "id": "dd670f7d3f924ce6ae83f74070234bd9",
+      "type": "function_call_output",
+      "status": "completed",
+      "response_id": "resp_fc4c46c51f4546399b9c0419",
+      "created_at": 1788893864,
+      "data": {
+        "call_id": "call_8",
+        "output": "{\n  \"operation_id\": \"collect-1\",\n  \"status\": \"ok\",\n  \"data\": {\n    \"id\": \"339491819af24ec685993a569990e87e\",\n    \"discovery_id\": \"af34b394a912440a95779a264bd69076\",\n    \"question_id\": \"dc4f72af522b4d2e80c821b378f1bf44\",\n    \"pipeline_version_id\": \"26e3310f897a4f619fa20921fbb7920b\",\n    \"operation_id\": \"collect-1\",\n    \"kind\": \"collection\",\n    \"request_hash\": \"99f92576a0f2a60af6f815bd199a725005693c0b26791a50c7a1472a2bec1e80\",\n    \"status\": \"queued\",\n    \"run_id\": \"262340d291734b0da740f8c6d8a214d3\",\n    \"created_at\": \"2026-09-08T18:57:44.500233Z\",\n    \"deadline_at\": \"2026-09-08T19:07:44.500235Z\",\n    \"started_at\": null,\n    \"finished_at\": null,\n    \"cancel_requested_at\": null,\n    \"worker_pid\": 9581,\n    \"error\": null,\n    \"request\": {\n      \"due_only\": false,\n      \"pipeline_version_id\": \"26e3310f897a4f619fa20921fbb7920b\",\n      \"source_id\": null\n    },\n    \"result\": null,\n    \"worker_active\": false,\n    \"recovery_pending\": false\n  },\n  \"evidence_refs\": [],\n  \"error\": null,\n  \"remaining\": {\n    \"inspection\": 15,\n    \"probe\": 11,\n    \"search\": 7\n  }\n}"
+      },
+      "created_by": null
+    },
+    {
+      "id": "16f4a10280c548a4bc636b1c470882de",
+      "type": "function_call",
+      "status": "completed",
+      "response_id": "resp_fc4c46c51f4546399b9c0419",
+      "created_at": 1788893864,
+      "data": {
+        "model": "research-8b0bbdb25ab84ae0a7240e814e33f51c",
+        "name": "research__get_job",
+        "arguments": "{\"job_id\": \"339491819af24ec685993a569990e87e\"}",
+        "call_id": "call_9"
+      },
+      "created_by": null
+    },
+    {
+      "id": "9df1005e838b44d181ac9e84c10499f2",
+      "type": "function_call_output",
+      "status": "completed",
+      "response_id": "resp_fc4c46c51f4546399b9c0419",
+      "created_at": 1788893864,
+      "data": {
+        "call_id": "call_9",
+        "output": "{\n  \"operation_id\": \"collect-1\",\n  \"status\": \"ok\",\n  \"data\": {\n    \"id\": \"339491819af24ec685993a569990e87e\",\n    \"discovery_id\": \"af34b394a912440a95779a264bd69076\",\n    \"question_id\": \"dc4f72af522b4d2e80c821b378f1bf44\",\n    \"pipeline_version_id\": \"26e3310f897a4f619fa20921fbb7920b\",\n    \"operation_id\": \"collect-1\",\n    \"kind\": \"collection\",\n    \"request_hash\": \"99f92576a0f2a60af6f815bd199a725005693c0b26791a50c7a1472a2bec1e80\",\n    \"status\": \"succeeded\",\n    \"run_id\": \"262340d291734b0da740f8c6d8a214d3\",\n    \"created_at\": \"2026-09-08T18:57:44.500233Z\",\n    \"deadline_at\": \"2026-09-08T19:07:44.500235Z\",\n    \"started_at\": \"2026-09-08T18:57:44.598162Z\",\n    \"finished_at\": \"2026-09-08T18:57:44.613702Z\",\n    \"cancel_requested_at\": null,\n    \"worker_pid\": 9581,\n    \"error\": null,\n    \"request\": {\n      \"due_only\": false,\n      \"pipeline_version_id\": \"26e3310f897a4f619fa20921fbb7920b\",\n      \"source_id\": null\n    },\n    \"result\": {\n      \"pipeline\": \"fixture-policy\",\n      \"run_id\": \"262340d291734b0da740f8c6d8a214d3\",\n      \"sources\": [\n        {\n          \"error\": null,\n          \"new_versions\": 1,\n          \"pages\": 1,\n          \"quarantined\": 0,\n          \"records\": 1,\n          \"requests\": 1,\n          \"source_id\": \"policy\",\n          \"source_run_id\": \"95bccabb612c40d8b00ba36bce39a5df\",\n          \"status\": \"succeeded\"\n        }\n      ],\n      \"status\": \"succeeded\"\n    },\n    \"worker_active\": false,\n    \"recovery_pending\": false,\n    \"collection\": {\n      \"id\": \"262340d291734b0da740f8c6d8a214d3\",\n      \"pipeline\": \"fixture-policy\",\n      \"config_hash\": \"c416207c4bd6e822ed47aea505258f89f6c453654147ce976d3ca3a02c39fa99\",\n      \"started_at\": \"2026-09-08T18:57:44.610850Z\",\n      \"finished_at\": \"2026-09-08T18:57:44.613338Z\",\n      \"status\": \"succeeded\",\n      \"error\": null,\n      \"config\": {\n        \"data_dir\": \".researchharness/data\",\n        \"description\": \"Find a public feed of official policy changes with stable ids and publication timestamps.\",\n        \"http\": {\n          \"max_attempts\": 3,\n          \"max_requests_per_source\": 100,\n          \"max_response_bytes\": 5000000,\n          \"max_retry_delay_seconds\": 30.0,\n          \"min_interval_seconds\": 0.25,\n          \"timeout_seconds\": 20.0\n        },\n        \"name\": \"fixture-policy\",\n        \"schema_version\": 1,\n        \"sources\": [\n          {\n            \"connector\": \"json\",\n            \"enabled\": true,\n            \"id\": \"policy\",\n            \"id_pointer\": \"/id\",\n            \"include_orderbooks\": false,\n            \"items_pointer\": \"/items\",\n            \"max_pages\": 10,\n            \"max_records\": 5000,\n            \"min_records\": 1,\n            \"name\": \"Fixture policy feed\",\n            \"pagination\": {\n              \"cursor_parameter\": null,\n              \"mode\": \"none\",\n              \"next_pointer\": null,\n              \"stop_when_missing\": false\n            },\n            \"parameters\": [],\n            \"poll_interval_seconds\": 900,\n            \"published_pointer\": \"/published_at\",\n            \"required_pointers\": [\n              \"/title\"\n            ],\n            \"url\": \"http://127.0.0.1:57378/policy.json\"\n          }\n        ]\n      },\n      \"dataset_scope\": \"dc4f72af522b4d2e80c821b378f1bf44\",\n      \"sources\": [\n        {\n          \"id\": \"95bccabb612c40d8b00ba36bce39a5df\",\n          \"run_id\": \"262340d291734b0da740f8c6d8a214d3\",\n          \"source_id\": \"policy\",\n          \"config_hash\": \"7127e6c28eb102ad338f0ea41e8679113498307b2391e15863409f212ab4927f\",\n          \"started_at\": \"2026-09-08T18:57:44.611103Z\",\n          \"finished_at\": \"2026-09-08T18:57:44.613077Z\",\n          \"status\": \"succeeded\",\n          \"record_count\": 1,\n          \"new_versions\": 1,\n          \"quarantined\": 0,\n          \"error\": null\n        }\n      ]\n    }\n  },\n  \"evidence_refs\": [],\n  \"error\": null,\n  \"remaining\": {\n    \"inspection\": 15,\n    \"probe\": 11,\n    \"search\": 7\n  }\n}"
+      },
+      "created_by": null
+    },
+    {
+      "id": "cc539678cd584921be2d8423f3bf39e5",
+      "type": "function_call",
+      "status": "completed",
+      "response_id": "resp_fc4c46c51f4546399b9c0419",
+      "created_at": 1788893864,
+      "data": {
+        "model": "research-8b0bbdb25ab84ae0a7240e814e33f51c",
+        "name": "research__export_observations",
+        "arguments": "{\"pipeline_version_id\": \"26e3310f897a4f619fa20921fbb7920b\", \"operation_id\": \"export-1\", \"as_of\": \"2026-09-08T18:57:44.656392Z\"}",
+        "call_id": "call_10"
+      },
+      "created_by": null
+    },
+    {
+      "id": "e6961da8cdb44977b4a70c3bdf007fdd",
+      "type": "function_call_output",
+      "status": "completed",
+      "response_id": "resp_fc4c46c51f4546399b9c0419",
+      "created_at": 1788893864,
+      "data": {
+        "call_id": "call_10",
+        "output": "{\n  \"operation_id\": \"export-1\",\n  \"status\": \"ok\",\n  \"data\": {\n    \"id\": \"d384977836984e4a8a628850d688b168\",\n    \"discovery_id\": \"af34b394a912440a95779a264bd69076\",\n    \"question_id\": \"dc4f72af522b4d2e80c821b378f1bf44\",\n    \"pipeline_version_id\": \"26e3310f897a4f619fa20921fbb7920b\",\n    \"operation_id\": \"export-1\",\n    \"kind\": \"export\",\n    \"request_hash\": \"fd26807db5d62722b68c99dbca538a9837f8bc79beeb29eca1fa2cf966fba6bd\",\n    \"status\": \"queued\",\n    \"run_id\": null,\n    \"created_at\": \"2026-09-08T18:57:44.664755Z\",\n    \"deadline_at\": \"2026-09-08T19:07:44.664756Z\",\n    \"started_at\": null,\n    \"finished_at\": null,\n    \"cancel_requested_at\": null,\n    \"worker_pid\": 9583,\n    \"error\": null,\n    \"request\": {\n      \"as_of\": \"2026-09-08T18:57:44.656392Z\",\n      \"kind\": null,\n      \"pipeline_version_id\": \"26e3310f897a4f619fa20921fbb7920b\"\n    },\n    \"result\": null,\n    \"worker_active\": false,\n    \"recovery_pending\": false\n  },\n  \"evidence_refs\": [],\n  \"error\": null,\n  \"remaining\": {\n    \"inspection\": 15,\n    \"probe\": 11,\n    \"search\": 7\n  }\n}"
+      },
+      "created_by": null
+    },
+    {
+      "id": "066d205286ca47dca89256d629864bf6",
+      "type": "function_call",
+      "status": "completed",
+      "response_id": "resp_fc4c46c51f4546399b9c0419",
+      "created_at": 1788893864,
+      "data": {
+        "model": "research-8b0bbdb25ab84ae0a7240e814e33f51c",
+        "name": "research__get_job",
+        "arguments": "{\"job_id\": \"d384977836984e4a8a628850d688b168\"}",
+        "call_id": "call_11"
+      },
+      "created_by": null
+    },
+    {
+      "id": "bda4e1cc440d42c79186013ec1c47f85",
+      "type": "function_call_output",
+      "status": "completed",
+      "response_id": "resp_fc4c46c51f4546399b9c0419",
+      "created_at": 1788893864,
+      "data": {
+        "call_id": "call_11",
+        "output": "{\n  \"operation_id\": \"export-1\",\n  \"status\": \"ok\",\n  \"data\": {\n    \"id\": \"d384977836984e4a8a628850d688b168\",\n    \"discovery_id\": \"af34b394a912440a95779a264bd69076\",\n    \"question_id\": \"dc4f72af522b4d2e80c821b378f1bf44\",\n    \"pipeline_version_id\": \"26e3310f897a4f619fa20921fbb7920b\",\n    \"operation_id\": \"export-1\",\n    \"kind\": \"export\",\n    \"request_hash\": \"fd26807db5d62722b68c99dbca538a9837f8bc79beeb29eca1fa2cf966fba6bd\",\n    \"status\": \"succeeded\",\n    \"run_id\": null,\n    \"created_at\": \"2026-09-08T18:57:44.664755Z\",\n    \"deadline_at\": \"2026-09-08T19:07:44.664756Z\",\n    \"started_at\": \"2026-09-08T18:57:44.761461Z\",\n    \"finished_at\": \"2026-09-08T18:57:44.763602Z\",\n    \"cancel_requested_at\": null,\n    \"worker_pid\": 9583,\n    \"error\": null,\n    \"request\": {\n      \"as_of\": \"2026-09-08T18:57:44.656392Z\",\n      \"kind\": null,\n      \"pipeline_version_id\": \"26e3310f897a4f619fa20921fbb7920b\"\n    },\n    \"result\": {\n      \"artifact_refs\": [\n        {\n          \"bytes\": 857,\n          \"kind\": \"observations\",\n          \"sha256\": \"f4cd539faba67a76e00a4cb8509ee96c5a55c8f254eb59ade819c5c0b9bf5217\"\n        },\n        {\n          \"kind\": \"manifest\",\n          \"sha256\": \"aba85c3d1903a9283c05a05a1612faa93de66392bc6c05b941a5497ef46a5055\"\n        }\n      ],\n      \"as_of\": \"2026-09-08T18:57:44.656392Z\",\n      \"config_fingerprint\": \"c416207c4bd6e822ed47aea505258f89f6c453654147ce976d3ca3a02c39fa99\",\n      \"data_sha256\": \"f4cd539faba67a76e00a4cb8509ee96c5a55c8f254eb59ade819c5c0b9bf5217\",\n      \"dataset_scope\": \"dc4f72af522b4d2e80c821b378f1bf44\",\n      \"kind_filter\": null,\n      \"manifest\": \"/private/tmp/rh-omnigent-phased-verified/research/jobs/d384977836984e4a8a628850d688b168/observations.jsonl.manifest.json\",\n      \"normalizer_version\": \"1\",\n      \"output\": \"/private/tmp/rh-omnigent-phased-verified/research/jobs/d384977836984e4a8a628850d688b168/observations.jsonl\",\n      \"pipeline\": \"fixture-policy\",\n      \"pipeline_version_id\": \"26e3310f897a4f619fa20921fbb7920b\",\n      \"record_count\": 1,\n      \"selection\": \"Latest successfully published observation per source/kind/key available by the cutoff, limited to source ids in this configuration. Use a saved historical configuration to reproduce its source universe. Absence from a later response is not interpreted as deletion.\",\n      \"sources\": [\n        {\n          \"configuration_matches_latest_run\": true,\n          \"enabled\": true,\n          \"error\": null,\n          \"last_success_at\": \"2026-09-08T18:57:44.613077Z\",\n          \"latest_run_status\": \"succeeded\",\n          \"poll_interval_seconds\": 900,\n          \"source_id\": \"policy\",\n          \"stale\": false\n        }\n      ]\n    },\n    \"worker_active\": false,\n    \"recovery_pending\": false\n  },\n  \"evidence_refs\": [],\n  \"error\": null,\n  \"remaining\": {\n    \"inspection\": 15,\n    \"probe\": 11,\n    \"search\": 7\n  }\n}"
+      },
+      "created_by": null
+    },
+    {
+      "id": "dbfde3e67b4345c78cc381233937aa01",
+      "type": "function_call",
+      "status": "completed",
+      "response_id": "resp_fc4c46c51f4546399b9c0419",
+      "created_at": 1788893864,
+      "data": {
+        "model": "research-8b0bbdb25ab84ae0a7240e814e33f51c",
+        "name": "research__read_export",
+        "arguments": "{\"job_id\": \"d384977836984e4a8a628850d688b168\", \"artifact\": \"observations\"}",
+        "call_id": "call_12"
+      },
+      "created_by": null
+    },
+    {
+      "id": "7bd55787ac1745e98e86400729c7e49a",
+      "type": "function_call_output",
+      "status": "completed",
+      "response_id": "resp_fc4c46c51f4546399b9c0419",
+      "created_at": 1788893864,
+      "data": {
+        "call_id": "call_12",
+        "output": "{\n  \"operation_id\": \"5bc72264319e4c5cbf23146d7c8c388f\",\n  \"status\": \"ok\",\n  \"data\": {\n    \"job_id\": \"d384977836984e4a8a628850d688b168\",\n    \"artifact\": \"observations\",\n    \"sha256\": \"f4cd539faba67a76e00a4cb8509ee96c5a55c8f254eb59ade819c5c0b9bf5217\",\n    \"content\": \"{\\\"available_at\\\":\\\"2026-09-08T18:57:44.613077Z\\\",\\\"content_hash\\\":\\\"206c7a22db981594945a69e3022d0f250126e217adc5735aed058139ae279438\\\",\\\"data\\\":{\\\"id\\\":\\\"policy-1\\\",\\\"published_at\\\":\\\"2026-09-01T00:00:00Z\\\",\\\"title\\\":\\\"Fixture export policy\\\"},\\\"first_observed_at\\\":\\\"2026-09-08T18:57:44.612539Z\\\",\\\"key\\\":\\\"policy-1\\\",\\\"kind\\\":\\\"observation\\\",\\\"lineage\\\":{\\\"body_sha256\\\":\\\"6eae91360f7dd2b109fb4959240e6350ebc965a53a7ac85913835f9b6bbecb6a\\\",\\\"capture_id\\\":\\\"cb6fb3da1623471ba6d1cde1c961a4dc\\\",\\\"source_config_hash\\\":\\\"7127e6c28eb102ad338f0ea41e8679113498307b2391e15863409f212ab4927f\\\",\\\"source_run_id\\\":\\\"95bccabb612c40d8b00ba36bce39a5df\\\",\\\"source_url\\\":\\\"http://127.0.0.1:57378/policy.json\\\"},\\\"normalizer_version\\\":\\\"1\\\",\\\"observed_at\\\":\\\"2026-09-08T18:57:44.612539Z\\\",\\\"published_at\\\":\\\"2026-09-01T00:00:00.000000Z\\\",\\\"source_id\\\":\\\"policy\\\",\\\"version_id\\\":\\\"94e30e688c745ea2a273022c4262d5374346ae1c4a0222a710a23a69ebbefc85\\\"}\\n\",\n    \"offset\": 0,\n    \"next_offset\": null,\n    \"total_characters\": 857\n  },\n  \"evidence_refs\": [],\n  \"error\": null,\n  \"remaining\": {\n    \"inspection\": 15,\n    \"probe\": 11,\n    \"search\": 7\n  }\n}"
+      },
+      "created_by": null
+    },
+    {
+      "id": "dc2bbf1434cd40af8577526df7381366",
+      "type": "function_call",
+      "status": "completed",
+      "response_id": "resp_fc4c46c51f4546399b9c0419",
+      "created_at": 1788893864,
+      "data": {
+        "model": "research-8b0bbdb25ab84ae0a7240e814e33f51c",
+        "name": "research__read_export",
+        "arguments": "{\"job_id\": \"d384977836984e4a8a628850d688b168\", \"artifact\": \"manifest\"}",
+        "call_id": "call_13"
+      },
+      "created_by": null
+    },
+    {
+      "id": "661f71a5ab65452ebb651dc2f7e5bf06",
+      "type": "function_call_output",
+      "status": "completed",
+      "response_id": "resp_fc4c46c51f4546399b9c0419",
+      "created_at": 1788893864,
+      "data": {
+        "call_id": "call_13",
+        "output": "{\n  \"operation_id\": \"71a9602df1184454b0e58e2a002c0cf4\",\n  \"status\": \"ok\",\n  \"data\": {\n    \"job_id\": \"d384977836984e4a8a628850d688b168\",\n    \"artifact\": \"manifest\",\n    \"sha256\": \"aba85c3d1903a9283c05a05a1612faa93de66392bc6c05b941a5497ef46a5055\",\n    \"content\": \"{\\n  \\\"pipeline\\\": \\\"fixture-policy\\\",\\n  \\\"dataset_scope\\\": \\\"dc4f72af522b4d2e80c821b378f1bf44\\\",\\n  \\\"config_fingerprint\\\": \\\"c416207c4bd6e822ed47aea505258f89f6c453654147ce976d3ca3a02c39fa99\\\",\\n  \\\"as_of\\\": \\\"2026-09-08T18:57:44.656392Z\\\",\\n  \\\"record_count\\\": 1,\\n  \\\"kind_filter\\\": null,\\n  \\\"data_sha256\\\": \\\"f4cd539faba67a76e00a4cb8509ee96c5a55c8f254eb59ade819c5c0b9bf5217\\\",\\n  \\\"normalizer_version\\\": \\\"1\\\",\\n  \\\"sources\\\": [\\n    {\\n      \\\"source_id\\\": \\\"policy\\\",\\n      \\\"enabled\\\": true,\\n      \\\"latest_run_status\\\": \\\"succeeded\\\",\\n      \\\"configuration_matches_latest_run\\\": true,\\n      \\\"last_success_at\\\": \\\"2026-09-08T18:57:44.613077Z\\\",\\n      \\\"poll_interval_seconds\\\": 900,\\n      \\\"error\\\": null,\\n      \\\"stale\\\": false\\n    }\\n  ],\\n  \\\"selection\\\": \\\"Latest successfully published observation per source/kind/key available by the cutoff, limited to source ids in this configuration. Use a saved historical configuration to reproduce its source universe. Absence from a later response is not interpreted as deletion.\\\"\\n}\\n\",\n    \"offset\": 0,\n    \"next_offset\": null,\n    \"total_characters\": 971\n  },\n  \"evidence_refs\": [],\n  \"error\": null,\n  \"remaining\": {\n    \"inspection\": 15,\n    \"probe\": 11,\n    \"search\": 7\n  }\n}"
+      },
+      "created_by": null
+    },
+    {
+      "id": "aef6ffc4092646eca6783ef35169bc30",
+      "type": "message",
+      "status": "completed",
+      "response_id": "resp_fc4c46c51f4546399b9c0419",
+      "created_at": 1788893864,
+      "data": {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "Saved verified pipeline {\"discovery_id\": \"af34b394a912440a95779a264bd69076\", \"pipeline_version_id\": \"26e3310f897a4f619fa20921fbb7920b\", \"proposal_id\": \"ad8fb68943a64220aef35bdc9e5f548a\", \"question_id\": \"dc4f72af522b4d2e80c821b378f1bf44\"}"
+          }
+        ],
+        "model": "research-8b0bbdb25ab84ae0a7240e814e33f51c"
+      },
+      "created_by": null
+    },
+    {
+      "id": "a969d93ff4cf48f2814b1f43ffd7363d",
+      "type": "resource_event",
+      "status": "completed",
+      "response_id": "638a55a99bed444fbde67c44fbbfe8f4",
+      "created_at": 1788893867,
+      "data": {
+        "event_type": "session.resource.created",
+        "resource_id": "terminal_tui_main",
+        "resource_type": "terminal",
+        "resource": {
+          "id": "terminal_tui_main",
+          "object": "session.resource",
+          "type": "terminal",
+          "session_id": "638a55a99bed444fbde67c44fbbfe8f4",
+          "name": "tui:main",
+          "metadata": {
+            "terminal_name": "tui",
+            "session_key": "main",
+            "running": true,
+            "tmux_socket": "/var/folders/j0/55gy5p7s4_1fpc01kcrvcy_00000gn/T/omnigent-terminal-5hu_x0ar/tmux.sock",
+            "tmux_target": "main"
+          },
+          "environment": "env_terminal_tui_main"
+        }
+      },
+      "created_by": null
+    },
+    {
+      "id": "e5d8fbe048334a48bf9c62f0efdfae8d",
+      "type": "message",
+      "status": "completed",
+      "response_id": "turn_ea3ebeb211844d98872e4ed67af264d7",
+      "created_at": 1788893867,
+      "data": {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Reopen the saved research case and report its pipeline id."
+          }
+        ],
+        "model": null
+      },
+      "created_by": null
+    },
+    {
+      "id": "ef878816bf6a47f1966345b84b4442ab",
+      "type": "function_call",
+      "status": "completed",
+      "response_id": "resp_0a2d70937c96447abc3746f2",
+      "created_at": 1788893867,
+      "data": {
+        "model": "research-8b0bbdb25ab84ae0a7240e814e33f51c",
+        "name": "research__get_research_context",
+        "arguments": "{}",
+        "call_id": "call_15"
+      },
+      "created_by": null
+    },
+    {
+      "id": "4f3343b51cef419fa1f034527b40bad0",
+      "type": "function_call_output",
+      "status": "completed",
+      "response_id": "resp_0a2d70937c96447abc3746f2",
+      "created_at": 1788893867,
+      "data": {
+        "call_id": "call_15",
+        "output": "{\n  \"operation_id\": \"cded344c955f4bc2b74e5c36a349c4fd\",\n  \"status\": \"ok\",\n  \"data\": {\n    \"question_id\": \"dc4f72af522b4d2e80c821b378f1bf44\",\n    \"discovery_id\": \"af34b394a912440a95779a264bd69076\",\n    \"brief\": \"Find a public feed of official policy changes with stable ids and publication timestamps.\",\n    \"status\": \"proposed\",\n    \"model\": \"gpt-5.4-mini\",\n    \"runtime\": {\n      \"adapter\": \"openai-agents\",\n      \"authored_bundle_sha256\": \"46d3bc960d2ad8c821d65a4d4bc8870bb5bf7951767eb33940edd5f1fb629844\",\n      \"authored_config_sha256\": \"75e9014aa210db7b1c8532ae2b7dc79a5fb2b2316c13831bec6197b693921990\",\n      \"case_id\": \"research-8b0bbdb25ab84ae0a7240e814e33f51c\",\n      \"model\": \"gpt-5.4-mini\",\n      \"runtime_version\": \"be042b390e293a8d586cbb7e403a2ce0ce38fc62\",\n      \"server_url\": \"http://127.0.0.1:57379\",\n      \"session_id\": \"638a55a99bed444fbde67c44fbbfe8f4\",\n      \"strategy_sha256\": \"28b67d3de67ee65b42ba107baa368b8fd1b2b05a0cd970782e2875f42c9d347c\"\n    },\n    \"deadline_at\": \"2026-09-08T19:07:44.123798Z\",\n    \"limits\": {\n      \"inspection\": 16,\n      \"probe\": 12,\n      \"search\": 8\n    },\n    \"counts\": {\n      \"inspection\": 1,\n      \"job:collection\": 1,\n      \"job:export\": 1,\n      \"probe\": 1,\n      \"proposal\": 1,\n      \"search\": 1\n    },\n    \"remaining\": {\n      \"inspection\": 15,\n      \"probe\": 11,\n      \"search\": 7\n    },\n    \"receipts\": [\n      {\n        \"id\": \"4a1ff96d55a441cfbfaafba69a7addd9\",\n        \"discovery_id\": \"af34b394a912440a95779a264bd69076\",\n        \"operation_id\": \"search-1\",\n        \"kind\": \"search\",\n        \"created_at\": \"2026-09-08T18:57:44.148465Z\",\n        \"payload\": {\n          \"discovery_id\": \"af34b394a912440a95779a264bd69076\",\n          \"filters\": {},\n          \"operation_id\": \"search-1\",\n          \"provider\": \"normal-omnigent-offline-fixture\",\n          \"provider_arguments\": {\n            \"filters\": {},\n            \"query\": \"official policy feed\"\n          },\n          \"provider_response\": {\n            \"isError\": false,\n            \"structuredContent\": {\n              \"results\": [\n                {\n                  \"title\": \"Fixture policy feed\",\n                  \"url\": \"http://127.0.0.1:57378/policy.json\"\n                }\n              ]\n            }\n          },\n          \"provider_usage\": {\n            \"fixture_calls\": 1\n          },\n          \"query\": \"official policy feed\",\n          \"receipt_id\": \"4a1ff96d55a441cfbfaafba69a7addd9\",\n          \"results\": [\n            {\n              \"title\": \"Fixture policy feed\",\n              \"url\": \"http://127.0.0.1:57378/policy.json\"\n            }\n          ]\n        }\n      },\n      {\n        \"id\": \"256a9c7ce8864a369df65190a4fde4b1\",\n        \"discovery_id\": \"af34b394a912440a95779a264bd69076\",\n        \"operation_id\": \"inspect-1\",\n        \"kind\": \"inspection\",\n        \"created_at\": \"2026-09-08T18:57:44.185235Z\",\n        \"payload\": {\n          \"body_sha256\": \"6eae91360f7dd2b109fb4959240e6350ebc965a53a7ac85913835f9b6bbecb6a\",\n          \"capture_id\": \"e278eb570d5b48c98e1d7e998b2eb1ba\",\n          \"content_type\": \"application/json\",\n          \"discovery_id\": \"af34b394a912440a95779a264bd69076\",\n          \"observed_at\": \"2026-09-08T18:57:44.183988Z\",\n          \"operation_id\": \"inspect-1\",\n          \"preview\": \"{\\\"items\\\":[{\\\"id\\\":\\\"policy-1\\\",\\\"published_at\\\":\\\"2026-09-01T00:00:00Z\\\",\\\"title\\\":\\\"Fixture export policy\\\"}]}\",\n          \"receipt_id\": \"256a9c7ce8864a369df65190a4fde4b1\",\n          \"requested_url\": \"http://127.0.0.1:57378/policy.json\",\n          \"status_code\": 200,\n          \"top_level_keys\": [\n            \"items\"\n          ],\n          \"top_level_type\": \"dict\",\n          \"url\": \"http://127.0.0.1:57378/policy.json\"\n        }\n      },\n      {\n        \"id\": \"a964991f6b99495a85c099b3adb9e011\",\n        \"discovery_id\": \"af34b394a912440a95779a264bd69076\",\n        \"operation_id\": \"probe-1\",\n        \"kind\": \"probe\",\n        \"created_at\": \"2026-09-08T18:57:44.213425Z\",\n        \"payload\": {\n          \"captures\": [\n            {\n              \"body_sha256\": \"6eae91360f7dd2b109fb4959240e6350ebc965a53a7ac85913835f9b6bbecb6a\",\n              \"capture_id\": \"b6627f2e96dc43a7a36820cbff13c600\",\n              \"status_code\": 200,\n              \"url\": \"http://127.0.0.1:57378/policy.json\"\n            }\n          ],\n          \"discovery_id\": \"af34b394a912440a95779a264bd69076\",\n          \"error\": null,\n          \"issues\": [],\n          \"limits\": [\n            \"One-page structural sample; pagination completeness, historical coverage, and sustained availability are not established.\",\n            \"Order-book follow-up requests are tested during pipeline execution.\"\n          ],\n          \"observed_at\": \"2026-09-08T18:57:44.213126Z\",\n          \"operation_id\": \"probe-1\",\n          \"probe_id\": \"de20e554dd424845a5bbe5d17498a44a\",\n          \"publication_profile\": {\n            \"newest_declared_timestamp\": \"2026-09-01T00:00:00.000000Z\",\n            \"oldest_declared_timestamp\": \"2026-09-01T00:00:00.000000Z\",\n            \"records_with_declared_timestamp\": 1\n          },\n          \"receipt_id\": \"a964991f6b99495a85c099b3adb9e011\",\n          \"record_count\": 1,\n          \"record_kinds\": [\n            \"observation\"\n          ],\n          \"sample_fields\": [\n            \"id\",\n            \"published_at\",\n            \"title\"\n          ],\n          \"samples\": [\n            {\n              \"content_scope\": null,\n              \"data_preview\": \"{\\\"id\\\":\\\"policy-1\\\",\\\"published_at\\\":\\\"2026-09-01T00:00:00Z\\\",\\\"title\\\":\\\"Fixture export policy\\\"}\",\n              \"key\": \"policy-1\",\n              \"kind\": \"observation\",\n              \"published_at\": \"2026-09-01T00:00:00.000000Z\",\n              \"title\": \"Fixture export policy\"\n            }\n          ],\n          \"source_fingerprint\": \"7127e6c28eb102ad338f0ea41e8679113498307b2391e15863409f212ab4927f\",\n          \"source_id\": \"policy\",\n          \"status\": \"verified_sample\",\n          \"url\": \"http://127.0.0.1:57378/policy.json\"\n        }\n      }\n    ],\n    \"operations\": [\n      {\n        \"operation_id\": \"search-1\",\n        \"kind\": \"search\",\n        \"status\": \"completed\",\n        \"created_at\": \"2026-09-08T18:57:44.148122Z\",\n        \"finished_at\": \"2026-09-08T18:57:44.148494Z\",\n        \"result\": {\n          \"discovery_id\": \"af34b394a912440a95779a264bd69076\",\n          \"filters\": {},\n          \"operation_id\": \"search-1\",\n          \"provider\": \"normal-omnigent-offline-fixture\",\n          \"provider_arguments\": {\n            \"filters\": {},\n            \"query\": \"official policy feed\"\n          },\n          \"provider_response\": {\n            \"isError\": false,\n            \"structuredContent\": {\n              \"results\": [\n                {\n                  \"title\": \"Fixture policy feed\",\n                  \"url\": \"http://127.0.0.1:57378/policy.json\"\n                }\n              ]\n            }\n          },\n          \"provider_usage\": {\n            \"fixture_calls\": 1\n          },\n          \"query\": \"official policy feed\",\n          \"receipt_id\": \"4a1ff96d55a441cfbfaafba69a7addd9\",\n          \"results\": [\n            {\n              \"title\": \"Fixture policy feed\",\n              \"url\": \"http://127.0.0.1:57378/policy.json\"\n            }\n          ]\n        }\n      },\n      {\n        \"operation_id\": \"inspect-1\",\n        \"kind\": \"inspection\",\n        \"status\": \"completed\",\n        \"created_at\": \"2026-09-08T18:57:44.170155Z\",\n        \"finished_at\": \"2026-09-08T18:57:44.185268Z\",\n        \"result\": {\n          \"body_sha256\": \"6eae91360f7dd2b109fb4959240e6350ebc965a53a7ac85913835f9b6bbecb6a\",\n          \"capture_id\": \"e278eb570d5b48c98e1d7e998b2eb1ba\",\n          \"content_type\": \"application/json\",\n          \"discovery_id\": \"af34b394a912440a95779a264bd69076\",\n          \"observed_at\": \"2026-09-08T18:57:44.183988Z\",\n          \"operation_id\": \"inspect-1\",\n          \"preview\": \"{\\\"items\\\":[{\\\"id\\\":\\\"policy-1\\\",\\\"published_at\\\":\\\"2026-09-01T00:00:00Z\\\",\\\"title\\\":\\\"Fixture export policy\\\"}]}\",\n          \"receipt_id\": \"256a9c7ce8864a369df65190a4fde4b1\",\n          \"requested_url\": \"http://127.0.0.1:57378/policy.json\",\n          \"status_code\": 200,\n          \"top_level_keys\": [\n            \"items\"\n          ],\n          \"top_level_type\": \"dict\",\n          \"url\": \"http://127.0.0.1:57378/policy.json\"\n        }\n      },\n      {\n        \"operation_id\": \"probe-1\",\n        \"kind\": \"probe\",\n        \"status\": \"completed\",\n        \"created_at\": \"2026-09-08T18:57:44.208238Z\",\n        \"finished_at\": \"2026-09-08T18:57:44.213453Z\",\n        \"result\": {\n          \"captures\": [\n            {\n              \"body_sha256\": \"6eae91360f7dd2b109fb4959240e6350ebc965a53a7ac85913835f9b6bbecb6a\",\n              \"capture_id\": \"b6627f2e96dc43a7a36820cbff13c600\",\n              \"status_code\": 200,\n              \"url\": \"http://127.0.0.1:57378/policy.json\"\n            }\n          ],\n          \"discovery_id\": \"af34b394a912440a95779a264bd69076\",\n          \"error\": null,\n          \"issues\": [],\n          \"limits\": [\n            \"One-page structural sample; pagination completeness, historical coverage, and sustained availability are not established.\",\n            \"Order-book follow-up requests are tested during pipeline execution.\"\n          ],\n          \"observed_at\": \"2026-09-08T18:57:44.213126Z\",\n          \"operation_id\": \"probe-1\",\n          \"probe_id\": \"de20e554dd424845a5bbe5d17498a44a\",\n          \"publication_profile\": {\n            \"newest_declared_timestamp\": \"2026-09-01T00:00:00.000000Z\",\n            \"oldest_declared_timestamp\": \"2026-09-01T00:00:00.000000Z\",\n            \"records_with_declared_timestamp\": 1\n          },\n          \"receipt_id\": \"a964991f6b99495a85c099b3adb9e011\",\n          \"record_count\": 1,\n          \"record_kinds\": [\n            \"observation\"\n          ],\n          \"sample_fields\": [\n            \"id\",\n            \"published_at\",\n            \"title\"\n          ],\n          \"samples\": [\n            {\n              \"content_scope\": null,\n              \"data_preview\": \"{\\\"id\\\":\\\"policy-1\\\",\\\"published_at\\\":\\\"2026-09-01T00:00:00Z\\\",\\\"title\\\":\\\"Fixture export policy\\\"}\",\n              \"key\": \"policy-1\",\n              \"kind\": \"observation\",\n              \"published_at\": \"2026-09-01T00:00:00.000000Z\",\n              \"title\": \"Fixture export policy\"\n            }\n          ],\n          \"source_fingerprint\": \"7127e6c28eb102ad338f0ea41e8679113498307b2391e15863409f212ab4927f\",\n          \"source_id\": \"policy\",\n          \"status\": \"verified_sample\",\n          \"url\": \"http://127.0.0.1:57378/policy.json\"\n        }\n      },\n      {\n        \"operation_id\": \"submit-1\",\n        \"kind\": \"proposal\",\n        \"status\": \"completed\",\n        \"created_at\": \"2026-09-08T18:57:44.237660Z\",\n        \"finished_at\": \"2026-09-08T18:57:44.238260Z\",\n        \"result\": {\n          \"created_at\": \"2026-09-08T18:57:44.238037Z\",\n          \"discovery_id\": \"af34b394a912440a95779a264bd69076\",\n          \"model\": \"gpt-5.4-mini\",\n          \"observed_urls\": [\n            \"http://127.0.0.1:57378/policy.json\"\n          ],\n          \"operation_id\": \"submit-1\",\n          \"proposal\": {\n            \"candidates\": [\n              {\n                \"access_notes\": \"Offline fixture\",\n                \"covers\": [\n                  \"policy\"\n                ],\n                \"evidence_urls\": [\n                  \"http://127.0.0.1:57378/policy.json\"\n                ],\n                \"freshness_assessment\": \"Current sample\",\n                \"historical_coverage\": \"No historical claim\",\n                \"limitations\": [\n                  \"Fixture does not measure live source quality\"\n                ],\n                \"name\": \"Policy feed\",\n                \"probe_id\": \"de20e554dd424845a5bbe5d17498a44a\",\n                \"purpose\": \"Monitor official changes\",\n                \"source\": {\n                  \"connector\": \"json\",\n                  \"enabled\": true,\n                  \"id\": \"policy\",\n                  \"id_pointer\": \"/id\",\n                  \"include_orderbooks\": false,\n                  \"items_pointer\": \"/items\",\n                  \"max_pages\": 10,\n                  \"max_records\": 5000,\n                  \"min_records\": 1,\n                  \"name\": \"Fixture policy feed\",\n                  \"pagination\": {\n                    \"cursor_parameter\": null,\n                    \"mode\": \"none\",\n                    \"next_pointer\": null,\n                    \"stop_when_missing\": false\n                  },\n                  \"parameters\": [],\n                  \"poll_interval_seconds\": 900,\n                  \"published_pointer\": \"/published_at\",\n                  \"required_pointers\": [\n                    \"/title\"\n                  ],\n                  \"url\": \"http://127.0.0.1:57378/policy.json\"\n                },\n                \"status\": \"ready\"\n              }\n            ],\n            \"name\": \"fixture-policy\",\n            \"needs\": [\n              {\n                \"description\": \"Official policy changes\",\n                \"id\": \"policy\",\n                \"required\": true\n              }\n            ],\n            \"open_questions\": [],\n            \"research_question\": \"Find a public feed of official policy changes with stable ids and publication timestamps.\",\n            \"title\": \"Policy feed\"\n          },\n          \"registry\": {\n            \"discovery_id\": \"af34b394a912440a95779a264bd69076\",\n            \"pipeline_version_id\": \"26e3310f897a4f619fa20921fbb7920b\",\n            \"proposal_id\": \"ad8fb68943a64220aef35bdc9e5f548a\",\n            \"question_id\": \"dc4f72af522b4d2e80c821b378f1bf44\"\n          },\n          \"status\": \"proposed\",\n          \"successful_searches\": 1,\n          \"uncovered_required_needs\": [],\n          \"usage\": {},\n          \"verified_source_count\": 1,\n          \"web_search_calls\": 1\n        }\n      },\n      {\n        \"operation_id\": \"collect-1\",\n        \"kind\": \"job:collection\",\n        \"status\": \"completed\",\n        \"created_at\": \"2026-09-08T18:57:44.500204Z\",\n        \"finished_at\": \"2026-09-08T18:57:44.500210Z\",\n        \"result\": {\n          \"accepted\": true,\n          \"job_id\": \"339491819af24ec685993a569990e87e\",\n          \"kind\": \"collection\"\n        }\n      },\n      {\n        \"operation_id\": \"export-1\",\n        \"kind\": \"job:export\",\n        \"status\": \"completed\",\n        \"created_at\": \"2026-09-08T18:57:44.664726Z\",\n        \"finished_at\": \"2026-09-08T18:57:44.664730Z\",\n        \"result\": {\n          \"accepted\": true,\n          \"job_id\": \"d384977836984e4a8a628850d688b168\",\n          \"kind\": \"export\"\n        }\n      }\n    ],\n    \"probes\": {\n      \"de20e554dd424845a5bbe5d17498a44a\": {\n        \"captures\": [\n          {\n            \"body_sha256\": \"6eae91360f7dd2b109fb4959240e6350ebc965a53a7ac85913835f9b6bbecb6a\",\n            \"capture_id\": \"b6627f2e96dc43a7a36820cbff13c600\",\n            \"status_code\": 200,\n            \"url\": \"http://127.0.0.1:57378/policy.json\"\n          }\n        ],\n        \"discovery_id\": \"af34b394a912440a95779a264bd69076\",\n        \"error\": null,\n        \"issues\": [],\n        \"limits\": [\n          \"One-page structural sample; pagination completeness, historical coverage, and sustained availability are not established.\",\n          \"Order-book follow-up requests are tested during pipeline execution.\"\n        ],\n        \"observed_at\": \"2026-09-08T18:57:44.213126Z\",\n        \"operation_id\": \"probe-1\",\n        \"probe_id\": \"de20e554dd424845a5bbe5d17498a44a\",\n        \"publication_profile\": {\n          \"newest_declared_timestamp\": \"2026-09-01T00:00:00.000000Z\",\n          \"oldest_declared_timestamp\": \"2026-09-01T00:00:00.000000Z\",\n          \"records_with_declared_timestamp\": 1\n        },\n        \"receipt_id\": \"a964991f6b99495a85c099b3adb9e011\",\n        \"record_count\": 1,\n        \"record_kinds\": [\n          \"observation\"\n        ],\n        \"sample_fields\": [\n          \"id\",\n          \"published_at\",\n          \"title\"\n        ],\n        \"samples\": [\n          {\n            \"content_scope\": null,\n            \"data_preview\": \"{\\\"id\\\":\\\"policy-1\\\",\\\"published_at\\\":\\\"2026-09-01T00:00:00Z\\\",\\\"title\\\":\\\"Fixture export policy\\\"}\",\n            \"key\": \"policy-1\",\n            \"kind\": \"observation\",\n            \"published_at\": \"2026-09-01T00:00:00.000000Z\",\n            \"title\": \"Fixture export policy\"\n          }\n        ],\n        \"source_fingerprint\": \"7127e6c28eb102ad338f0ea41e8679113498307b2391e15863409f212ab4927f\",\n        \"source_id\": \"policy\",\n        \"status\": \"verified_sample\",\n        \"url\": \"http://127.0.0.1:57378/policy.json\"\n      }\n    },\n    \"observed_urls\": [\n      \"http://127.0.0.1:57378/policy.json\"\n    ],\n    \"pipelines\": [\n      {\n        \"id\": \"26e3310f897a4f619fa20921fbb7920b\",\n        \"question_id\": \"dc4f72af522b4d2e80c821b378f1bf44\",\n        \"question_title\": \"Find a public feed of official policy changes with stable ids and publication timestamps.\",\n        \"proposal_id\": \"ad8fb68943a64220aef35bdc9e5f548a\",\n        \"name\": \"fixture-policy\",\n        \"fingerprint\": \"c416207c4bd6e822ed47aea505258f89f6c453654147ce976d3ca3a02c39fa99\",\n        \"status\": \"proposed\",\n        \"origin\": \"discovery\",\n        \"label\": \"Discovery with gpt-5.4-mini\",\n        \"notes\": null,\n        \"created_at\": \"2026-09-08T18:57:44.238143Z\",\n        \"updated_at\": \"2026-09-08T18:57:44.238143Z\",\n        \"sources\": [\n          \"policy\"\n        ],\n        \"latest_run\": {\n          \"id\": \"262340d291734b0da740f8c6d8a214d3\",\n          \"status\": \"succeeded\",\n          \"started_at\": \"2026-09-08T18:57:44.610850Z\",\n          \"finished_at\": \"2026-09-08T18:57:44.613338Z\"\n        },\n        \"legacy_unscoped_data\": null\n      }\n    ],\n    \"connector_catalog\": {\n      \"polymarket\": \"Official Gamma market arrays or event arrays with nested markets. Preserve rule text, status flags, outcome ids; optionally collect live CLOB books.\",\n      \"kalshi\": \"Official /markets response with cursor pagination. Dollar/fixed-point books; optional order-book collection for open markets. Historical archive is separate.\",\n      \"rss\": \"RSS 2.0 or Atom feed entries. Stable GUID/link, title, feed excerpt and declared publication time; does not follow article links.\",\n      \"json\": \"Public JSON array selected by items_pointer; stable id_pointer, optional published_pointer, required_pointers; explicit cursor or next-URL pagination.\",\n      \"html\": \"A public server-rendered HTML page, saved with its extracted text. No JavaScript execution, PDF parsing or semantic field invention.\"\n    },\n    \"source_schema\": {\n      \"$defs\": {\n        \"Pagination\": {\n          \"additionalProperties\": false,\n          \"properties\": {\n            \"mode\": {\n              \"default\": \"none\",\n              \"enum\": [\n                \"none\",\n                \"cursor\",\n                \"next_url\"\n              ],\n              \"title\": \"Mode\",\n              \"type\": \"string\"\n            },\n            \"next_pointer\": {\n              \"anyOf\": [\n                {\n                  \"type\": \"string\"\n                },\n                {\n                  \"type\": \"null\"\n                }\n              ],\n              \"default\": null,\n              \"title\": \"Next Pointer\"\n            },\n            \"cursor_parameter\": {\n              \"anyOf\": [\n                {\n                  \"type\": \"string\"\n                },\n                {\n                  \"type\": \"null\"\n                }\n              ],\n              \"default\": null,\n              \"title\": \"Cursor Parameter\"\n            },\n            \"stop_when_missing\": {\n              \"default\": false,\n              \"description\": \"Enable only when the source's terminal-page convention omits the continuation field\",\n              \"title\": \"Stop When Missing\",\n              \"type\": \"boolean\"\n            }\n          },\n          \"title\": \"Pagination\",\n          \"type\": \"object\"\n        },\n        \"Parameter\": {\n          \"additionalProperties\": false,\n          \"properties\": {\n            \"name\": {\n              \"maxLength\": 200,\n              \"minLength\": 1,\n              \"title\": \"Name\",\n              \"type\": \"string\"\n            },\n            \"value\": {\n              \"maxLength\": 10000,\n              \"title\": \"Value\",\n              \"type\": \"string\"\n            }\n          },\n          \"required\": [\n            \"name\",\n            \"value\"\n          ],\n          \"title\": \"Parameter\",\n          \"type\": \"object\"\n        }\n      },\n      \"additionalProperties\": false,\n      \"properties\": {\n        \"id\": {\n          \"pattern\": \"^[a-z][a-z0-9_-]{0,63}$\",\n          \"title\": \"Id\",\n          \"type\": \"string\"\n        },\n        \"name\": {\n          \"maxLength\": 200,\n          \"minLength\": 1,\n          \"title\": \"Name\",\n          \"type\": \"string\"\n        },\n        \"connector\": {\n          \"enum\": [\n            \"polymarket\",\n            \"kalshi\",\n            \"rss\",\n            \"json\",\n            \"html\"\n          ],\n          \"title\": \"Connector\",\n          \"type\": \"string\"\n        },\n        \"url\": {\n          \"title\": \"Url\",\n          \"type\": \"string\"\n        },\n        \"parameters\": {\n          \"items\": {\n            \"$ref\": \"#/$defs/Parameter\"\n          },\n          \"title\": \"Parameters\",\n          \"type\": \"array\"\n        },\n        \"pagination\": {\n          \"$ref\": \"#/$defs/Pagination\"\n        },\n        \"items_pointer\": {\n          \"default\": \"\",\n          \"title\": \"Items Pointer\",\n          \"type\": \"string\"\n        },\n        \"id_pointer\": {\n          \"anyOf\": [\n            {\n              \"type\": \"string\"\n            },\n            {\n              \"type\": \"null\"\n            }\n          ],\n          \"default\": null,\n          \"title\": \"Id Pointer\"\n        },\n        \"published_pointer\": {\n          \"anyOf\": [\n            {\n              \"type\": \"string\"\n            },\n            {\n              \"type\": \"null\"\n            }\n          ],\n          \"default\": null,\n          \"title\": \"Published Pointer\"\n        },\n        \"required_pointers\": {\n          \"items\": {\n            \"type\": \"string\"\n          },\n          \"title\": \"Required Pointers\",\n          \"type\": \"array\"\n        },\n        \"include_orderbooks\": {\n          \"default\": false,\n          \"title\": \"Include Orderbooks\",\n          \"type\": \"boolean\"\n        },\n        \"poll_interval_seconds\": {\n          \"default\": 900,\n          \"maximum\": 2592000,\n          \"minimum\": 60,\n          \"title\": \"Poll Interval Seconds\",\n          \"type\": \"integer\"\n        },\n        \"max_pages\": {\n          \"default\": 10,\n          \"maximum\": 100,\n          \"minimum\": 1,\n          \"title\": \"Max Pages\",\n          \"type\": \"integer\"\n        },\n        \"max_records\": {\n          \"default\": 5000,\n          \"maximum\": 100000,\n          \"minimum\": 1,\n          \"title\": \"Max Records\",\n          \"type\": \"integer\"\n        },\n        \"min_records\": {\n          \"default\": 1,\n          \"minimum\": 0,\n          \"title\": \"Min Records\",\n          \"type\": \"integer\"\n        },\n        \"enabled\": {\n          \"default\": true,\n          \"title\": \"Enabled\",\n          \"type\": \"boolean\"\n        }\n      },\n      \"required\": [\n        \"id\",\n        \"name\",\n        \"connector\",\n        \"url\"\n      ],\n      \"title\": \"SourceSpec\",\n      \"type\": \"object\"\n    },\n    \"proposal_schema\": {\n      \"$defs\": {\n        \"Candidate\": {\n          \"additionalProperties\": false,\n          \"properties\": {\n            \"name\": {\n              \"title\": \"Name\",\n              \"type\": \"string\"\n            },\n            \"purpose\": {\n              \"title\": \"Purpose\",\n              \"type\": \"string\"\n            },\n            \"covers\": {\n              \"items\": {\n                \"type\": \"string\"\n              },\n              \"title\": \"Covers\",\n              \"type\": \"array\"\n            },\n            \"status\": {\n              \"enum\": [\n                \"ready\",\n                \"needs_connector\",\n                \"needs_access\",\n                \"unavailable\"\n              ],\n              \"title\": \"Status\",\n              \"type\": \"string\"\n            },\n            \"evidence_urls\": {\n              \"items\": {\n                \"type\": \"string\"\n              },\n              \"title\": \"Evidence Urls\",\n              \"type\": \"array\"\n            },\n            \"source\": {\n              \"anyOf\": [\n                {\n                  \"$ref\": \"#/$defs/SourceSpec\"\n                },\n                {\n                  \"type\": \"null\"\n                }\n              ]\n            },\n            \"probe_id\": {\n              \"anyOf\": [\n                {\n                  \"type\": \"string\"\n                },\n                {\n                  \"type\": \"null\"\n                }\n              ],\n              \"title\": \"Probe Id\"\n            },\n            \"freshness_assessment\": {\n              \"title\": \"Freshness Assessment\",\n              \"type\": \"string\"\n            },\n            \"historical_coverage\": {\n              \"title\": \"Historical Coverage\",\n              \"type\": \"string\"\n            },\n            \"access_notes\": {\n              \"title\": \"Access Notes\",\n              \"type\": \"string\"\n            },\n            \"limitations\": {\n              \"items\": {\n                \"type\": \"string\"\n              },\n              \"title\": \"Limitations\",\n              \"type\": \"array\"\n            }\n          },\n          \"required\": [\n            \"name\",\n            \"purpose\",\n            \"covers\",\n            \"status\",\n            \"evidence_urls\",\n            \"source\",\n            \"probe_id\",\n            \"freshness_assessment\",\n            \"historical_coverage\",\n            \"access_notes\",\n            \"limitations\"\n          ],\n          \"title\": \"Candidate\",\n          \"type\": \"object\"\n        },\n        \"DataNeed\": {\n          \"additionalProperties\": false,\n          \"properties\": {\n            \"id\": {\n              \"pattern\": \"^[a-z][a-z0-9_-]{0,63}$\",\n              \"title\": \"Id\",\n              \"type\": \"string\"\n            },\n            \"description\": {\n              \"title\": \"Description\",\n              \"type\": \"string\"\n            },\n            \"required\": {\n              \"title\": \"Required\",\n              \"type\": \"boolean\"\n            }\n          },\n          \"required\": [\n            \"id\",\n            \"description\",\n            \"required\"\n          ],\n          \"title\": \"DataNeed\",\n          \"type\": \"object\"\n        },\n        \"Pagination\": {\n          \"additionalProperties\": false,\n          \"properties\": {\n            \"mode\": {\n              \"default\": \"none\",\n              \"enum\": [\n                \"none\",\n                \"cursor\",\n                \"next_url\"\n              ],\n              \"title\": \"Mode\",\n              \"type\": \"string\"\n            },\n            \"next_pointer\": {\n              \"anyOf\": [\n                {\n                  \"type\": \"string\"\n                },\n                {\n                  \"type\": \"null\"\n                }\n              ],\n              \"default\": null,\n              \"title\": \"Next Pointer\"\n            },\n            \"cursor_parameter\": {\n              \"anyOf\": [\n                {\n                  \"type\": \"string\"\n                },\n                {\n                  \"type\": \"null\"\n                }\n              ],\n              \"default\": null,\n              \"title\": \"Cursor Parameter\"\n            },\n            \"stop_when_missing\": {\n              \"default\": false,\n              \"description\": \"Enable only when the source's terminal-page convention omits the continuation field\",\n              \"title\": \"Stop When Missing\",\n              \"type\": \"boolean\"\n            }\n          },\n          \"title\": \"Pagination\",\n          \"type\": \"object\"\n        },\n        \"Parameter\": {\n          \"additionalProperties\": false,\n          \"properties\": {\n            \"name\": {\n              \"maxLength\": 200,\n              \"minLength\": 1,\n              \"title\": \"Name\",\n              \"type\": \"string\"\n            },\n            \"value\": {\n              \"maxLength\": 10000,\n              \"title\": \"Value\",\n              \"type\": \"string\"\n            }\n          },\n          \"required\": [\n            \"name\",\n            \"value\"\n          ],\n          \"title\": \"Parameter\",\n          \"type\": \"object\"\n        },\n        \"SourceSpec\": {\n          \"additionalProperties\": false,\n          \"properties\": {\n            \"id\": {\n              \"pattern\": \"^[a-z][a-z0-9_-]{0,63}$\",\n              \"title\": \"Id\",\n              \"type\": \"string\"\n            },\n            \"name\": {\n              \"maxLength\": 200,\n              \"minLength\": 1,\n              \"title\": \"Name\",\n              \"type\": \"string\"\n            },\n            \"connector\": {\n              \"enum\": [\n                \"polymarket\",\n                \"kalshi\",\n                \"rss\",\n                \"json\",\n                \"html\"\n              ],\n              \"title\": \"Connector\",\n              \"type\": \"string\"\n            },\n            \"url\": {\n              \"title\": \"Url\",\n              \"type\": \"string\"\n            },\n            \"parameters\": {\n              \"items\": {\n                \"$ref\": \"#/$defs/Parameter\"\n              },\n              \"title\": \"Parameters\",\n              \"type\": \"array\"\n            },\n            \"pagination\": {\n              \"$ref\": \"#/$defs/Pagination\"\n            },\n            \"items_pointer\": {\n              \"default\": \"\",\n              \"title\": \"Items Pointer\",\n              \"type\": \"string\"\n            },\n            \"id_pointer\": {\n              \"anyOf\": [\n                {\n                  \"type\": \"string\"\n                },\n                {\n                  \"type\": \"null\"\n                }\n              ],\n              \"default\": null,\n              \"title\": \"Id Pointer\"\n            },\n            \"published_pointer\": {\n              \"anyOf\": [\n                {\n                  \"type\": \"string\"\n                },\n                {\n                  \"type\": \"null\"\n                }\n              ],\n              \"default\": null,\n              \"title\": \"Published Pointer\"\n            },\n            \"required_pointers\": {\n              \"items\": {\n                \"type\": \"string\"\n              },\n              \"title\": \"Required Pointers\",\n              \"type\": \"array\"\n            },\n            \"include_orderbooks\": {\n              \"default\": false,\n              \"title\": \"Include Orderbooks\",\n              \"type\": \"boolean\"\n            },\n            \"poll_interval_seconds\": {\n              \"default\": 900,\n              \"maximum\": 2592000,\n              \"minimum\": 60,\n              \"title\": \"Poll Interval Seconds\",\n              \"type\": \"integer\"\n            },\n            \"max_pages\": {\n              \"default\": 10,\n              \"maximum\": 100,\n              \"minimum\": 1,\n              \"title\": \"Max Pages\",\n              \"type\": \"integer\"\n            },\n            \"max_records\": {\n              \"default\": 5000,\n              \"maximum\": 100000,\n              \"minimum\": 1,\n              \"title\": \"Max Records\",\n              \"type\": \"integer\"\n            },\n            \"min_records\": {\n              \"default\": 1,\n              \"minimum\": 0,\n              \"title\": \"Min Records\",\n              \"type\": \"integer\"\n            },\n            \"enabled\": {\n              \"default\": true,\n              \"title\": \"Enabled\",\n              \"type\": \"boolean\"\n            }\n          },\n          \"required\": [\n            \"id\",\n            \"name\",\n            \"connector\",\n            \"url\"\n          ],\n          \"title\": \"SourceSpec\",\n          \"type\": \"object\"\n        }\n      },\n      \"additionalProperties\": false,\n      \"properties\": {\n        \"name\": {\n          \"pattern\": \"^[a-z][a-z0-9_-]{0,63}$\",\n          \"title\": \"Name\",\n          \"type\": \"string\"\n        },\n        \"title\": {\n          \"title\": \"Title\",\n          \"type\": \"string\"\n        },\n        \"research_question\": {\n          \"title\": \"Research Question\",\n          \"type\": \"string\"\n        },\n        \"needs\": {\n          \"items\": {\n            \"$ref\": \"#/$defs/DataNeed\"\n          },\n          \"maxItems\": 20,\n          \"minItems\": 1,\n          \"title\": \"Needs\",\n          \"type\": \"array\"\n        },\n        \"candidates\": {\n          \"items\": {\n            \"$ref\": \"#/$defs/Candidate\"\n          },\n          \"maxItems\": 12,\n          \"minItems\": 1,\n          \"title\": \"Candidates\",\n          \"type\": \"array\"\n        },\n        \"open_questions\": {\n          \"items\": {\n            \"type\": \"string\"\n          },\n          \"title\": \"Open Questions\",\n          \"type\": \"array\"\n        }\n      },\n      \"required\": [\n        \"name\",\n        \"title\",\n        \"research_question\",\n        \"needs\",\n        \"candidates\",\n        \"open_questions\"\n      ],\n      \"title\": \"ProposalDraft\",\n      \"type\": \"object\"\n    },\n    \"jobs\": [\n      {\n        \"id\": \"339491819af24ec685993a569990e87e\",\n        \"discovery_id\": \"af34b394a912440a95779a264bd69076\",\n        \"question_id\": \"dc4f72af522b4d2e80c821b378f1bf44\",\n        \"pipeline_version_id\": \"26e3310f897a4f619fa20921fbb7920b\",\n        \"operation_id\": \"collect-1\",\n        \"kind\": \"collection\",\n        \"request_hash\": \"99f92576a0f2a60af6f815bd199a725005693c0b26791a50c7a1472a2bec1e80\",\n        \"status\": \"succeeded\",\n        \"run_id\": \"262340d291734b0da740f8c6d8a214d3\",\n        \"created_at\": \"2026-09-08T18:57:44.500233Z\",\n        \"deadline_at\": \"2026-09-08T19:07:44.500235Z\",\n        \"started_at\": \"2026-09-08T18:57:44.598162Z\",\n        \"finished_at\": \"2026-09-08T18:57:44.613702Z\",\n        \"cancel_requested_at\": null,\n        \"worker_pid\": 9581,\n        \"error\": null,\n        \"request\": {\n          \"due_only\": false,\n          \"pipeline_version_id\": \"26e3310f897a4f619fa20921fbb7920b\",\n          \"source_id\": null\n        },\n        \"result\": {\n          \"pipeline\": \"fixture-policy\",\n          \"run_id\": \"262340d291734b0da740f8c6d8a214d3\",\n          \"sources\": [\n            {\n              \"error\": null,\n              \"new_versions\": 1,\n              \"pages\": 1,\n              \"quarantined\": 0,\n              \"records\": 1,\n              \"requests\": 1,\n              \"source_id\": \"policy\",\n              \"source_run_id\": \"95bccabb612c40d8b00ba36bce39a5df\",\n              \"status\": \"succeeded\"\n            }\n          ],\n          \"status\": \"succeeded\"\n        },\n        \"worker_active\": false,\n        \"recovery_pending\": false,\n        \"collection\": {\n          \"id\": \"262340d291734b0da740f8c6d8a214d3\",\n          \"pipeline\": \"fixture-policy\",\n          \"config_hash\": \"c416207c4bd6e822ed47aea505258f89f6c453654147ce976d3ca3a02c39fa99\",\n          \"started_at\": \"2026-09-08T18:57:44.610850Z\",\n          \"finished_at\": \"2026-09-08T18:57:44.613338Z\",\n          \"status\": \"succeeded\",\n          \"error\": null,\n          \"config\": {\n            \"data_dir\": \".researchharness/data\",\n            \"description\": \"Find a public feed of official policy changes with stable ids and publication timestamps.\",\n            \"http\": {\n              \"max_attempts\": 3,\n              \"max_requests_per_source\": 100,\n              \"max_response_bytes\": 5000000,\n              \"max_retry_delay_seconds\": 30.0,\n              \"min_interval_seconds\": 0.25,\n              \"timeout_seconds\": 20.0\n            },\n            \"name\": \"fixture-policy\",\n            \"schema_version\": 1,\n            \"sources\": [\n              {\n                \"connector\": \"json\",\n                \"enabled\": true,\n                \"id\": \"policy\",\n                \"id_pointer\": \"/id\",\n                \"include_orderbooks\": false,\n                \"items_pointer\": \"/items\",\n                \"max_pages\": 10,\n                \"max_records\": 5000,\n                \"min_records\": 1,\n                \"name\": \"Fixture policy feed\",\n                \"pagination\": {\n                  \"cursor_parameter\": null,\n                  \"mode\": \"none\",\n                  \"next_pointer\": null,\n                  \"stop_when_missing\": false\n                },\n                \"parameters\": [],\n                \"poll_interval_seconds\": 900,\n                \"published_pointer\": \"/published_at\",\n                \"required_pointers\": [\n                  \"/title\"\n                ],\n                \"url\": \"http://127.0.0.1:57378/policy.json\"\n              }\n            ]\n          },\n          \"dataset_scope\": \"dc4f72af522b4d2e80c821b378f1bf44\",\n          \"sources\": [\n            {\n              \"id\": \"95bccabb612c40d8b00ba36bce39a5df\",\n              \"run_id\": \"262340d291734b0da740f8c6d8a214d3\",\n              \"source_id\": \"policy\",\n              \"config_hash\": \"7127e6c28eb102ad338f0ea41e8679113498307b2391e15863409f212ab4927f\",\n              \"started_at\": \"2026-09-08T18:57:44.611103Z\",\n              \"finished_at\": \"2026-09-08T18:57:44.613077Z\",\n              \"status\": \"succeeded\",\n              \"record_count\": 1,\n              \"new_versions\": 1,\n              \"quarantined\": 0,\n              \"error\": null\n            }\n          ]\n        }\n      },\n      {\n        \"id\": \"d384977836984e4a8a628850d688b168\",\n        \"discovery_id\": \"af34b394a912440a95779a264bd69076\",\n        \"question_id\": \"dc4f72af522b4d2e80c821b378f1bf44\",\n        \"pipeline_version_id\": \"26e3310f897a4f619fa20921fbb7920b\",\n        \"operation_id\": \"export-1\",\n        \"kind\": \"export\",\n        \"request_hash\": \"fd26807db5d62722b68c99dbca538a9837f8bc79beeb29eca1fa2cf966fba6bd\",\n        \"status\": \"succeeded\",\n        \"run_id\": null,\n        \"created_at\": \"2026-09-08T18:57:44.664755Z\",\n        \"deadline_at\": \"2026-09-08T19:07:44.664756Z\",\n        \"started_at\": \"2026-09-08T18:57:44.761461Z\",\n        \"finished_at\": \"2026-09-08T18:57:44.763602Z\",\n        \"cancel_requested_at\": null,\n        \"worker_pid\": 9583,\n        \"error\": null,\n        \"request\": {\n          \"as_of\": \"2026-09-08T18:57:44.656392Z\",\n          \"kind\": null,\n          \"pipeline_version_id\": \"26e3310f897a4f619fa20921fbb7920b\"\n        },\n        \"result\": {\n          \"artifact_refs\": [\n            {\n              \"bytes\": 857,\n              \"kind\": \"observations\",\n              \"sha256\": \"f4cd539faba67a76e00a4cb8509ee96c5a55c8f254eb59ade819c5c0b9bf5217\"\n            },\n            {\n              \"kind\": \"manifest\",\n              \"sha256\": \"aba85c3d1903a9283c05a05a1612faa93de66392bc6c05b941a5497ef46a5055\"\n            }\n          ],\n          \"as_of\": \"2026-09-08T18:57:44.656392Z\",\n          \"config_fingerprint\": \"c416207c4bd6e822ed47aea505258f89f6c453654147ce976d3ca3a02c39fa99\",\n          \"data_sha256\": \"f4cd539faba67a76e00a4cb8509ee96c5a55c8f254eb59ade819c5c0b9bf5217\",\n          \"dataset_scope\": \"dc4f72af522b4d2e80c821b378f1bf44\",\n          \"kind_filter\": null,\n          \"manifest\": \"/private/tmp/rh-omnigent-phased-verified/research/jobs/d384977836984e4a8a628850d688b168/observations.jsonl.manifest.json\",\n          \"normalizer_version\": \"1\",\n          \"output\": \"/private/tmp/rh-omnigent-phased-verified/research/jobs/d384977836984e4a8a628850d688b168/observations.jsonl\",\n          \"pipeline\": \"fixture-policy\",\n          \"pipeline_version_id\": \"26e3310f897a4f619fa20921fbb7920b\",\n          \"record_count\": 1,\n          \"selection\": \"Latest successfully published observation per source/kind/key available by the cutoff, limited to source ids in this configuration. Use a saved historical configuration to reproduce its source universe. Absence from a later response is not interpreted as deletion.\",\n          \"sources\": [\n            {\n              \"configuration_matches_latest_run\": true,\n              \"enabled\": true,\n              \"error\": null,\n              \"last_success_at\": \"2026-09-08T18:57:44.613077Z\",\n              \"latest_run_status\": \"succeeded\",\n              \"poll_interval_seconds\": 900,\n              \"source_id\": \"policy\",\n              \"stale\": false\n            }\n          ]\n        },\n        \"worker_active\": false,\n        \"recovery_pending\": false\n      }\n    ]\n  },\n  \"evidence_refs\": [],\n  \"error\": null,\n  \"remaining\": {\n    \"inspection\": 15,\n    \"probe\": 11,\n    \"search\": 7\n  }\n}"
+      },
+      "created_by": null
+    },
+    {
+      "id": "acf22c49dce14eadb1e120fe8b4bc74f",
+      "type": "function_call",
+      "status": "completed",
+      "response_id": "resp_0a2d70937c96447abc3746f2",
+      "created_at": 1788893868,
+      "data": {
+        "model": "research-8b0bbdb25ab84ae0a7240e814e33f51c",
+        "name": "research__list_jobs",
+        "arguments": "{}",
+        "call_id": "call_16"
+      },
+      "created_by": null
+    },
+    {
+      "id": "697a7371eadb46678e3529b775d259c2",
+      "type": "function_call_output",
+      "status": "completed",
+      "response_id": "resp_0a2d70937c96447abc3746f2",
+      "created_at": 1788893868,
+      "data": {
+        "call_id": "call_16",
+        "output": "{\n  \"operation_id\": \"451115c913a0489d8fbcf2e56541d5d7\",\n  \"status\": \"ok\",\n  \"data\": {\n    \"question_id\": \"dc4f72af522b4d2e80c821b378f1bf44\",\n    \"jobs\": [\n      {\n        \"id\": \"339491819af24ec685993a569990e87e\",\n        \"discovery_id\": \"af34b394a912440a95779a264bd69076\",\n        \"question_id\": \"dc4f72af522b4d2e80c821b378f1bf44\",\n        \"pipeline_version_id\": \"26e3310f897a4f619fa20921fbb7920b\",\n        \"operation_id\": \"collect-1\",\n        \"kind\": \"collection\",\n        \"request_hash\": \"99f92576a0f2a60af6f815bd199a725005693c0b26791a50c7a1472a2bec1e80\",\n        \"status\": \"succeeded\",\n        \"run_id\": \"262340d291734b0da740f8c6d8a214d3\",\n        \"created_at\": \"2026-09-08T18:57:44.500233Z\",\n        \"deadline_at\": \"2026-09-08T19:07:44.500235Z\",\n        \"started_at\": \"2026-09-08T18:57:44.598162Z\",\n        \"finished_at\": \"2026-09-08T18:57:44.613702Z\",\n        \"cancel_requested_at\": null,\n        \"worker_pid\": 9581,\n        \"error\": null,\n        \"request\": {\n          \"due_only\": false,\n          \"pipeline_version_id\": \"26e3310f897a4f619fa20921fbb7920b\",\n          \"source_id\": null\n        },\n        \"result\": {\n          \"pipeline\": \"fixture-policy\",\n          \"run_id\": \"262340d291734b0da740f8c6d8a214d3\",\n          \"sources\": [\n            {\n              \"error\": null,\n              \"new_versions\": 1,\n              \"pages\": 1,\n              \"quarantined\": 0,\n              \"records\": 1,\n              \"requests\": 1,\n              \"source_id\": \"policy\",\n              \"source_run_id\": \"95bccabb612c40d8b00ba36bce39a5df\",\n              \"status\": \"succeeded\"\n            }\n          ],\n          \"status\": \"succeeded\"\n        },\n        \"worker_active\": false,\n        \"recovery_pending\": false,\n        \"collection\": {\n          \"id\": \"262340d291734b0da740f8c6d8a214d3\",\n          \"pipeline\": \"fixture-policy\",\n          \"config_hash\": \"c416207c4bd6e822ed47aea505258f89f6c453654147ce976d3ca3a02c39fa99\",\n          \"started_at\": \"2026-09-08T18:57:44.610850Z\",\n          \"finished_at\": \"2026-09-08T18:57:44.613338Z\",\n          \"status\": \"succeeded\",\n          \"error\": null,\n          \"config\": {\n            \"data_dir\": \".researchharness/data\",\n            \"description\": \"Find a public feed of official policy changes with stable ids and publication timestamps.\",\n            \"http\": {\n              \"max_attempts\": 3,\n              \"max_requests_per_source\": 100,\n              \"max_response_bytes\": 5000000,\n              \"max_retry_delay_seconds\": 30.0,\n              \"min_interval_seconds\": 0.25,\n              \"timeout_seconds\": 20.0\n            },\n            \"name\": \"fixture-policy\",\n            \"schema_version\": 1,\n            \"sources\": [\n              {\n                \"connector\": \"json\",\n                \"enabled\": true,\n                \"id\": \"policy\",\n                \"id_pointer\": \"/id\",\n                \"include_orderbooks\": false,\n                \"items_pointer\": \"/items\",\n                \"max_pages\": 10,\n                \"max_records\": 5000,\n                \"min_records\": 1,\n                \"name\": \"Fixture policy feed\",\n                \"pagination\": {\n                  \"cursor_parameter\": null,\n                  \"mode\": \"none\",\n                  \"next_pointer\": null,\n                  \"stop_when_missing\": false\n                },\n                \"parameters\": [],\n                \"poll_interval_seconds\": 900,\n                \"published_pointer\": \"/published_at\",\n                \"required_pointers\": [\n                  \"/title\"\n                ],\n                \"url\": \"http://127.0.0.1:57378/policy.json\"\n              }\n            ]\n          },\n          \"dataset_scope\": \"dc4f72af522b4d2e80c821b378f1bf44\",\n          \"sources\": [\n            {\n              \"id\": \"95bccabb612c40d8b00ba36bce39a5df\",\n              \"run_id\": \"262340d291734b0da740f8c6d8a214d3\",\n              \"source_id\": \"policy\",\n              \"config_hash\": \"7127e6c28eb102ad338f0ea41e8679113498307b2391e15863409f212ab4927f\",\n              \"started_at\": \"2026-09-08T18:57:44.611103Z\",\n              \"finished_at\": \"2026-09-08T18:57:44.613077Z\",\n              \"status\": \"succeeded\",\n              \"record_count\": 1,\n              \"new_versions\": 1,\n              \"quarantined\": 0,\n              \"error\": null\n            }\n          ]\n        }\n      },\n      {\n        \"id\": \"d384977836984e4a8a628850d688b168\",\n        \"discovery_id\": \"af34b394a912440a95779a264bd69076\",\n        \"question_id\": \"dc4f72af522b4d2e80c821b378f1bf44\",\n        \"pipeline_version_id\": \"26e3310f897a4f619fa20921fbb7920b\",\n        \"operation_id\": \"export-1\",\n        \"kind\": \"export\",\n        \"request_hash\": \"fd26807db5d62722b68c99dbca538a9837f8bc79beeb29eca1fa2cf966fba6bd\",\n        \"status\": \"succeeded\",\n        \"run_id\": null,\n        \"created_at\": \"2026-09-08T18:57:44.664755Z\",\n        \"deadline_at\": \"2026-09-08T19:07:44.664756Z\",\n        \"started_at\": \"2026-09-08T18:57:44.761461Z\",\n        \"finished_at\": \"2026-09-08T18:57:44.763602Z\",\n        \"cancel_requested_at\": null,\n        \"worker_pid\": 9583,\n        \"error\": null,\n        \"request\": {\n          \"as_of\": \"2026-09-08T18:57:44.656392Z\",\n          \"kind\": null,\n          \"pipeline_version_id\": \"26e3310f897a4f619fa20921fbb7920b\"\n        },\n        \"result\": {\n          \"artifact_refs\": [\n            {\n              \"bytes\": 857,\n              \"kind\": \"observations\",\n              \"sha256\": \"f4cd539faba67a76e00a4cb8509ee96c5a55c8f254eb59ade819c5c0b9bf5217\"\n            },\n            {\n              \"kind\": \"manifest\",\n              \"sha256\": \"aba85c3d1903a9283c05a05a1612faa93de66392bc6c05b941a5497ef46a5055\"\n            }\n          ],\n          \"as_of\": \"2026-09-08T18:57:44.656392Z\",\n          \"config_fingerprint\": \"c416207c4bd6e822ed47aea505258f89f6c453654147ce976d3ca3a02c39fa99\",\n          \"data_sha256\": \"f4cd539faba67a76e00a4cb8509ee96c5a55c8f254eb59ade819c5c0b9bf5217\",\n          \"dataset_scope\": \"dc4f72af522b4d2e80c821b378f1bf44\",\n          \"kind_filter\": null,\n          \"manifest\": \"/private/tmp/rh-omnigent-phased-verified/research/jobs/d384977836984e4a8a628850d688b168/observations.jsonl.manifest.json\",\n          \"normalizer_version\": \"1\",\n          \"output\": \"/private/tmp/rh-omnigent-phased-verified/research/jobs/d384977836984e4a8a628850d688b168/observations.jsonl\",\n          \"pipeline\": \"fixture-policy\",\n          \"pipeline_version_id\": \"26e3310f897a4f619fa20921fbb7920b\",\n          \"record_count\": 1,\n          \"selection\": \"Latest successfully published observation per source/kind/key available by the cutoff, limited to source ids in this configuration. Use a saved historical configuration to reproduce its source universe. Absence from a later response is not interpreted as deletion.\",\n          \"sources\": [\n            {\n              \"configuration_matches_latest_run\": true,\n              \"enabled\": true,\n              \"error\": null,\n              \"last_success_at\": \"2026-09-08T18:57:44.613077Z\",\n              \"latest_run_status\": \"succeeded\",\n              \"poll_interval_seconds\": 900,\n              \"source_id\": \"policy\",\n              \"stale\": false\n            }\n          ]\n        },\n        \"worker_active\": false,\n        \"recovery_pending\": false\n      }\n    ]\n  },\n  \"evidence_refs\": [],\n  \"error\": null,\n  \"remaining\": {\n    \"inspection\": 15,\n    \"probe\": 11,\n    \"search\": 7\n  }\n}"
+      },
+      "created_by": null
+    },
+    {
+      "id": "7f16aef063d748a8bdf9d16a934eae24",
+      "type": "function_call",
+      "status": "completed",
+      "response_id": "resp_0a2d70937c96447abc3746f2",
+      "created_at": 1788893868,
+      "data": {
+        "model": "research-8b0bbdb25ab84ae0a7240e814e33f51c",
+        "name": "research__read_export",
+        "arguments": "{\"job_id\": \"d384977836984e4a8a628850d688b168\", \"artifact\": \"observations\"}",
+        "call_id": "call_17"
+      },
+      "created_by": null
+    },
+    {
+      "id": "4d21154a6aaf4e79bb58e753fb6901bb",
+      "type": "function_call_output",
+      "status": "completed",
+      "response_id": "resp_0a2d70937c96447abc3746f2",
+      "created_at": 1788893868,
+      "data": {
+        "call_id": "call_17",
+        "output": "{\n  \"operation_id\": \"71085ba08fb142c49259a15cc3d097d5\",\n  \"status\": \"ok\",\n  \"data\": {\n    \"job_id\": \"d384977836984e4a8a628850d688b168\",\n    \"artifact\": \"observations\",\n    \"sha256\": \"f4cd539faba67a76e00a4cb8509ee96c5a55c8f254eb59ade819c5c0b9bf5217\",\n    \"content\": \"{\\\"available_at\\\":\\\"2026-09-08T18:57:44.613077Z\\\",\\\"content_hash\\\":\\\"206c7a22db981594945a69e3022d0f250126e217adc5735aed058139ae279438\\\",\\\"data\\\":{\\\"id\\\":\\\"policy-1\\\",\\\"published_at\\\":\\\"2026-09-01T00:00:00Z\\\",\\\"title\\\":\\\"Fixture export policy\\\"},\\\"first_observed_at\\\":\\\"2026-09-08T18:57:44.612539Z\\\",\\\"key\\\":\\\"policy-1\\\",\\\"kind\\\":\\\"observation\\\",\\\"lineage\\\":{\\\"body_sha256\\\":\\\"6eae91360f7dd2b109fb4959240e6350ebc965a53a7ac85913835f9b6bbecb6a\\\",\\\"capture_id\\\":\\\"cb6fb3da1623471ba6d1cde1c961a4dc\\\",\\\"source_config_hash\\\":\\\"7127e6c28eb102ad338f0ea41e8679113498307b2391e15863409f212ab4927f\\\",\\\"source_run_id\\\":\\\"95bccabb612c40d8b00ba36bce39a5df\\\",\\\"source_url\\\":\\\"http://127.0.0.1:57378/policy.json\\\"},\\\"normalizer_version\\\":\\\"1\\\",\\\"observed_at\\\":\\\"2026-09-08T18:57:44.612539Z\\\",\\\"published_at\\\":\\\"2026-09-01T00:00:00.000000Z\\\",\\\"source_id\\\":\\\"policy\\\",\\\"version_id\\\":\\\"94e30e688c745ea2a273022c4262d5374346ae1c4a0222a710a23a69ebbefc85\\\"}\\n\",\n    \"offset\": 0,\n    \"next_offset\": null,\n    \"total_characters\": 857\n  },\n  \"evidence_refs\": [],\n  \"error\": null,\n  \"remaining\": {\n    \"inspection\": 15,\n    \"probe\": 11,\n    \"search\": 7\n  }\n}"
+      },
+      "created_by": null
+    },
+    {
+      "id": "d7488ad8fcbc4847aa4f3a853b00d1b3",
+      "type": "message",
+      "status": "completed",
+      "response_id": "resp_0a2d70937c96447abc3746f2",
+      "created_at": 1788893868,
+      "data": {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "Saved verified pipeline {\"discovery_id\": \"af34b394a912440a95779a264bd69076\", \"pipeline_version_id\": \"26e3310f897a4f619fa20921fbb7920b\", \"proposal_id\": \"ad8fb68943a64220aef35bdc9e5f548a\", \"question_id\": \"dc4f72af522b4d2e80c821b378f1bf44\"}"
+          }
+        ],
+        "model": "research-8b0bbdb25ab84ae0a7240e814e33f51c"
+      },
+      "created_by": null
+    }
+  ],
+  "permission_level": 4,
+  "sub_agent_name": null,
+  "kind": "default",
+  "parent_session_id": null,
+  "root_conversation_id": "638a55a99bed444fbde67c44fbbfe8f4",
+  "llm_model": "gpt-5.4-mini",
+  "harness": "openai-agents",
+  "model_override": null,
+  "cost_control_mode_override": null,
+  "subagent_routing_override": null,
+  "share_workspace_files": false,
+  "context_window": 272000,
+  "last_total_tokens": null,
+  "total_cost_usd": 0.0022800000000000003,
+  "usage_by_model": {
+    "gpt-5.4-mini": {
+      "input_tokens": 1900,
+      "output_tokens": 190,
+      "total_tokens": 2090,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 0,
+      "total_cost_usd": 0.0022800000000000003
+    }
+  },
+  "last_task_error": null,
+  "external_session_id": null,
+  "terminal_launch_args": null,
+  "pending_elicitations": [],
+  "pending_inputs": [],
+  "workspace": null,
+  "git_branch": null,
+  "archived": false,
+  "todos": [],
+  "skills": [],
+  "model_options": [],
+  "terminal_pending": false,
+  "sandbox_status": null,
+  "mcp_startup": null,
+  "active_response_id": null,
+  "project_id": null
+}

@@ -1,0 +1,41 @@
+{
+  "authorship": "Synthetic fixture authored by Codex; no live source was sampled",
+  "search_results": [
+    {
+      "url": "https://vendor-security.fixture.example/advisories.json",
+      "title": "Authored search result"
+    },
+    {
+      "url": "https://vendor-security.fixture.example/security.xml",
+      "title": "Authored search result"
+    }
+  ],
+  "responses": [
+    {
+      "url": "https://vendor-security.fixture.example/advisories.json",
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "synthetic": true,
+        "items": [
+          {
+            "id": "notice-1",
+            "title": "Authored policy notice",
+            "published_at": "2026-09-01T12:00:00Z",
+            "downloaded_at": "2026-09-08T12:00:00Z"
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://vendor-security.fixture.example/security.xml",
+      "status": 200,
+      "headers": {
+        "content-type": "application/rss+xml"
+      },
+      "body": "<rss version=\"2.0\"><channel><title>Authored fixture feed</title><description>Synthetic development data</description><item><guid>fixture-1</guid><title>Authored notice</title><link>https://vendor-security.fixture.example/security.xml/notice-1</link><pubDate>Tue, 01 Sep 2026 12:00:00 GMT</pubDate><description>Illustrative source content only.</description></item></channel></rss>"
+    }
+  ]
+}

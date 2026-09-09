@@ -1,0 +1,28 @@
+{
+  "authorship": "Synthetic fixture authored by Codex; no live source was sampled",
+  "search_results": [
+    {
+      "url": "https://cyber-office.fixture.example/advisories.json",
+      "title": "Authored search result"
+    }
+  ],
+  "responses": [
+    {
+      "url": "https://cyber-office.fixture.example/advisories.json",
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "synthetic": true,
+        "items": [
+          {
+            "id": "ADV-1",
+            "datePublished": "2026-09-01T08:00:00Z",
+            "lastModified": "2026-09-07T08:00:00Z"
+          }
+        ]
+      }
+    }
+  ]
+}
