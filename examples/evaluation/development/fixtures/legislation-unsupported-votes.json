@@ -2,12 +2,16 @@
   "authorship": "Synthetic fixture authored by Codex; no live source was sampled",
   "search_results": [
     {
+      "url": "https://legislature.fixture.example/publication-index.json",
+      "title": "Bill status and roll-call evidence: publication index and monthly counts"
+    },
+    {
       "url": "https://legislature.fixture.example/bills.json",
-      "title": "Authored search result"
+      "title": "Bill status and roll-call evidence: source publication"
     },
     {
       "url": "https://legislature.fixture.example/roll-call.pdf",
-      "title": "Authored search result"
+      "title": "Bill status and roll-call evidence: source publication"
     }
   ],
   "responses": [
@@ -23,6 +27,31 @@
           {
             "id": "bill-1",
             "status": "committee"
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://legislature.fixture.example/roll-call.pdf",
+      "status": 200,
+      "headers": {
+        "content-type": "application/pdf"
+      },
+      "body_base64": "JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCA2MTIgNzkyXSAvQ29udGVudHMgNCAwIFIgL1Jlc291cmNlcyA8PCAvRm9udCA8PCAvRjEgNSAwIFIgPj4gPj4gPj4KZW5kb2JqCjQgMCBvYmoKPDwgL0xlbmd0aCA3NyA+PgpzdHJlYW0KQlQgL0YxIDEyIFRmIDcyIDcyMCBUZCAoQXV0aG9yZWQgcm9sbCBjYWxsOiBCaWxsIDE7IEFkYSBZZWE7IEJlYSBOYXkuKSBUaiBFVAplbmRzdHJlYW0KZW5kb2JqCjUgMCBvYmoKPDwgL1R5cGUgL0ZvbnQgL1N1YnR5cGUgL1R5cGUxIC9CYXNlRm9udCAvSGVsdmV0aWNhID4+CmVuZG9iagp4cmVmCjAgNgowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwMDkgMDAwMDAgbiAKMDAwMDAwMDA1OCAwMDAwMCBuIAowMDAwMDAwMTE1IDAwMDAwIG4gCjAwMDAwMDAyNDEgMDAwMDAgbiAKMDAwMDAwMDM2NyAwMDAwMCBuIAp0cmFpbGVyCjw8IC9TaXplIDYgL1Jvb3QgMSAwIFIgPj4Kc3RhcnR4cmVmCjQzNwolJUVPRgo="
+    },
+    {
+      "url": "https://legislature.fixture.example/publication-index.json",
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "synthetic": true,
+        "items": [
+          {
+            "id": "monthly-index",
+            "topic": "Bill status and roll-call evidence",
+            "publication_count": 12
           }
         ]
       }

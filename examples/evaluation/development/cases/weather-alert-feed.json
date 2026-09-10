@@ -28,9 +28,15 @@
   },
   "fixtures": {
     "path": "fixtures/weather-alert-feed.json",
-    "sha256": "146fc0302eef52b4b64811b8ddf7ae8e18c19afb7ebe71282f8b68b2dccc55ff"
+    "sha256": "a703cfa85f9d1e0e3344003e038e24ed6b55a7b7a06c84fdaa702479a5923942"
   },
   "sources": [
+    {
+      "id": "weekly-weather",
+      "name": "Weekly weather summary",
+      "connector": "rss",
+      "url": "https://weather-office.fixture.example/weekly.xml"
+    },
     {
       "id": "official-alerts",
       "name": "Weather alert feed",

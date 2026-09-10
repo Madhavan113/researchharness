@@ -2,8 +2,12 @@
   "authorship": "Synthetic fixture authored by Codex; no live source was sampled",
   "search_results": [
     {
+      "url": "https://grid-operator.fixture.example/publication-index.json",
+      "title": "Outage event pagination: publication index and monthly counts"
+    },
+    {
       "url": "https://grid-operator.fixture.example/outages",
-      "title": "Authored search result"
+      "title": "Outage event pagination: source publication"
     }
   ],
   "responses": [
@@ -35,6 +39,23 @@
           }
         ],
         "next": null
+      }
+    },
+    {
+      "url": "https://grid-operator.fixture.example/publication-index.json",
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "synthetic": true,
+        "items": [
+          {
+            "id": "monthly-index",
+            "topic": "Outage event pagination",
+            "publication_count": 12
+          }
+        ]
       }
     }
   ]

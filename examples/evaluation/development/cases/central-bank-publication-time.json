@@ -29,7 +29,7 @@
   },
   "fixtures": {
     "path": "fixtures/central-bank-publication-time.json",
-    "sha256": "dae022dd826b4e26fe26a7e4f69b3fb79fce6fc18169a2aa5146fd1d62eb46b5"
+    "sha256": "002a9ad1972bc71c3ec60530dc09b6ffa521a6cce17e40cb4147f1b6d8c0ddd4"
   },
   "sources": [
     {

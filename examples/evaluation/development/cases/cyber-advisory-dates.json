@@ -29,7 +29,7 @@
   },
   "fixtures": {
     "path": "fixtures/cyber-advisory-dates.json",
-    "sha256": "2677cbc54d4d8e37276909822ecf7051a0ba39a8be8edf3662a975005386a75b"
+    "sha256": "209e9950d951149c8250e7772afb3508e3d9b177aa5728a73515c9f4d76d73e0"
   },
   "sources": [
     {

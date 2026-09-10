@@ -5,6 +5,7 @@ import json
 import shutil
 import subprocess
 import sys
+from dataclasses import replace
 from pathlib import Path
 
 import httpx
@@ -70,6 +71,11 @@ def test_development_suite_has_twenty_authored_diverse_cases_and_candidate_safe_
     for case in benchmark.cases.values():
         assert case.task() == {"id": case.id, "brief": case.brief}
         assert case.manual_checks
+        fixture = json.loads((DEVELOPMENT.parent / case.fixtures.path).read_bytes())
+        answer_urls = {source.url for source in case.sources} | {
+            choice.url for choice in case.fixture_plan.unsupported
+        }
+        assert {result["url"] for result in fixture["search_results"]} - answer_urls
 
 
 def test_offline_comparison_uses_real_service_artifacts_without_claiming_model_scores(generated):
@@ -87,9 +93,17 @@ def test_offline_comparison_uses_real_service_artifacts_without_claiming_model_s
     assert scores["tariff-pagination"]["status"] == "ok"
     assert scores["tariff-pagination"]["quality"] == 0
     assert scores["customs-relevance"]["quality"] == 0
-    assert scores["vendor-valid-alternatives"]["quality"] == 1
+    assert scores["vendor-valid-alternatives"]["quality"] == 0
     assert scores["license-history-access"]["quality"] == 0
     assert 0 < scores["sanctions-current-history"]["quality"] < 1
+    for result in selected["results"]:
+        assert result["score"]["quality"] > scores[result["case_id"]]["quality"], result["case_id"]
+    assert selected["summary"]["usefulness"]["macro_quality"] == pytest.approx(0.9495238095238095)
+    assert first["summary"]["usefulness"]["macro_quality"] == pytest.approx(1 / 12)
+    assert (
+        selected["summary"]["usefulness"]["macro_requirement_recall"]
+        < selected["summary"]["usefulness"]["macro_research_recall"]
+    )
     for arm in report["arms"]:
         efficiency = arm["summary"]["efficiency"]
         assert efficiency["model_tokens"]["total"] is None
@@ -101,6 +115,50 @@ def test_offline_comparison_uses_real_service_artifacts_without_claiming_model_s
     assert saved["registry"]["proposal_id"] and saved["registry"]["pipeline_version_id"]
     assert saved["usage"] == {}
     assert report["arms"][0]["results"][0]["score"]["artifact_sha256"]["receipts.json"]
+
+
+@pytest.mark.parametrize("source_id", ["vendor-advisories", "vendor-feed"])
+def test_both_legitimate_vendor_alternatives_still_earn_full_credit(tmp_path, source_id):
+    benchmark = load_benchmark(DEVELOPMENT)
+    case = benchmark.cases["vendor-valid-alternatives"]
+    case.fixture_plan.source_ids = [source_id]
+    benchmark = replace(benchmark, cases={case.id: case})
+    manifest = run_fixture_arm(benchmark, tmp_path / source_id, policy="authored-selection")
+    result = score(manifest.parent / "cases" / case.id, case.specification)
+    assert result["status"] == "ok"
+    assert result["quality"] == 1
+
+
+@pytest.mark.parametrize(
+    "case_id",
+    [
+        "license-history-access",
+        "sanctions-current-history",
+        "rates-workbook-unsupported",
+        "legislation-unsupported-votes",
+    ],
+)
+def test_authored_gap_credit_comes_from_scoped_service_captures(generated, case_id):
+    benchmark = load_benchmark(DEVELOPMENT)
+    authored = generated[0].parent / "cases" / case_id
+    result = score(authored, benchmark.cases[case_id].specification)
+    assert result["status"] == "ok"
+    assert result["gap_recall"] > 0
+    assert result["requirement_recall"] < result["research_recall"] < 1
+    receipt_rows = json.loads((authored / "receipts.json").read_bytes())
+    evidence_urls = {
+        row["payload"]["url"] for row in receipt_rows if row["kind"] == "inspection"
+    } | {
+        capture["url"]
+        for row in receipt_rows
+        if row["kind"] == "probe"
+        for capture in row["payload"]["captures"]
+    }
+    assert {
+        choice.url for choice in benchmark.cases[case_id].fixture_plan.unsupported
+    } <= evidence_urls
+    naive = json.loads((generated[1].parent / "cases" / case_id / "proposal.json").read_bytes())
+    assert all(candidate["status"] == "ready" for candidate in naive["proposal"]["candidates"])
 
 
 @pytest.mark.parametrize(

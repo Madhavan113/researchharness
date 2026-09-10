@@ -15,7 +15,7 @@ from typing import Any
 
 import httpx
 
-from research_harness.evaluation.fixtures import FixtureProvider
+from research_harness.evaluation.fixtures import FixtureProvider, fixture_response_bytes
 from research_harness.execution import DiscoverySettings
 from research_harness.integrations.omnigent import (
     PRIMARY_SESSION_ENV,
@@ -23,7 +23,7 @@ from research_harness.integrations.omnigent import (
     case_strategy_session,
 )
 from research_harness.services.jobs import JobService
-from research_harness.util import canonical_json, digest
+from research_harness.util import digest
 
 
 class FixtureSources:
@@ -43,11 +43,10 @@ class FixtureSources:
             url = str(httpx.URL(response["url"]))
             if url in self.responses:
                 raise ValueError("Fixture response URLs must be unique")
-            body = response["body"]
             self.responses[url] = (
                 response.get("status", 200),
                 response.get("headers", {}),
-                (body if isinstance(body, str) else canonical_json(body)).encode("utf-8"),
+                fixture_response_bytes(response),
             )
 
     def handle(self, request: httpx.Request) -> httpx.Response:

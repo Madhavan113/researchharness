@@ -32,9 +32,17 @@
   },
   "fixtures": {
     "path": "fixtures/vendor-valid-alternatives.json",
-    "sha256": "0255a406d95fd1902465c02d8435db20e71451b0ab788d1e361ce4d34c25f6cb"
+    "sha256": "7c4487d410206017fa7f45f95e30c22006e2f40aa962c9937840e221d91f9cda"
   },
   "sources": [
+    {
+      "id": "vendor-advisory-counts",
+      "name": "Vendor Advisory Counts",
+      "connector": "json",
+      "url": "https://vendor-security.fixture.example/advisory-counts.json",
+      "items_pointer": "/items",
+      "id_pointer": "/id"
+    },
     {
       "id": "vendor-advisories",
       "name": "Vendor Advisories",

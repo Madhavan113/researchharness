@@ -29,7 +29,7 @@
   },
   "fixtures": {
     "path": "fixtures/issuer-release-timestamp.json",
-    "sha256": "e68cd2988358401dd8a43895b6df7a9624f4e7e61f9a398302708f506937e605"
+    "sha256": "a3b6d47ec73912f756dc1cfc5c326ac4ae52300c6f42f5cb62bde13178b5a93b"
   },
   "sources": [
     {

@@ -2,12 +2,16 @@
   "authorship": "Synthetic fixture authored by Codex; no live source was sampled",
   "search_results": [
     {
+      "url": "https://customs-office.fixture.example/publication-index.json",
+      "title": "Customs classification rulings: publication index and monthly counts"
+    },
+    {
       "url": "https://customs-office.fixture.example/port-holidays.json",
-      "title": "Authored search result"
+      "title": "Customs classification rulings: source publication"
     },
     {
       "url": "https://customs-office.fixture.example/rulings.json",
-      "title": "Authored search result"
+      "title": "Customs classification rulings: source publication"
     }
   ],
   "responses": [
@@ -39,6 +43,23 @@
           {
             "id": "ruling-1",
             "title": "Classification ruling"
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://customs-office.fixture.example/publication-index.json",
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "synthetic": true,
+        "items": [
+          {
+            "id": "monthly-index",
+            "topic": "Customs classification rulings",
+            "publication_count": 12
           }
         ]
       }

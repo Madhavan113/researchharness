@@ -41,7 +41,7 @@
   },
   "fixtures": {
     "path": "fixtures/market-contract-and-rules.json",
-    "sha256": "426418c3b2d06dae3f4de093f23add48d91c51e29ede06476387cf80763b4e3a"
+    "sha256": "ed354bd7768fcf6819e52357279873108be7708f95c16a1efc0ca4e652f10eb5"
   },
   "sources": [
     {

@@ -2,11 +2,36 @@
   "authorship": "Synthetic fixture authored by Codex; no live source was sampled",
   "search_results": [
     {
+      "url": "https://export-office.fixture.example/publication-index.json",
+      "title": "Historical export licenses: publication index and monthly counts"
+    },
+    {
+      "url": "https://export-office.fixture.example/current-license-summary.json",
+      "title": "Historical export licenses: source publication"
+    },
+    {
       "url": "https://export-office.fixture.example/license-history.json",
-      "title": "Authored search result"
+      "title": "Historical export licenses: source publication"
     }
   ],
   "responses": [
+    {
+      "url": "https://export-office.fixture.example/current-license-summary.json",
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "synthetic": true,
+        "items": [
+          {
+            "id": "summary-2026",
+            "year": 2026,
+            "approved_count": 14
+          }
+        ]
+      }
+    },
     {
       "url": "https://export-office.fixture.example/license-history.json",
       "status": 401,
@@ -15,6 +40,23 @@
       },
       "body": {
         "error": "Licensed archive"
+      }
+    },
+    {
+      "url": "https://export-office.fixture.example/publication-index.json",
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "synthetic": true,
+        "items": [
+          {
+            "id": "monthly-index",
+            "topic": "Historical export licenses",
+            "publication_count": 12
+          }
+        ]
       }
     }
   ]

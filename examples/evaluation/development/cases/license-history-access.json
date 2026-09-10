@@ -18,11 +18,12 @@
       {
         "id": "license-history",
         "weight": 1,
-        "any_of": [
+        "any_of": [],
+        "gap_any_of": [
           {
             "url": "https://export-office.fixture.example/license-history.json",
-            "connector": "json",
-            "published_pointer": "/decision_at"
+            "status": "needs_access",
+            "status_code": 401
           }
         ]
       }
@@ -30,9 +31,18 @@
   },
   "fixtures": {
     "path": "fixtures/license-history-access.json",
-    "sha256": "791ecbb4dea4d94206a320d32db300f9ed8f7a62d571bdf0d2a249de534280dd"
+    "sha256": "8afdfe8a60110e43a516e168f8dffa4b4b8d42e72d87a11415e30779a2d75fb9"
   },
-  "sources": [],
+  "sources": [
+    {
+      "id": "current-license-summary",
+      "name": "Current License Summary",
+      "connector": "json",
+      "url": "https://export-office.fixture.example/current-license-summary.json",
+      "items_pointer": "/items",
+      "id_pointer": "/id"
+    }
+  ],
   "fixture_plan": {
     "source_ids": [],
     "unsupported": [

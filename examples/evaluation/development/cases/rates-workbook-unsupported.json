@@ -17,10 +17,13 @@
       {
         "id": "monthly-rates",
         "weight": 1,
-        "any_of": [
+        "any_of": [],
+        "gap_any_of": [
           {
             "url": "https://central-bank.fixture.example/rates.xlsx",
-            "connector": "json"
+            "status": "needs_connector",
+            "status_code": 200,
+            "content_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
           }
         ]
       }
@@ -28,9 +31,18 @@
   },
   "fixtures": {
     "path": "fixtures/rates-workbook-unsupported.json",
-    "sha256": "884b07a26b8a57c06ed39acccc7d34915ffa953fb44ce87d8cc78c7ac268506f"
+    "sha256": "13a4e661f4dbb0552b07e0003667885bcc012fbd52f3d67d71f313548f97bbe8"
   },
-  "sources": [],
+  "sources": [
+    {
+      "id": "current-policy-rate",
+      "name": "Current Policy Rate",
+      "connector": "json",
+      "url": "https://central-bank.fixture.example/current-rate.json",
+      "items_pointer": "/items",
+      "id_pointer": "/id"
+    }
+  ],
   "fixture_plan": {
     "source_ids": [],
     "unsupported": [
@@ -38,7 +50,7 @@
         "name": "Monthly rate workbook",
         "url": "https://central-bank.fixture.example/rates.xlsx",
         "status": "needs_connector",
-        "limitation": "The current harness has no workbook extraction connector; the acceptance rule is a future normalized-source placeholder."
+        "limitation": "The response is a workbook; the current harness has no worksheet extraction connector. Current-rate JSON does not supply monthly history."
       }
     ]
   },

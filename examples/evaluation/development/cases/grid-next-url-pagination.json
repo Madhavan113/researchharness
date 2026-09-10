@@ -32,7 +32,7 @@
   },
   "fixtures": {
     "path": "fixtures/grid-next-url-pagination.json",
-    "sha256": "c2dc5248e2d3ef2108658241afa965acfeb19dceb64e504a430a2ca1d871e5a8"
+    "sha256": "b1aef36d3d8916117d5aea0bbd824e591b2ee6e5c04e5a40164e2a12de44da9e"
   },
   "sources": [
     {

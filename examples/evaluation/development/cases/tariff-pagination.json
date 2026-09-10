@@ -33,7 +33,7 @@
   },
   "fixtures": {
     "path": "fixtures/tariff-pagination.json",
-    "sha256": "b63e44d81b4a427eb56b1b16e774d1eb9896b5ba57c64e1400572362d366ae2a"
+    "sha256": "e518e8901e54ac3e5c868a02d469457d0f7c6044acd3416eb684b45245ef6f7b"
   },
   "sources": [
     {

@@ -2,8 +2,12 @@
   "authorship": "Synthetic fixture authored by Codex; no live source was sampled",
   "search_results": [
     {
+      "url": "https://issuer-news.fixture.example/publication-index.json",
+      "title": "Issuer earnings release timing: publication index and monthly counts"
+    },
+    {
       "url": "https://issuer-news.fixture.example/earnings.json",
-      "title": "Authored search result"
+      "title": "Issuer earnings release timing: source publication"
     }
   ],
   "responses": [
@@ -21,6 +25,23 @@
             "title": "Authored policy notice",
             "published_at": "2026-09-01T12:00:00Z",
             "downloaded_at": "2026-09-08T12:00:00Z"
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://issuer-news.fixture.example/publication-index.json",
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "synthetic": true,
+        "items": [
+          {
+            "id": "monthly-index",
+            "topic": "Issuer earnings release timing",
+            "publication_count": 12
           }
         ]
       }

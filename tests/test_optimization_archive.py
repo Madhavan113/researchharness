@@ -29,24 +29,60 @@ def read(path):
 
 
 def prepare(tmp_path, *, execution="fixture", reviewed=None, **controls):
-    original = ROOT / "examples/evaluation/development"
     benchmark = tmp_path / "benchmark"
     benchmark.mkdir()
-    manifest = read(original / "manifest.json")
-    manifest["cases"] = manifest["cases"][:2]
+    # Stable lifecycle inputs: benchmark design changes must not silently change
+    # this synthetic exact-answer callback or its intended two-case outcomes.
+    manifest = {
+        "schema_version": 1,
+        "id": "archive-lifecycle-fixture",
+        "split": "development",
+        "description": "Synthetic archive lifecycle only",
+        "cases": [],
+    }
     reviewed = execution == "model" if reviewed is None else reviewed
-    for reference in manifest["cases"]:
-        case = read(original / reference["path"])
-        for relative in (reference["path"], case["fixtures"]["path"]):
-            target = benchmark / relative
-            target.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copyfile(original / relative, target)
-        if reviewed:
-            # Exercise the host metadata gate; this is not actual human review.
-            case["review_status"] = "reviewed"
-            case["review_notes"] = "Synthetic review-gate fixture only; no claim of actual review."
-            write_json(benchmark / reference["path"], case)
-            reference["sha256"] = digest((benchmark / reference["path"]).read_bytes())
+    for identity in ("archive-alpha", "archive-beta"):
+        url = f"https://{identity}.fixture.invalid/records.json"
+        fixture_path = f"fixtures/{identity}.json"
+        write_json(
+            benchmark / fixture_path,
+            {
+                "search_results": [{"url": url}],
+                "responses": [{"url": url, "body": {"items": [{"id": "synthetic-1"}]}}],
+            },
+        )
+        case = {
+            "id": identity,
+            "title": f"{identity} lifecycle task",
+            "brief": f"Find the synthetic {identity} records.",
+            "topic_group": identity,
+            "source_families": [identity],
+            "tags": ["archive-lifecycle"],
+            "review_status": "reviewed" if reviewed else "authored",
+            "review_notes": "Synthetic review-gate fixture only; no claim of actual review.",
+            "specification": {
+                "requirements": [{"id": "records", "any_of": [{"url": url, "connector": "json"}]}]
+            },
+            "fixtures": {
+                "path": fixture_path,
+                "sha256": digest((benchmark / fixture_path).read_bytes()),
+            },
+            "sources": [
+                {
+                    "id": "records",
+                    "name": "Synthetic records",
+                    "url": url,
+                    "connector": "json",
+                    "id_pointer": "/id",
+                    "items_pointer": "/items",
+                }
+            ],
+            "fixture_plan": {"source_ids": ["records"]},
+            "manual_checks": ["Archive lifecycle fixture, not research quality."],
+        }
+        path = f"cases/{identity}.json"
+        write_json(benchmark / path, case)
+        manifest["cases"].append({"path": path, "sha256": digest((benchmark / path).read_bytes())})
     write_json(benchmark / "manifest.json", manifest)
     # The source of this fixture evaluator stays host-side, as do independent
     # predicates. Neither is a candidate-authored score file.

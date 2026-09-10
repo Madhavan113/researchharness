@@ -26,7 +26,7 @@ Decision required from the owner, one of:
 
 Acceptance: plan, strategy guide and contract string agree; a test proves each advertised decision type changes host behavior.
 
-### RW-2 · Make the development benchmark discriminate · `in_progress` · confirmed
+### RW-2 · Make the development benchmark discriminate · `done` · confirmed
 
 Files: `src/research_harness/evaluation/discovery.py` (`matches` at lines 23–29, `score` from line 141, requirement loop near lines 285–304), `examples/evaluation/development/build_cases.py` (fixture generation near lines 86–97, unsupported cases near lines 146–170, 226–259, 276–295, 594–617), `examples/evaluation/search_runtime_fixtures.py` (`_source` near line 30), `docs/research-evaluation.md`.
 
@@ -40,7 +40,7 @@ Fix direction: set or subset semantics for pointer lists with per-field rules do
 
 Acceptance: a probe over the twenty cases shows the answer key strictly beats first-listed on every case; a regression test covers pointer reordering and supersets; docs updated.
 
-Investigation checkpoint September 10 by `/root` on `fix/benchmark-discrimination`: the current offline comparison reproduces thirteen strict wins and seven ties across twenty cases (macro quality 0.8583333333333334 versus 0.23333333333333334). No evaluator or fixture fix has landed yet; RW-2 remains in progress. The [tracker handoff](goals/omnigent-integration.md#september-10-2026--rw-2-investigation-checkpoint-and-handoff) records reproduction, artifact hashes, intended scope and the next design step.
+Completed September 10 by `/root` in [PR #5](https://github.com/Madhavan113/researchharness/pull/5). Evaluator version 2 accepts required-pointer reordering/supersets and scores independently specified, scoped capture-backed gaps separately from fulfilled data requirements. Unsupported/access cases now have actual document/error responses and no impossible JSON placeholders. Every case has search noise; the naive policy no longer receives the authored gap choices. Both legitimate vendor alternatives still receive full credit. The revised comparison has twenty strict per-case wins and forty valid artifacts: macro quality 0.9495238095238095 versus 0.08333333333333333. The full required Docker/Omnigent suite passes 1,189 tests with zero skips or failures. Archive lifecycle tests now use stable independent fixtures, and the final-phase regression explicitly selects its intended wrong-identity source. The [evaluation guide](research-evaluation.md) documents the scoring convention and that no search run has used the twenty-case package. Human review and measured evaluation remain outstanding; old runtime archives are unchanged. See the [tracker handoff](goals/omnigent-integration.md#september-10-2026--rw-2-evaluator-and-benchmark-handoff) for exact verification and hashes.
 
 ### RW-3 · Exclude zero-quality and failed candidates from the final phase · `done` · confirmed
 

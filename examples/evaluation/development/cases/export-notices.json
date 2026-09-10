@@ -32,9 +32,21 @@
   },
   "fixtures": {
     "path": "fixtures/export-notices.json",
-    "sha256": "2dbea9c4a621eee0cbefa4bd9f7af3dc193ce1f51d980caccf136fed66e1225d"
+    "sha256": "a91ab29ac5d15dd97b2c45cd5e538e3b0b80cd57943c9a248da9c02a5df1bcb3"
   },
   "sources": [
+    {
+      "id": "notice-download-date",
+      "name": "Notice Download Date",
+      "connector": "json",
+      "url": "https://export-office.fixture.example/notices.json",
+      "items_pointer": "/items",
+      "id_pointer": "/id",
+      "published_pointer": "/downloaded_at",
+      "required_pointers": [
+        "/title"
+      ]
+    },
     {
       "id": "official-notices",
       "name": "Official Notices",

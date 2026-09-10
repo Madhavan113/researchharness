@@ -56,7 +56,7 @@ def prepared(tmp_path):
     return out
 
 
-def fixture_executor(task):
+def fixture_executor(task, *, source_id=None):
     """Infrastructure fixture with real service artifacts; never a model score."""
     benchmark = load_benchmark(task.fixture_path.parents[1] / "manifest.json")
     case = benchmark.cases[task.case_id]
@@ -89,7 +89,10 @@ def fixture_executor(task):
         service.search(
             task.brief, provider=FixtureProvider(fixture["search_results"]), operation_id="search"
         )
-        source = case.sources[0]
+        # Controller fixtures exercise a known valid authored selection. Source-list
+        # order belongs to the separate naive-policy benchmark, not this test helper.
+        selected_id = source_id or case.fixture_plan.source_ids[0]
+        source = next(source for source in case.sources if source.id == selected_id)
         probe = service.probe(source, operation_id="probe")
         service.submit_proposal(
             ProposalDraft(

@@ -33,7 +33,7 @@
   },
   "fixtures": {
     "path": "fixtures/filing-stable-accession.json",
-    "sha256": "f32c8a1b6aec18089344ef50dc6737b6c93d8e269ebf25dc898a8a38edbf0c35"
+    "sha256": "a8305bab4a3a30688710fae5bd5073cf4c3af476e9c9eda9f74b8ab9c6a3a021"
   },
   "sources": [
     {

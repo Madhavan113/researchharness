@@ -32,7 +32,7 @@
   },
   "fixtures": {
     "path": "fixtures/award-terminal-pagination.json",
-    "sha256": "7d83e715fa21e42d095fb5df50842388f4cbe0eafed3aacb341d94642c7a0bba"
+    "sha256": "83707dc2996571408656b3e37373b2134a24f546250472c5cd2e068ec15af425"
   },
   "sources": [
     {

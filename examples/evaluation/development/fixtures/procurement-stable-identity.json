@@ -2,8 +2,12 @@
   "authorship": "Synthetic fixture authored by Codex; no live source was sampled",
   "search_results": [
     {
+      "url": "https://procurement-office.fixture.example/publication-index.json",
+      "title": "Procurement notice revisions: publication index and monthly counts"
+    },
+    {
       "url": "https://procurement-office.fixture.example/notices.json",
-      "title": "Authored search result"
+      "title": "Procurement notice revisions: source publication"
     }
   ],
   "responses": [
@@ -19,6 +23,23 @@
           {
             "notice_id": "P-2026-1",
             "title": "Bridge materials"
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://procurement-office.fixture.example/publication-index.json",
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "synthetic": true,
+        "items": [
+          {
+            "id": "monthly-index",
+            "topic": "Procurement notice revisions",
+            "publication_count": 12
           }
         ]
       }
