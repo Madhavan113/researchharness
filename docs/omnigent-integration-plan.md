@@ -1,6 +1,6 @@
 # Research Harness with Omnigent: implementation plan
 
-Accepted plan: September 8, 2026. Scope: build an interactive research agent on the existing Research Harness backend, using Omnigent for execution and the interface, followed by independently evaluated strategy optimization. Implementation is in progress; the local workflow has fixture and browser acceptance, while live evaluation and optimization remain outstanding.
+Accepted plan: September 8, 2026. Scope: build an interactive research agent on the existing Research Harness backend, using Omnigent for execution and the interface, followed by independently evaluated strategy optimization. Completion is blocked on independent benchmark review, provider access and the pending spending decision. The local workflow has fixture and browser acceptance, while live evaluation and optimization remain outstanding; the full scope and acceptance criteria are unchanged.
 
 Track milestone status, ownership, validation evidence, and agent handoffs in the [shared goal](goals/omnigent-integration.md). All development agents should follow the repository's [coordination instructions](../AGENTS.md).
 

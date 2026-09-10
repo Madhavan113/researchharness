@@ -2,7 +2,7 @@
 
 Goal id: `omnigent-research-harness`
 
-Status: in_progress; local Omnigent workflow and browser acceptance verified with fixtures, live evaluation and optimization pending
+Status: blocked; awaiting independent benchmark review, provider access and the pending spending decision for live evaluation and optimization
 
 Accepted: September 8, 2026. Last updated: September 9, 2026
 
@@ -33,13 +33,13 @@ Use `queued`, `in_progress`, `blocked`, or `done`. Replace an owner only after a
 | Id | Deliverable | Status | Owner | Dependencies / completion evidence |
 | --- | --- | --- | --- | --- |
 | G0 | Accepted plan, shared tracker, agent instructions | done | `/root`, goal-documentation session | Four Markdown files checked; 20 local links resolve; diff check passes |
-| M0 | Pinned Omnigent runtime and compatibility spike | in_progress | `/root` (spike handed off) | Pinned runtime, normal server/UI, and between-turn budget policy verified with fixtures; live model/provider acceptance remains |
+| M0 | Pinned Omnigent runtime and compatibility spike | blocked | `/root` (spike handed off) | Pinned runtime, normal server/UI, and between-turn budget policy verified with fixtures; live acceptance awaits provider access and the pending spending decision |
 | M1 | Reusable research service and durable discovery state | done | `/root` | CLI parity, restart evidence/budgets, migration, atomic rollback, and concurrent ownership verified locally |
 | M2 | Typed MCP tools, search receipts, context binding, limits | done | `/root` and `/root/evaluation` | Fourteen tools after M4; actual protocol and CLI stdio discovery/job/reconnect checks pass |
 | M3 | Omnigent research agent bundle and runtime binding | done | `/root/omnigent_spike`, browser verification `/root` | Normal server/runner/MCP and browser chat save validated proposal/pipeline ids; synthetic model HTTP, frozen authored bundle |
 | M4 | Collection jobs, exports, case lookup, recovery | done | `/root` | Detached workers, cancellation, process termination, scoped data, exports, and full server/browser restart verified locally; local Postgres/MinIO tests and detached workflow/restart/export acceptance now verified |
-| M5 | Independent pilot evaluation and baseline comparison | in_progress | `/root`, bounded agent work handed off | Twenty authored cases, independent evaluators, frozen controller and bound gateway usage verified through actual runtimes; budgeted dispatch and independent settlement verified through both actual runtimes; human review and real-model comparisons pending |
-| M6 | Meta-Harness strategy optimization and isolated final evaluation | in_progress | `/root`, budgeted runtime checkpoint | Complete three-by-two search and private final evaluation verified through actual proposer, Docker and Omnigent/MCP with one retained budget ledger; responses remain synthetic, with case review and measured model runs pending |
+| M5 | Independent pilot evaluation and baseline comparison | blocked | `/root`, bounded agent work handed off | Twenty authored cases, independent evaluators, frozen controller and bound gateway usage verified through actual runtimes; budgeted dispatch and independent settlement verified through both actual runtimes; awaits human review, provider access and the pending spending decision |
+| M6 | Meta-Harness strategy optimization and isolated final evaluation | blocked | `/root`, budgeted runtime checkpoint | Complete three-by-two search and private final evaluation verified through actual proposer, Docker and Omnigent/MCP with one retained budget ledger; measured search/final awaits reviewed cases, provider access, spending approval and the measured baseline |
 
 M0 and M1 can proceed independently against the agreed tool/service boundary. Evaluation case design can also proceed independently. Agree on ownership of shared schemas, CLI wiring, dependencies, migrations, and this tracker before concurrent edits.
 
@@ -75,6 +75,18 @@ For each active task, add a short entry with:
 Retain completed handoffs so another agent can distinguish implemented behavior from planned work. Avoid copying secrets, raw credentials, or held-out task contents into this shared tracker.
 
 ## Activity and handoffs
+
+### September 9, 2026 — measured evaluation dependency audit
+
+Owner: `/root`; blocked on external prerequisites, with documentation handoff complete. Changed files: this tracker, README and the accepted plan; draft PR #1 carries the same status. No production, benchmark or private-package files changed.
+
+The publication verification turn, subsequent readiness check and this revalidation all retained the same missing inputs. The previous turn was no progress, not a wait on a live execution. Current read-only checks confirm no `OPENAI_API_KEY` in the process, no project `.env`, and `authorization.status=draft` with no reference in both proposed budget configurations. Parsing the actual manifest-referenced case files confirms twenty authored development cases and ten authored private held-out cases, with zero reviewed cases. The private human-review checklist is present. The provider/budget question remains pending; the preceding turn also requested a human reviewer. No new paid or synthetic executions were started.
+
+The accepted plan requires reviewed cases and matched measured comparisons. Current `execute_pilot_case` and the budgeted search runner require matching external spending approval; the measured baseline also requires reviewed cases. The published 1,004-test result and complete synthetic runtime acceptance establish software behavior, not those missing model measurements. No remaining independent implementation task was identified that would satisfy these external prerequisites. M0/M5/M6 and the shared goal are blocked, not complete; the original scope and all acceptance criteria remain intact.
+
+Resume after provider access and a spending decision are recorded, and independent review of the development/private held-out packages is available. Recheck current model pricing and controls, run live compatibility, freeze and measure the matched baseline, then run budgeted strategy search and isolated final evaluation with the retained shared ledger. Keep the private checklist and benchmark contents local.
+
+Validation: all 92 local Markdown links in the three changed documents resolve, and `git diff --check` passes. Runtime tests were not rerun for this documentation-only handoff. Both prior review agents are terminal with model-capacity errors; no running agent or execution is being awaited. Publication target: the existing `checkpoint/omnigent-research-harness` branch and [draft PR #1](https://github.com/Madhavan113/researchharness/pull/1).
 
 ### September 9, 2026 — budgeted search runtime ownership
 
