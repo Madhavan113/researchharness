@@ -63,6 +63,60 @@ def gateway(tmp_path, handler, **kwargs):
     )
 
 
+@pytest.mark.parametrize("encoding", ["json", "sse"])
+def test_http_body_completion_waits_for_captured_usage_before_immediate_close(
+    tmp_path, monkeypatch, encoding
+):
+    from research_harness.integrations import model_gateway
+
+    capture_started, finish_capture = threading.Event(), threading.Event()
+    original = model_gateway._response_usage
+
+    def pause_capture(*args):
+        capture_started.set()
+        assert finish_capture.wait(5), "Test did not release capture"
+        return original(*args)
+
+    if encoding == "json":
+        content = json.dumps(response()).encode()
+        content_type = "application/json"
+    else:
+        content = (
+            "event: response.completed\ndata: "
+            + json.dumps({"type": "response.completed", "response": response()})
+            + "\n\ndata: [DONE]\n\n"
+        ).encode()
+        content_type = "text/event-stream"
+    monkeypatch.setattr(model_gateway, "_response_usage", pause_capture)
+    proxy = gateway(
+        tmp_path,
+        lambda request: httpx.Response(
+            200, content=content, headers={"content-type": content_type}
+        ),
+    ).start()
+    try:
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            pending = executor.submit(post, proxy)
+            try:
+                assert capture_started.wait(2)
+                # Content-Length must not expose HTTP body completion while
+                # final capture is still pending on the gateway handler.
+                with pytest.raises(TimeoutError):
+                    pending.result(timeout=0.1)
+            finally:
+                finish_capture.set()
+            assert pending.result(timeout=5).content == content
+            proxy.close()
+        record = json.loads((proxy.output / "request-0001/record.json").read_bytes())
+        assert record["outcome"] == "completed"
+        assert proxy.report()["complete"] is True
+        assert (record["usage"]["input_tokens"], record["usage"]["output_tokens"]) == (100, 10)
+        assert_archive(proxy.output)
+    finally:
+        finish_capture.set()
+        proxy.close()
+
+
 @pytest.mark.parametrize("failure", [429, 500, "transport"])
 def test_sdk_does_not_retry_gateway_or_provider_errors(tmp_path, failure):
     received = []

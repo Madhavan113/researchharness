@@ -825,7 +825,12 @@ class ResponsesGateway:
                 # the original headers would corrupt bytes and the capture hash.
                 raise ValueError("preconsumed_encoded_response_unsupported")
             handler.send_response(response.status_code)
-            for name in ("content-type", "content-encoding", "content-length", "x-request-id"):
+            # Delimit the downstream body by connection close. Relaying the
+            # provider's Content-Length lets the client return after the last
+            # byte while this handler is still recording completion below;
+            # immediate gateway shutdown can then seal that request as unknown.
+            # EOF is sent only after final capture, preserving streamed bytes.
+            for name in ("content-type", "content-encoding", "x-request-id"):
                 if name in response.headers:
                     handler.send_header(name, response.headers[name])
             # The controlled run records failures; SDK retries cannot replay
