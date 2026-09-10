@@ -1,10 +1,12 @@
 # Strategy optimization: implementation status
 
-Isolated strategies, shared observation projection, controlled-gateway context selection and independent development archival are implemented. Model-backed search and held-out evaluation are still pending; the accepted goal includes those runs. The coding proposer and end-to-end optimization controller remain unfinished.
+Isolated strategies, observation/context projection, independent development archival, a bounded coding proposer and the search/private-final controllers are implemented. Coordinator fixtures exercise three iterations with two candidates each and final evaluation. Proposer/workspace fixtures separately exercise actual Docker and gateway dispatch. The complete search through actual Omnigent, reviewed benchmarks and measured model search/final evaluation still need acceptance; the accepted goal includes those runs.
+
+The [orchestration checkpoint](../examples/evaluation/evidence/search-orchestration-2026-09-09/verification.json) verifies 985 unique tests with zero skips: 982 passed initially, and three runtime tests passed after restoring the missing pinned Omnigent environment. Both reports are retained. Its [227-file archive](../examples/evaluation/evidence/search-orchestration-2026-09-09/index.json) includes 105 source/test/configuration hashes, complete actual coding-proposer artifacts and coordinator fixture metadata. The proposer fixture records eight requests, actual generated-program execution and 880 verified synthetic tokens. This is component and coordinator verification; combined actual-runtime search remains pending.
 
 The [context/evaluation checkpoint](../examples/evaluation/evidence/strategy-context-evaluation-2026-09-09/verification.json) retains 97 source/test/configuration hashes and the [876-test report](../examples/evaluation/evidence/strategy-context-evaluation-2026-09-09/pytest.xml). All tests passed with zero skips, including actual Omnigent and Docker checks. Its [725-file archive](../examples/evaluation/evidence/strategy-context-evaluation-2026-09-09/index.json) preserves context and development evidence plus reproduction source. The earlier [787-test observation checkpoint](../examples/evaluation/evidence/checkpoint-2026-09-09/verification.json) and [foundation verification](../examples/evaluation/evidence/strategy-foundation-2026-09-08/verification.json) remain separate immutable records. These are software/fixture checks, not a measurement of research quality.
 
-Meta-Harness lets a coding proposer inspect prior candidate code, scores and full available execution traces through a filesystem, then propose executable changes. Our planned search keeps that feedback channel and selects only on development results. Test feedback stays outside search. [Paper, section 3](https://arxiv.org/html/2603.28052v1).
+Meta-Harness lets a coding proposer inspect prior candidate code, scores and full available execution traces through a filesystem, then propose executable changes. This implementation keeps that feedback channel and selects only on development results. Test feedback stays outside search. Its bounded Responses proposer is a domain adaptation of the paper's coding-agent setup. [Paper, section 3](https://arxiv.org/html/2603.28052v1).
 
 ## Execute a candidate in isolation
 
@@ -111,10 +113,35 @@ Publishing candidate feedback first records an intent binding the exact host inv
 
 Beginning a final attempt records its binding and phase before any private output work. Failed or interrupted preparation can be sealed with explicit missing-directory/selection evidence; a completed final status requires those preparation files. A durable seal intent lets a retry finish unchanged metadata writes. Final artifacts stay in the separate private directory; no operation reopens search or replays evaluation automatically.
 
-The host must enforce the directory boundary when launching the proposer and terminate/revoke that proposer before final evaluation. The archive API alone does not isolate an already running process. The held-out dataset and final evaluator are still to be connected to this lifecycle.
+The host must enforce the directory boundary when launching the proposer and terminate/revoke that proposer before final evaluation. The archive API alone does not isolate an already running process. The search controller and workspace below enforce that boundary for the supplied coding proposer; the trusted caller remains responsible for external executor ownership.
+
+## Coding proposer and search controller
+
+[ProposalWorkspace](../src/research_harness/optimization/workspace.py) exposes only an inventoried development feedback tree and a bounded writable workspace. Its `list_files` and `read_file` tools support pagination over complete files, including binary artifacts. `write_file` changes workspace files only. `run_python` executes generated code in the pinned Docker sandbox with read-only feedback and a bounded temporary workspace. It publishes file changes only after successful execution and confirmed cleanup; failed or interrupted programs retain their evidence and cannot silently resume. It never mounts evaluator code, held-out inputs or host credentials.
+
+[ResponsesCodingProposer](../src/research_harness/optimization/proposer.py) uses those four tools plus explicit `submit_candidates`. The host binds each attempt to its full feedback inventory, fixed prompt/tool schemas, requested candidate IDs, model/settings and budget metadata. The SDK retains original model outputs and tool results across requests and disables automatic retries. Submission closes access before exposing immutable candidate snapshots. Failed gateway/workspace cleanup prevents a quiescence claim; explicit recovery cleans owned resources without replaying model or candidate work. A missing attempt directory alone is not proof that an interrupted attempt never executed.
+
+[SearchController](../src/research_harness/optimization/controller.py) freezes the baseline, development package, implementation, strategy interface and limits. It evaluates the baseline through the independent archive bridge before proposing candidates. Its default is three iterations with two candidates each; every later snapshot includes previous candidate code, complete available development traces, proposal attempts and failures. The proposer chooses which files to inspect. Generated Python is parsed on the host and its public interface is exercised only inside Docker. The controller checks the reserved proposer binding and independently verifies gateway evidence before admission.
+
+The host supplies the trusted case executor and configured proposer to `run(executor=..., proposer=...)`. `step(...)` advances one candidate or iteration. The `prepare` and `status` CLI commands are read-only with respect to provider dispatch:
+
+~~~sh
+uv run python -m research_harness.optimization.controller prepare \
+  /path/to/development/manifest.json \
+  --baseline /path/to/strategy.json --instructions /path/to/instructions.md \
+  --config /path/to/search-config.json \
+  --out /path/to/new-search --feedback /path/to/new-feedback
+uv run python -m research_harness.optimization.controller status /path/to/new-search
+~~~
+
+The config follows `SearchConfig`, including explicit workspace sandbox limits. Model-mode search requires independently reviewed development cases, frozen proposer budget controls and a verified model baseline. The fixture label records evidence provenance; it does not make an arbitrary caller-supplied executor offline. The checked-in tests supply synthetic transports and make no paid requests.
+
+Selection closes the proposer and freezes the development Pareto frontier. `final(heldout_manifest=..., output=..., executor=..., operation_id=...)` then invokes the [host-only final evaluator](../src/research_harness/optimization/final.py), which reads the private package only after revocation. It requires disjoint development/final cases and compares the selected candidates with the original baseline under the same controls. Final failures and unknown usage remain visible, final files never enter development feedback, and repeated completed operations do not dispatch again. Recovery methods preserve partial artifacts and require explicit resolution of uncertain work; opening a controller never resumes execution.
+
+The [controller tests](../tests/test_optimization_controller.py) exercise complete search/final coordination with authored executors and a substituted strategy runner. The [proposer tests](../tests/test_optimization_proposer.py) and [workspace tests](../tests/test_optimization_workspace.py) separately cover real gateway threads, generated-program execution and process-death cleanup. The [final evaluator tests](../tests/test_optimization_final.py) cover private splits, independent scores, missing evidence and terminal retry behavior. These separate checks do not yet establish the complete search across all actual runtime components.
 
 ## Remaining work
 
-Add the bounded coding proposer and connect it to the independent development bridge and planned three iterations with two candidates each, preserving all available development artifacts. Prepare the reviewed development and isolated held-out packages. Run the real baseline and search only after provider access and the pending spending decision are recorded; then freeze selection, revoke proposer access and run the isolated final evaluation.
+Run and archive combined search acceptance using the actual coding proposer, Docker strategies and normal Omnigent runtime, followed by isolated authored final fixtures. Prepare the reviewed development and isolated held-out packages. Run the real baseline and search only after provider access and the pending spending decision are recorded; then freeze selection, revoke proposer access and run the isolated final evaluation.
 
 The [shared goal](goals/omnigent-integration.md) retains the full completion criteria and current evidence.

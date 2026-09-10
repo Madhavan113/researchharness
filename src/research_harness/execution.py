@@ -50,5 +50,5 @@ class GatewayBinding(StrictModel):
     execution_id: str = Field(pattern=r"^[0-9a-f]{32}$")
     case_id: str = Field(min_length=1, max_length=100)
     runtime: str = Field(min_length=1, max_length=100)
-    phase: Literal["discovery", "workflow", "followup"] = "discovery"
+    phase: Literal["discovery", "workflow", "followup", "proposer"] = "discovery"
     task_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")

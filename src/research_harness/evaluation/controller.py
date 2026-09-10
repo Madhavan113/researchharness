@@ -104,11 +104,18 @@ def prepare_comparison(
     instructions: str,
     config: ComparisonConfig | None = None,
     strategy: StrategyBundle | None = None,
+    expected_split: Literal["development", "heldout"] = "development",
 ) -> Path:
-    """Freeze a development package without starting providers or runtime processes."""
+    """Freeze an explicitly chosen split without starting providers or runtimes.
+
+    The public prepare command stays development-only. Private final evaluation
+    explicitly requests heldout after freezing selection and revoking search.
+    """
     benchmark = load_benchmark(benchmark_path)
-    if benchmark.manifest.split != "development":
-        raise ValueError("This comparison controller accepts development cases only")
+    if expected_split not in {"development", "heldout"}:
+        raise ValueError("Unsupported comparison split")
+    if benchmark.manifest.split != expected_split:
+        raise ValueError(f"This comparison controller accepts {expected_split} cases only")
     if not instructions.strip():
         raise ValueError("Shared instructions must not be empty")
     config = ComparisonConfig.model_validate(config or ComparisonConfig())

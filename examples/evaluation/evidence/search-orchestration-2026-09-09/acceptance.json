@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "status": "passed_with_environment_retry",
+  "paid_calls": 0,
+  "actual_omnigent_pin": "be042b390e293a8d586cbb7e403a2ce0ce38fc62",
+  "actual_strategy_image": "python@sha256:9d2e5553305c7c7b0097999bb17187c69b921ccd6bc9d40e4bb5ebe652c00285",
+  "coding_proposer": {
+    "model_requests": 8,
+    "tool_calls": 8,
+    "synthetic_tokens": 880,
+    "closed": true,
+    "quiescent": true,
+    "execution_verified_as_model": false,
+    "sealed_artifact_files": 116,
+    "actual_generated_program_execution": true
+  },
+  "coordinator_fixture": {
+    "iterations": 3,
+    "candidates_per_iteration": 2,
+    "evaluated_candidates_including_baseline": 7,
+    "selection_frozen": true,
+    "proposer_revoked": true,
+    "executor_and_strategy_runner": "authored substitutes"
+  },
+  "combined_actual_omnigent_search_verified": false,
+  "model_search_verified": false,
+  "limitations": [
+    "The initial suite found the pinned Omnigent checkout missing from /tmp. The repository setup script restored the exact source pin and frozen environment; affected tests were rerun separately.",
+    "Coordinator search/private-final fixtures and actual proposer/workspace checks are separate; combined actual Omnigent search remains pending.",
+    "Reviewed benchmarks, provider access, the pending spending decision and measured model comparisons/search/final evaluation remain open.",
+    "Private final execution/package directories and runtime credentials are excluded from this archive.",
+    "checkpoint-source is a reviewer/reproduction snapshot, never proposer feedback."
+  ]
+}
