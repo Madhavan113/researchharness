@@ -575,6 +575,8 @@ class ResponsesGateway:
                     if reason := self._admission_denial(record):
                         return None, reason
                     record["budget_reservation_pending"] = True
+                    record["forwarded_sha256"] = digest(raw)
+                    (self.output / record["id"] / "forwarded.json").write_bytes(raw)
                     self._save_record(record)
                 try:
                     reservation = self._dispatch_budget.reserve(record["id"], digest(raw))
@@ -585,8 +587,10 @@ class ResponsesGateway:
                 except Exception:
                     return None, "budget_reservation_failed"
                 with self._lock:
-                    if reason := self._admission_denial(record):
-                        return None, reason
+                    # A sealed archive is immutable; acknowledgments arriving
+                    # after sealing remain conservatively unresolved.
+                    if self._sealed:
+                        return None, "gateway_closed"
                     if (
                         reservation.get("status") != "reserved"
                         or reservation.get("operation_id")
@@ -601,6 +605,9 @@ class ResponsesGateway:
                         budget_operation_id=reservation["operation_id"],
                         budget_reserved_nanodollars=reservation["reserved_nanodollars"],
                     )
+                    self._save_record(record)
+                    if reason := self._admission_denial(record):
+                        return None, reason
                     self._reserve_round(record, raw)
                 return forwarded, None
         finally:

@@ -293,6 +293,7 @@ class BudgetLedger:
                 usage = row.settlement
                 if (
                     usage is None
+                    or row.dispatched_at is None
                     or row.cancellation is not None
                     or usage.input_tokens > self.rates.max_input_tokens_per_request
                     or usage.output_tokens > row.max_output_tokens
@@ -473,6 +474,8 @@ class BudgetLedger:
                 return row.model_dump(mode="json")
             if row.status == "released":
                 raise ValueError("A released operation cannot be settled")
+            if row.dispatched_at is None:
+                raise ValueError("Settlement requires a durable dispatch marker")
             if (
                 input_tokens > self.rates.max_input_tokens_per_request
                 or output_tokens > row.max_output_tokens

@@ -391,7 +391,7 @@ def _budget_record(record: dict, policy: dict | None, seen_operations: set[str])
     reserved = record.get("reserved_attempt_number") is not None
     if policy is None:
         _require(not (names & set(record)), "Unbudgeted request has budget state")
-    elif reserved:
+    elif reserved or operation is not None:
         _require(
             record.get("budget_reservation_pending") is False,
             "Reserved request has uncertain budget reservation",
@@ -794,11 +794,24 @@ def verify_gateway_usage(
                     "Budget operation belongs to another execution or request",
                 )
             reservation = record.get("reserved_attempt_number")
+            if reservation is None:
+                _require(
+                    not record["dispatch_started"] and outcome == "denied",
+                    "Unadmitted request reports provider activity",
+                )
+            if budget_state["budget_operation_id"] is not None:
+                _require(
+                    "forwarded_sha256" in record,
+                    "Acknowledged budget reservation lacks its prepared request",
+                )
             if reservation is not None:
                 _require(
                     _count(reservation, "reserved attempt") > 0, "Invalid reserved attempt number"
                 )
                 reserved.append(reservation)
+            if reservation is not None or (
+                budget_policy is not None and "forwarded_sha256" in record
+            ):
                 expected_files.add(prefix + "forwarded.json")
                 raw_forwarded = contents[prefix + "forwarded.json"]
                 _require(

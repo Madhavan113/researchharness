@@ -131,6 +131,15 @@ def prepare_pilot(
             if registry_path.is_file()
             else {"schema_version": 1, "pilots": {}}
         )
+        if not registry_path.exists():
+            # Offline preparation may fail after the ledger is created. Retain
+            # an empty registry so a new attempt can reuse that exact ledger.
+            write_json(registry_path, registry)
+            descriptor = os.open(ledger_path.parent, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0))
+            try:
+                os.fsync(descriptor)
+            finally:
+                os.close(descriptor)
         control = DispatchBudget.configuration_metadata(
             ledger,
             policy=config.policy,

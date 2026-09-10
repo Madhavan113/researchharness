@@ -517,6 +517,26 @@ def test_pilot_preflight_serializes_concurrent_ledger_writers(package, tmp_path,
     assert "parallel-fixture" in ledger.snapshot()["reservations"]
 
 
+def test_failed_initial_preparation_leaves_a_reusable_empty_registry(
+    package, tmp_path, monkeypatch
+):
+    def fail(*args, **kwargs):
+        raise OSError("fixture preparation failure")
+
+    with monkeypatch.context() as patch:
+        patch.setattr(pilot, "prepare_comparison", fail)
+        with pytest.raises(OSError, match="preparation failure"):
+            prepare(package, tmp_path)
+    ledger_path = tmp_path / "shared-budget.json"
+    before = ledger_path.read_bytes()
+    registry_path = Path(str(ledger_path) + ".pilots.json")
+    assert json.loads(registry_path.read_bytes()) == {"schema_version": 1, "pilots": {}}
+    output, book = prepare(package, tmp_path, name="retry")
+    assert ledger_path.read_bytes() == before
+    assert str(output) in json.loads(registry_path.read_bytes())["pilots"]
+    assert book.snapshot()["accounting"]["held_nanodollars"] == 0
+
+
 def test_preparation_cannot_reinitialize_a_missing_registry(package, tmp_path):
     output, ledger = prepare(package, tmp_path)
     Path(str(ledger.path) + ".pilots.json").unlink()
