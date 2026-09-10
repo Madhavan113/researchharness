@@ -1,0 +1,484 @@
+[
+  {
+    "include": [],
+    "input": [
+      {
+        "type": "message",
+        "role": "user",
+        "content": "Probe this source: {\"operation_id\": \"fixture-operation-001\", \"source\": {\"url\": \"https://fixture.invalid/policy?limit=2&country=US\", \"connector\": \"json\", \"labels\": [\"trade policy\", \"\\u7f8e\\u56fd\", \"quotes: \\\"preserved\\\"\"], \"options\": {\"items_path\": \"data.items\", \"literal\": \"${not-expanded}\"}}}"
+      }
+    ],
+    "instructions": "You are the Research Harness compatibility agent.\n\nWhen asked to probe a source, call research_fixture__fixture_probe with the exact supplied source and operation id. Read its returned JSON envelope and report its evidence id and fingerprint. A source is verified only when the tool reports success. Preserve validation failures and do not invent successful evidence.\n\nCompatibility instruction marker: RESEARCH-HARNESS-M0-INSTRUCTIONS-v1.\n",
+    "max_output_tokens": 512,
+    "model": "gpt-5.4-mini",
+    "parallel_tool_calls": false,
+    "stream": true,
+    "tools": [
+      {
+        "name": "research_fixture__fixture_probe",
+        "parameters": {
+          "$defs": {
+            "FixtureSource": {
+              "properties": {
+                "url": {
+                  "title": "Url",
+                  "type": "string"
+                },
+                "connector": {
+                  "title": "Connector",
+                  "type": "string"
+                },
+                "labels": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "title": "Labels",
+                  "type": "array"
+                },
+                "options": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Options",
+                  "type": "object"
+                }
+              },
+              "required": [
+                "url",
+                "connector"
+              ],
+              "title": "FixtureSource",
+              "type": "object"
+            }
+          },
+          "properties": {
+            "operation_id": {
+              "title": "Operation Id",
+              "type": "string"
+            },
+            "source": {
+              "$ref": "#/$defs/FixtureSource"
+            }
+          },
+          "required": [
+            "operation_id",
+            "source"
+          ],
+          "title": "fixture_probeArguments",
+          "type": "object"
+        },
+        "strict": false,
+        "type": "function",
+        "description": "Verify JSON transport and return a synthetic receipt; never fetch a URL."
+      },
+      {
+        "name": "research_fixture__structured_only",
+        "parameters": {
+          "properties": {},
+          "title": "structured_onlyArguments",
+          "type": "object"
+        },
+        "strict": false,
+        "type": "function",
+        "description": "Expose whether a client preserves MCP structuredContent without text."
+      }
+    ]
+  },
+  {
+    "include": [],
+    "input": [
+      {
+        "type": "message",
+        "role": "user",
+        "content": "Probe this source: {\"operation_id\": \"fixture-operation-001\", \"source\": {\"url\": \"https://fixture.invalid/policy?limit=2&country=US\", \"connector\": \"json\", \"labels\": [\"trade policy\", \"\\u7f8e\\u56fd\", \"quotes: \\\"preserved\\\"\"], \"options\": {\"items_path\": \"data.items\", \"literal\": \"${not-expanded}\"}}}"
+      },
+      {
+        "arguments": "{\"operation_id\": \"fixture-operation-001\", \"source\": {\"url\": \"https://fixture.invalid/policy?limit=2&country=US\", \"connector\": \"json\", \"labels\": [\"trade policy\", \"\\u7f8e\\u56fd\", \"quotes: \\\"preserved\\\"\"], \"options\": {\"items_path\": \"data.items\", \"literal\": \"${not-expanded}\"}}}",
+        "call_id": "call_fixture_1",
+        "name": "research_fixture__fixture_probe",
+        "type": "function_call",
+        "id": "fc_fixture_1",
+        "status": "completed"
+      },
+      {
+        "call_id": "call_fixture_1",
+        "output": "{\n  \"operation_id\": \"fixture-operation-001\",\n  \"status\": \"succeeded\",\n  \"data\": {\n    \"fingerprint\": \"eaeddb29ae00e578b85c713fafa8d2b88cf8c36646e2dcbd98603a50cb3618bd\",\n    \"source\": {\n      \"url\": \"https://fixture.invalid/policy?limit=2&country=US\",\n      \"connector\": \"json\",\n      \"labels\": [\n        \"trade policy\",\n        \"美国\",\n        \"quotes: \\\"preserved\\\"\"\n      ],\n      \"options\": {\n        \"items_path\": \"data.items\",\n        \"literal\": \"${not-expanded}\"\n      }\n    }\n  },\n  \"evidence\": [\n    \"fixture-evidence-001\"\n  ],\n  \"error\": null,\n  \"retryable\": false,\n  \"remaining\": {\n    \"probes\": 11\n  }\n}",
+        "type": "function_call_output"
+      }
+    ],
+    "instructions": "You are the Research Harness compatibility agent.\n\nWhen asked to probe a source, call research_fixture__fixture_probe with the exact supplied source and operation id. Read its returned JSON envelope and report its evidence id and fingerprint. A source is verified only when the tool reports success. Preserve validation failures and do not invent successful evidence.\n\nCompatibility instruction marker: RESEARCH-HARNESS-M0-INSTRUCTIONS-v1.\n",
+    "max_output_tokens": 512,
+    "model": "gpt-5.4-mini",
+    "parallel_tool_calls": false,
+    "stream": true,
+    "tools": [
+      {
+        "name": "research_fixture__fixture_probe",
+        "parameters": {
+          "$defs": {
+            "FixtureSource": {
+              "properties": {
+                "url": {
+                  "title": "Url",
+                  "type": "string"
+                },
+                "connector": {
+                  "title": "Connector",
+                  "type": "string"
+                },
+                "labels": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "title": "Labels",
+                  "type": "array"
+                },
+                "options": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Options",
+                  "type": "object"
+                }
+              },
+              "required": [
+                "url",
+                "connector"
+              ],
+              "title": "FixtureSource",
+              "type": "object"
+            }
+          },
+          "properties": {
+            "operation_id": {
+              "title": "Operation Id",
+              "type": "string"
+            },
+            "source": {
+              "$ref": "#/$defs/FixtureSource"
+            }
+          },
+          "required": [
+            "operation_id",
+            "source"
+          ],
+          "title": "fixture_probeArguments",
+          "type": "object"
+        },
+        "strict": false,
+        "type": "function",
+        "description": "Verify JSON transport and return a synthetic receipt; never fetch a URL."
+      },
+      {
+        "name": "research_fixture__structured_only",
+        "parameters": {
+          "properties": {},
+          "title": "structured_onlyArguments",
+          "type": "object"
+        },
+        "strict": false,
+        "type": "function",
+        "description": "Expose whether a client preserves MCP structuredContent without text."
+      }
+    ]
+  },
+  {
+    "include": [],
+    "input": [
+      {
+        "type": "message",
+        "role": "user",
+        "content": "Probe this source: {\"operation_id\": \"fixture-operation-001\", \"source\": {\"url\": \"https://fixture.invalid/policy?limit=2&country=US\", \"connector\": \"json\", \"labels\": [\"trade policy\", \"\\u7f8e\\u56fd\", \"quotes: \\\"preserved\\\"\"], \"options\": {\"items_path\": \"data.items\", \"literal\": \"${not-expanded}\"}}}"
+      },
+      {
+        "arguments": "{\"operation_id\": \"fixture-operation-001\", \"source\": {\"url\": \"https://fixture.invalid/policy?limit=2&country=US\", \"connector\": \"json\", \"labels\": [\"trade policy\", \"\\u7f8e\\u56fd\", \"quotes: \\\"preserved\\\"\"], \"options\": {\"items_path\": \"data.items\", \"literal\": \"${not-expanded}\"}}}",
+        "call_id": "call_fixture_1",
+        "name": "research_fixture__fixture_probe",
+        "type": "function_call",
+        "id": "fc_fixture_1",
+        "status": "completed"
+      },
+      {
+        "call_id": "call_fixture_1",
+        "output": "{\n  \"operation_id\": \"fixture-operation-001\",\n  \"status\": \"succeeded\",\n  \"data\": {\n    \"fingerprint\": \"eaeddb29ae00e578b85c713fafa8d2b88cf8c36646e2dcbd98603a50cb3618bd\",\n    \"source\": {\n      \"url\": \"https://fixture.invalid/policy?limit=2&country=US\",\n      \"connector\": \"json\",\n      \"labels\": [\n        \"trade policy\",\n        \"美国\",\n        \"quotes: \\\"preserved\\\"\"\n      ],\n      \"options\": {\n        \"items_path\": \"data.items\",\n        \"literal\": \"${not-expanded}\"\n      }\n    }\n  },\n  \"evidence\": [\n    \"fixture-evidence-001\"\n  ],\n  \"error\": null,\n  \"retryable\": false,\n  \"remaining\": {\n    \"probes\": 11\n  }\n}",
+        "type": "function_call_output"
+      },
+      {
+        "id": "msg_fixture_2",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "Saved fixture-evidence-001"
+          }
+        ],
+        "role": "assistant",
+        "status": "completed",
+        "type": "message"
+      },
+      {
+        "content": "Reopen the evidence",
+        "role": "user"
+      }
+    ],
+    "instructions": "You are the Research Harness compatibility agent.\n\nWhen asked to probe a source, call research_fixture__fixture_probe with the exact supplied source and operation id. Read its returned JSON envelope and report its evidence id and fingerprint. A source is verified only when the tool reports success. Preserve validation failures and do not invent successful evidence.\n\nCompatibility instruction marker: RESEARCH-HARNESS-M0-INSTRUCTIONS-v1.\n\nINSTRUCTIONS-v2: Recover saved evidence.",
+    "max_output_tokens": 512,
+    "model": "gpt-5.4-mini",
+    "parallel_tool_calls": false,
+    "stream": true,
+    "tools": [
+      {
+        "name": "research_fixture__fixture_probe",
+        "parameters": {
+          "$defs": {
+            "FixtureSource": {
+              "properties": {
+                "url": {
+                  "title": "Url",
+                  "type": "string"
+                },
+                "connector": {
+                  "title": "Connector",
+                  "type": "string"
+                },
+                "labels": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "title": "Labels",
+                  "type": "array"
+                },
+                "options": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Options",
+                  "type": "object"
+                }
+              },
+              "required": [
+                "url",
+                "connector"
+              ],
+              "title": "FixtureSource",
+              "type": "object"
+            }
+          },
+          "properties": {
+            "operation_id": {
+              "title": "Operation Id",
+              "type": "string"
+            },
+            "source": {
+              "$ref": "#/$defs/FixtureSource"
+            }
+          },
+          "required": [
+            "operation_id",
+            "source"
+          ],
+          "title": "fixture_probeArguments",
+          "type": "object"
+        },
+        "strict": false,
+        "type": "function",
+        "description": "Verify JSON transport and return a synthetic receipt; never fetch a URL."
+      },
+      {
+        "name": "research_fixture__structured_only",
+        "parameters": {
+          "properties": {},
+          "title": "structured_onlyArguments",
+          "type": "object"
+        },
+        "strict": false,
+        "type": "function",
+        "description": "Expose whether a client preserves MCP structuredContent without text."
+      }
+    ]
+  },
+  {
+    "include": [],
+    "input": [
+      {
+        "type": "message",
+        "role": "user",
+        "content": "Probe this source: {\"operation_id\": \"fixture-operation-001\", \"source\": {\"url\": \"https://fixture.invalid/policy?limit=2&country=US\", \"connector\": \"json\", \"labels\": [\"trade policy\", \"\\u7f8e\\u56fd\", \"quotes: \\\"preserved\\\"\"], \"options\": {\"items_path\": \"data.items\", \"literal\": \"${not-expanded}\"}}}"
+      },
+      {
+        "type": "message",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "Saved fixture-evidence-001"
+          }
+        ]
+      },
+      {
+        "type": "message",
+        "role": "user",
+        "content": "Reopen the evidence"
+      }
+    ],
+    "instructions": "You are the Research Harness compatibility agent.\n\nWhen asked to probe a source, call research_fixture__fixture_probe with the exact supplied source and operation id. Read its returned JSON envelope and report its evidence id and fingerprint. A source is verified only when the tool reports success. Preserve validation failures and do not invent successful evidence.\n\nCompatibility instruction marker: RESEARCH-HARNESS-M0-INSTRUCTIONS-v1.\n\nINSTRUCTIONS-v2: Recover saved evidence.",
+    "max_output_tokens": 512,
+    "model": "gpt-5.4-mini",
+    "parallel_tool_calls": false,
+    "stream": true,
+    "tools": [
+      {
+        "name": "research_fixture__fixture_probe",
+        "parameters": {
+          "$defs": {
+            "FixtureSource": {
+              "properties": {
+                "url": {
+                  "title": "Url",
+                  "type": "string"
+                },
+                "connector": {
+                  "title": "Connector",
+                  "type": "string"
+                },
+                "labels": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "title": "Labels",
+                  "type": "array"
+                },
+                "options": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Options",
+                  "type": "object"
+                }
+              },
+              "required": [
+                "url",
+                "connector"
+              ],
+              "title": "FixtureSource",
+              "type": "object"
+            }
+          },
+          "properties": {
+            "operation_id": {
+              "title": "Operation Id",
+              "type": "string"
+            },
+            "source": {
+              "$ref": "#/$defs/FixtureSource"
+            }
+          },
+          "required": [
+            "operation_id",
+            "source"
+          ],
+          "title": "fixture_probeArguments",
+          "type": "object"
+        },
+        "strict": false,
+        "type": "function",
+        "description": "Verify JSON transport and return a synthetic receipt; never fetch a URL."
+      },
+      {
+        "name": "research_fixture__structured_only",
+        "parameters": {
+          "properties": {},
+          "title": "structured_onlyArguments",
+          "type": "object"
+        },
+        "strict": false,
+        "type": "function",
+        "description": "Expose whether a client preserves MCP structuredContent without text."
+      }
+    ]
+  },
+  {
+    "include": [],
+    "input": [
+      {
+        "type": "message",
+        "role": "user",
+        "content": "Wait for interruption"
+      }
+    ],
+    "instructions": "You are the Research Harness compatibility agent.\n\nWhen asked to probe a source, call research_fixture__fixture_probe with the exact supplied source and operation id. Read its returned JSON envelope and report its evidence id and fingerprint. A source is verified only when the tool reports success. Preserve validation failures and do not invent successful evidence.\n\nCompatibility instruction marker: RESEARCH-HARNESS-M0-INSTRUCTIONS-v1.\n",
+    "max_output_tokens": 512,
+    "model": "gpt-5.4-mini",
+    "parallel_tool_calls": false,
+    "stream": true,
+    "tools": [
+      {
+        "name": "research_fixture__fixture_probe",
+        "parameters": {
+          "$defs": {
+            "FixtureSource": {
+              "properties": {
+                "url": {
+                  "title": "Url",
+                  "type": "string"
+                },
+                "connector": {
+                  "title": "Connector",
+                  "type": "string"
+                },
+                "labels": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "title": "Labels",
+                  "type": "array"
+                },
+                "options": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Options",
+                  "type": "object"
+                }
+              },
+              "required": [
+                "url",
+                "connector"
+              ],
+              "title": "FixtureSource",
+              "type": "object"
+            }
+          },
+          "properties": {
+            "operation_id": {
+              "title": "Operation Id",
+              "type": "string"
+            },
+            "source": {
+              "$ref": "#/$defs/FixtureSource"
+            }
+          },
+          "required": [
+            "operation_id",
+            "source"
+          ],
+          "title": "fixture_probeArguments",
+          "type": "object"
+        },
+        "strict": false,
+        "type": "function",
+        "description": "Verify JSON transport and return a synthetic receipt; never fetch a URL."
+      },
+      {
+        "name": "research_fixture__structured_only",
+        "parameters": {
+          "properties": {},
+          "title": "structured_onlyArguments",
+          "type": "object"
+        },
+        "strict": false,
+        "type": "function",
+        "description": "Expose whether a client preserves MCP structuredContent without text."
+      }
+    ]
+  }
+]

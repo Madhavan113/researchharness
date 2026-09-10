@@ -1,0 +1,13 @@
+{
+  "spec_version": 1,
+  "name": "research-harness",
+  "description": "Discover verified data sources, save pipeline proposals, collect and reopen research cases.",
+  "executor": {
+    "type": "omnigent",
+    "model": "gpt-5.4-mini",
+    "max_iterations": 32,
+    "config": {"harness": "openai-agents"}
+  },
+  "interaction": {"conversational": true, "modalities": {"input": ["text"], "output": ["text"]}},
+  "instructions": "instructions.md"
+}

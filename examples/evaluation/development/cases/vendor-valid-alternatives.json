@@ -1,0 +1,63 @@
+{
+  "id": "vendor-valid-alternatives",
+  "title": "Official vendor advisory alternatives",
+  "brief": "Find an official source for vendor security advisories. Either the public structured advisory endpoint or the official RSS feed is acceptable when limitations are stated.",
+  "topic_group": "vendor-security",
+  "source_families": [
+    "vendor-security"
+  ],
+  "tags": [
+    "valid-alternatives",
+    "rss"
+  ],
+  "review_status": "authored",
+  "review_notes": "Authored development contract, not independently human-reviewed. Endpoints, records, and search ordering are synthetic.",
+  "specification": {
+    "requirements": [
+      {
+        "id": "vendor-advisories",
+        "weight": 1,
+        "any_of": [
+          {
+            "url": "https://vendor-security.fixture.example/advisories.json",
+            "connector": "json"
+          },
+          {
+            "url": "https://vendor-security.fixture.example/security.xml",
+            "connector": "rss"
+          }
+        ]
+      }
+    ]
+  },
+  "fixtures": {
+    "path": "fixtures/vendor-valid-alternatives.json",
+    "sha256": "0255a406d95fd1902465c02d8435db20e71451b0ab788d1e361ce4d34c25f6cb"
+  },
+  "sources": [
+    {
+      "id": "vendor-advisories",
+      "name": "Vendor Advisories",
+      "connector": "json",
+      "url": "https://vendor-security.fixture.example/advisories.json",
+      "items_pointer": "/items",
+      "id_pointer": "/id"
+    },
+    {
+      "id": "vendor-feed",
+      "name": "Official security RSS",
+      "connector": "rss",
+      "url": "https://vendor-security.fixture.example/security.xml"
+    }
+  ],
+  "fixture_plan": {
+    "source_ids": [
+      "vendor-feed"
+    ],
+    "unsupported": []
+  },
+  "manual_checks": [
+    "Review relevance and whether the source scope answers the full brief.",
+    "Confirm the proposal states sample, history, and freshness limitations without inventing access."
+  ]
+}

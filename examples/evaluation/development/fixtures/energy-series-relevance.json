@@ -1,0 +1,48 @@
+{
+  "authorship": "Synthetic fixture authored by Codex; no live source was sampled",
+  "search_results": [
+    {
+      "url": "https://energy-agency.fixture.example/press-stats.json",
+      "title": "Authored search result"
+    },
+    {
+      "url": "https://energy-agency.fixture.example/storage.json",
+      "title": "Authored search result"
+    }
+  ],
+  "responses": [
+    {
+      "url": "https://energy-agency.fixture.example/press-stats.json",
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "synthetic": true,
+        "items": [
+          {
+            "id": "press-1",
+            "count": 2
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://energy-agency.fixture.example/storage.json",
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "synthetic": true,
+        "items": [
+          {
+            "id": "week-1",
+            "week_start": "2026-08-31",
+            "storage": 321
+          }
+        ]
+      }
+    }
+  ]
+}

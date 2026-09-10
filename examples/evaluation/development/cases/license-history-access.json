@@ -1,0 +1,51 @@
+{
+  "id": "license-history-access",
+  "title": "Historical export licenses",
+  "brief": "Find monthly export-license decisions from 2018 onward. If the archive requires credentials, preserve the gap and explain the access requirement rather than presenting current notices as history.",
+  "topic_group": "export-controls",
+  "source_families": [
+    "export-office"
+  ],
+  "tags": [
+    "unsupported",
+    "access",
+    "historical-gap"
+  ],
+  "review_status": "authored",
+  "review_notes": "Authored development contract, not independently human-reviewed. Endpoints, records, and search ordering are synthetic.",
+  "specification": {
+    "requirements": [
+      {
+        "id": "license-history",
+        "weight": 1,
+        "any_of": [
+          {
+            "url": "https://export-office.fixture.example/license-history.json",
+            "connector": "json",
+            "published_pointer": "/decision_at"
+          }
+        ]
+      }
+    ]
+  },
+  "fixtures": {
+    "path": "fixtures/license-history-access.json",
+    "sha256": "791ecbb4dea4d94206a320d32db300f9ed8f7a62d571bdf0d2a249de534280dd"
+  },
+  "sources": [],
+  "fixture_plan": {
+    "source_ids": [],
+    "unsupported": [
+      {
+        "name": "License decision archive",
+        "url": "https://export-office.fixture.example/license-history.json",
+        "status": "needs_access",
+        "limitation": "The authored archive requires credentials; historical coverage has not been established."
+      }
+    ]
+  },
+  "manual_checks": [
+    "Review relevance and whether the source scope answers the full brief.",
+    "Confirm the proposal states sample, history, and freshness limitations without inventing access."
+  ]
+}

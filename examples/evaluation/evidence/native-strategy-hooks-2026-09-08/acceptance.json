@@ -1,0 +1,37 @@
+{
+  "normal_server_runner": true,
+  "live_provider": false,
+  "source_network": false,
+  "tool_result_replacement_visible": true,
+  "source_order_reversed": true,
+  "stop_recommendation_visible": true,
+  "stored_evidence_unchanged": true,
+  "llm_request_policy_called": true,
+  "llm_request_replacement_ignored": true,
+  "model_requests": 3,
+  "native_policy_events": [
+    {
+      "phase": "llm_request",
+      "data": {
+        "model": "gpt-5.4-mini",
+        "messages_count": 1,
+        "tools_count": 39,
+        "system_prompt_preview": "NATIVE_ORIGINAL_INSTRUCTIONS\n\nEmbedded browser: the browser_navigate / browser_snapshot / browser_click / browser_type / browser_screenshot tools drive the Omnigent app's embedded browser pane, which ",
+        "last_user_message": "Execute the fixture tool sequence."
+      }
+    },
+    {
+      "phase": "tool_result",
+      "target": "research__search_sources",
+      "request_data": {
+        "name": "research__search_sources",
+        "arguments": {
+          "query": "offline",
+          "operation_id": "search-1"
+        }
+      }
+    }
+  ],
+  "llm_request_policy_invocations": 1,
+  "receipt": "/private/tmp/rh-native-strategy-hooks-20260908-portable/case/research/receipts.json"
+}

@@ -10,6 +10,8 @@ htmlcov/
 !.env.example
 .researchharness/
 artifacts/
+output/playwright/
+.playwright-cli/
 dist/
 *.egg-info/
 .DS_Store

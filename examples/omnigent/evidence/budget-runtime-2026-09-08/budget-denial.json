@@ -1,0 +1,5 @@
+{
+  "queued": false,
+  "denied": true,
+  "reason": "Blocked by the session cost-budget policy: spend $0.00 reached the $0.00 limit. You've hit the $0.00 cost budget. All model calls are blocked over budget."
+}

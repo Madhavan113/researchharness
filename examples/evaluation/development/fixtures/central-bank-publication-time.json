@@ -1,0 +1,29 @@
+{
+  "authorship": "Synthetic fixture authored by Codex; no live source was sampled",
+  "search_results": [
+    {
+      "url": "https://central-bank.fixture.example/releases.json",
+      "title": "Authored search result"
+    }
+  ],
+  "responses": [
+    {
+      "url": "https://central-bank.fixture.example/releases.json",
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "synthetic": true,
+        "items": [
+          {
+            "id": "notice-1",
+            "title": "Authored policy notice",
+            "published_at": "2026-09-01T12:00:00Z",
+            "downloaded_at": "2026-09-08T12:00:00Z"
+          }
+        ]
+      }
+    }
+  ]
+}

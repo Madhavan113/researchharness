@@ -1,0 +1,41 @@
+{
+  "data_dir": ".researchharness/data",
+  "description": "Find a public feed of official policy changes with stable ids and publication timestamps.",
+  "http": {
+    "max_attempts": 3,
+    "max_requests_per_source": 100,
+    "max_response_bytes": 5000000,
+    "max_retry_delay_seconds": 30.0,
+    "min_interval_seconds": 0.25,
+    "timeout_seconds": 20.0
+  },
+  "name": "fixture-policy",
+  "schema_version": 1,
+  "sources": [
+    {
+      "connector": "json",
+      "enabled": true,
+      "id": "policy",
+      "id_pointer": "/id",
+      "include_orderbooks": false,
+      "items_pointer": "/items",
+      "max_pages": 10,
+      "max_records": 5000,
+      "min_records": 1,
+      "name": "Fixture policy feed",
+      "pagination": {
+        "cursor_parameter": null,
+        "mode": "none",
+        "next_pointer": null,
+        "stop_when_missing": false
+      },
+      "parameters": [],
+      "poll_interval_seconds": 900,
+      "published_pointer": "/published_at",
+      "required_pointers": [
+        "/title"
+      ],
+      "url": "http://127.0.0.1:57377/policy.json"
+    }
+  ]
+}

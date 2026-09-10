@@ -2,54 +2,35 @@ from __future__ import annotations
 
 import json
 import os
+from contextlib import nullcontext
+from importlib.util import find_spec
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any
 
 import httpx
-from openai import OpenAI
-from pydantic import Field, field_validator
+from openai import OpenAI, pydantic_function_tool
+from pydantic import Field
 
-from research_harness.config import PipelineSpec, SourceSpec, StrictModel
-from research_harness.connectors import CONNECTOR_CATALOG, PageText, load_json
-from research_harness.engine import probe_source
-from research_harness.http import Fetcher
-from research_harness.store import Store
-from research_harness.util import canonical_json, error_message, http_url, timestamp, write_json
-
-
-class DataNeed(StrictModel):
-    id: str = Field(pattern=r"^[a-z][a-z0-9_-]{0,63}$")
-    description: str
-    required: bool
-
-
-class Candidate(StrictModel):
-    name: str
-    purpose: str
-    covers: list[str]
-    status: Literal["ready", "needs_connector", "needs_access", "unavailable"]
-    evidence_urls: list[str]
-    source: SourceSpec | None
-    probe_id: str | None
-    freshness_assessment: str
-    historical_coverage: str
-    access_notes: str
-    limitations: list[str]
-
-    @field_validator("evidence_urls")
-    @classmethod
-    def valid_urls(cls, values: list[str]) -> list[str]:
-        return [http_url(value) for value in values]
-
-
-class ProposalDraft(StrictModel):
-    name: str = Field(pattern=r"^[a-z][a-z0-9_-]{0,63}$")
-    title: str
-    research_question: str
-    needs: list[DataNeed] = Field(min_length=1, max_length=20)
-    candidates: list[Candidate] = Field(min_length=1, max_length=12)
-    open_questions: list[str]
-
+from research_harness.backend import Backend
+from research_harness.config import SourceSpec, StrictModel
+from research_harness.connectors import CONNECTOR_CATALOG
+from research_harness.discovery_models import Candidate as Candidate
+from research_harness.discovery_models import DataNeed as DataNeed
+from research_harness.discovery_models import ProposalDraft
+from research_harness.execution import DiscoverySettings
+from research_harness.services.proposals import compile_proposal as compile_proposal
+from research_harness.services.proposals import render_proposal as render_proposal
+from research_harness.services.research import ResearchService
+from research_harness.services.search import McpSearchProvider, SearchFilters, SearchProvider
+from research_harness.strategies.session import StrategySession
+from research_harness.util import (
+    canonical_json,
+    digest,
+    error_message,
+    parse_timestamp,
+    timestamp,
+    write_json,
+)
 
 INSTRUCTIONS = """You design research data pipelines. Turn the user's research brief into explicit data needs, discover sources on the web, inspect their real responses, and propose an executable pipeline with source evidence.
 
@@ -93,6 +74,21 @@ TOOLS = [
 ]
 
 
+class SearchArguments(StrictModel):
+    query: str = Field(min_length=1, max_length=2000)
+    filters: SearchFilters | None
+
+
+SEARCH_TOOL = {
+    "type": "function",
+    **pydantic_function_tool(
+        SearchArguments,
+        name="search_sources",
+        description="Search the configured provider with bounded filters and save its actual response as source evidence. Use filters=null for the default six results.",
+    )["function"],
+}
+
+
 def response_item(item: Any) -> dict[str, Any]:
     # Parsed SDK objects add local helper fields that the HTTP API does not accept as input.
     return item.model_dump(
@@ -102,107 +98,17 @@ def response_item(item: Any) -> dict[str, Any]:
     )
 
 
-def compile_proposal(
-    draft: ProposalDraft,
-    probes: dict[str, dict[str, Any]],
-    observed_urls: set[str],
-) -> tuple[PipelineSpec | None, list[str]]:
-    ids = [need.id for need in draft.needs]
-    if len(ids) != len(set(ids)):
-        raise ValueError("Data need ids must be unique")
-    sources = []
-    covered: set[str] = set()
-    for candidate in draft.candidates:
-        unknown = set(candidate.covers) - set(ids)
-        if unknown:
-            raise ValueError(f"{candidate.name}: unknown data needs {sorted(unknown)}")
-        if not candidate.covers:
-            raise ValueError(f"{candidate.name}: identify the data need this source serves")
-        if not candidate.evidence_urls or not any(
-            url in observed_urls for url in candidate.evidence_urls
-        ):
-            raise ValueError(
-                f"{candidate.name}: cite at least one URL actually observed during discovery"
-            )
-        if candidate.status != "ready":
-            continue
-        if not candidate.source or not candidate.source.enabled:
-            raise ValueError(f"{candidate.name}: ready sources require an enabled SourceSpec")
-        proof = probes.get(candidate.probe_id or "")
-        if not proof or proof["status"] != "verified_sample":
-            raise ValueError(f"{candidate.name}: a successful probe is required")
-        if proof["source_fingerprint"] != candidate.source.fingerprint():
-            raise ValueError(
-                f"{candidate.name}: configuration changed after probing; probe the exact source again"
-            )
-        sources.append(candidate.source)
-        covered.update(candidate.covers)
-    gaps = [need.id for need in draft.needs if need.required and need.id not in covered]
-    pipeline = (
-        PipelineSpec(name=draft.name, description=draft.research_question, sources=sources)
-        if sources
-        else None
-    )
-    return pipeline, gaps
-
-
-def render_proposal(draft: ProposalDraft, gaps: list[str]) -> str:
-    lines = [f"# {draft.title}", "", draft.research_question, "", "## Data requirements", ""]
-    for need in draft.needs:
-        lines.append(
-            f"- **{need.id}** ({'required' if need.required else 'optional'}): {need.description}"
-        )
-    lines.extend(["", "## Source assessment", ""])
-    for candidate in draft.candidates:
-        lines.extend(
-            [
-                f"### {candidate.name}",
-                "",
-                f"Status: **{candidate.status}**. Covers: {', '.join(candidate.covers)}.",
-                "",
-                candidate.purpose,
-                "",
-                f"Freshness: {candidate.freshness_assessment}",
-                "",
-                f"History: {candidate.historical_coverage}",
-                "",
-                f"Access: {candidate.access_notes}",
-                "",
-            ]
-        )
-        for index, url in enumerate(candidate.evidence_urls, 1):
-            lines.append(f"- [Source evidence {index}]({url})")
-        if candidate.probe_id:
-            lines.extend(
-                ["", f"Probe: `{candidate.probe_id}`. This is a sampled compatibility check."]
-            )
-        if candidate.limitations:
-            lines.append("")
-            lines.extend(f"- {limitation}" for limitation in candidate.limitations)
-        lines.append("")
-    lines.extend(
-        [
-            "## Coverage gaps",
-            "",
-            ", ".join(gaps)
-            if gaps
-            else "Every required need has a source that passed a sample probe. Semantic completeness still needs review.",
-            "",
-        ]
-    )
-    if draft.open_questions:
-        lines.extend(["## Open questions", ""])
-        lines.extend(f"- {question}" for question in draft.open_questions)
-        lines.append("")
-    lines.extend(
-        [
-            "## Execution",
-            "",
-            "`pipeline.json`, when present, contains only sources backed by matching successful probes. Run it with `rh run pipeline.json`. Polling intervals are configuration; no background schedule is installed. The full ingestion run validates pagination and publishes each source atomically.",
-            "",
-        ]
-    )
-    return "\n".join(lines)
+def validate_execution_options(
+    settings: DiscoverySettings | None,
+    instructions: str | None,
+    **legacy_limits: int | None,
+) -> None:
+    if settings is not None:
+        for name, value in legacy_limits.items():
+            if value is not None and value != getattr(settings, name):
+                raise ValueError(f"{name} conflicts with the supplied discovery settings")
+    if instructions is not None and not instructions.strip():
+        raise ValueError("Discovery instructions must not be empty")
 
 
 class Discovery:
@@ -214,26 +120,157 @@ class Discovery:
         model: str = "gpt-5.4-mini",
         http_client: httpx.Client | None = None,
         public_only: bool = True,
-        max_rounds: int = 16,
-        max_probes: int = 12,
-        max_inspections: int = 16,
+        max_rounds: int | None = None,
+        max_probes: int | None = None,
+        max_inspections: int | None = None,
         progress: Any = None,
+        backend: Backend | None = None,
+        search_provider: SearchProvider | None = None,
+        settings: DiscoverySettings | None = None,
+        instructions: str | None = None,
+        strategy: StrategySession | None = None,
     ):
+        """Use explicit shared settings, or retain the legacy direct defaults.
+
+        Legacy limit arguments may accompany settings only when their values agree.
+        Supplied semantic instructions are preserved verbatim before runtime guidance.
+        """
+        validate_execution_options(
+            settings,
+            instructions,
+            max_rounds=max_rounds,
+            max_probes=max_probes,
+            max_inspections=max_inspections,
+        )
+        self.settings = settings.model_copy(deep=True) if settings is not None else None
         self.output = output
         output.mkdir(parents=True, exist_ok=True)
+        self.backend = backend or Backend.from_env()
+        self.registry_ids: dict[str, str] = {}
         self.client = client
         self.model = model
-        self.http_client = http_client
-        self.public_only = public_only
-        self.max_rounds = max_rounds
-        self.max_probes = max_probes
-        self.max_inspections = max_inspections
+        if self.settings is not None:
+            self.max_rounds = self.settings.max_rounds
+            self.max_probes = self.settings.max_probes
+            self.max_inspections = self.settings.max_inspections
+            self.limits = self.settings.limits()
+        else:
+            self.max_rounds = 16 if max_rounds is None else max_rounds
+            self.max_probes = 12 if max_probes is None else max_probes
+            self.max_inspections = 16 if max_inspections is None else max_inspections
+            self.limits = {
+                "search": 8,
+                "probe": self.max_probes,
+                "inspection": self.max_inspections,
+            }
+        self.deadline_seconds = self.settings.deadline_seconds if self.settings else 600
+        self.model_settings = (
+            self.settings.model_settings()
+            if self.settings is not None
+            else {"max_output_tokens": 6000, "parallel_tool_calls": False}
+        )
+        self.search_provider = search_provider
+        self.strategy = strategy
+        if strategy is not None and search_provider is None:
+            raise ValueError("Code strategies require the wrapped search provider")
+        self.instructions = (
+            instructions
+            if instructions is not None
+            else INSTRUCTIONS
+            if search_provider is None
+            else INSTRUCTIONS.replace("web_search", "search_sources")
+        )
+        self.execution_config = {
+            "execution_settings": self.settings.model_dump() if self.settings else None,
+            "budgets": {
+                **self.limits,
+                "deadline_seconds": self.deadline_seconds,
+                "model_rounds": self.max_rounds,
+                "max_output_tokens": self.model_settings["max_output_tokens"],
+            },
+            "model_settings": self.model_settings,
+            "omitted_model_settings": [
+                key
+                for key in ("reasoning", "parallel_tool_calls", "service_tier")
+                if key not in self.model_settings
+            ],
+            "instructions_sha256": digest(self.instructions),
+            "instructions_source": "provided" if instructions is not None else "default",
+        }
+        if strategy is not None:
+            strategy.assert_ready()
+            self.execution_config["code_strategy_sha256"] = strategy.bundle.sha256
+            self.execution_config["strategy_session_id"] = strategy.session_id
+        self.search_config: dict[str, Any] = {
+            "mode": "native" if search_provider is None else "wrapped",
+            "provider": "openai-native" if search_provider is None else search_provider.name,
+        }
+        if isinstance(search_provider, McpSearchProvider):
+            self.search_config.update(
+                transport="mcp-streamable-http",
+                endpoint=search_provider.endpoint,
+                tool="search_web_pages",
+                timeout_seconds=search_provider.timeout_seconds,
+                default_filters=SearchFilters().model_dump(exclude_none=True),
+            )
         self.progress = progress or (lambda _event: None)
-        self.probes: dict[str, dict[str, Any]] = {}
-        self.observed_urls: set[str] = set()
-        self.inspections = 0
-        self.searches = 0
         self.usage = {"input_tokens": 0, "output_tokens": 0}
+        self.service = ResearchService(
+            output,
+            backend=self.backend,
+            http_client=http_client,
+            public_only=public_only,
+            event=self.event,
+        )
+
+    @property
+    def probes(self) -> dict[str, dict[str, Any]]:
+        return self.service.get_context()["probes"] if self.service.discovery_id else {}
+
+    @property
+    def observed_urls(self) -> set[str]:
+        return (
+            set(self.service.get_context()["observed_urls"]) if self.service.discovery_id else set()
+        )
+
+    @property
+    def inspections(self) -> int:
+        return (
+            self.service.get_context()["counts"].get("inspection", 0)
+            if self.service.discovery_id
+            else 0
+        )
+
+    @property
+    def searches(self) -> int:
+        return (
+            self.service.get_context()["counts"].get("search", 0)
+            if self.service.discovery_id
+            else 0
+        )
+
+    def evidence_store(self):
+        return self.service.evidence_store()
+
+    def register_start(self, brief: str) -> None:
+        self.registry_ids = self.service.begin(
+            brief,
+            model=self.model,
+            limits=self.limits,
+            deadline_seconds=self.deadline_seconds,
+            runtime={
+                "adapter": "direct-responses",
+                "search": self.search_config,
+                **self.execution_config,
+            },
+        )
+        self.event({"event": "registered", "backend": self.backend.mode, **self.registry_ids})
+
+    def register_failure(self, exc: BaseException) -> None:
+        try:
+            self.service.finish_failure(exc, self.usage)
+        except Exception as registry_error:
+            self.event({"event": "registry_update_failed", "error": str(registry_error)})
 
     def event(self, event: dict[str, Any]) -> None:
         event = {"at": timestamp(), **event}
@@ -248,107 +285,50 @@ class Discovery:
         )
 
     def inspect(self, url: str) -> dict[str, Any]:
-        self.inspections += 1
-        if self.inspections > self.max_inspections:
-            raise ValueError("Inspection budget exhausted")
-        source = SourceSpec(id="inspection", name="Discovery inspection", connector="html", url=url)
-        spec = PipelineSpec(
-            name="discovery-inspection", description="Public source inspection", sources=[source]
-        )
-        owned = self.http_client is None
-        client = self.http_client or httpx.Client()
-        try:
-            with Store(self.output / "evidence") as store, store.writer():
-                run_id = store.start_run(spec)
-                source_run_id = store.start_source(run_id, source)
-                try:
-                    capture = Fetcher(
-                        store,
-                        spec.name,
-                        source_run_id,
-                        source.id,
-                        spec.http,
-                        client=client,
-                        public_only=self.public_only,
-                    ).fetch(url, context={"role": "inspection"})
-                    body = store.read_blob(capture.body_hash or "")
-                    content_type = capture.headers.get("content-type", "")
-                    report: dict[str, Any] = {
-                        "capture_id": capture.id,
-                        "url": capture.url,
-                        "status_code": capture.status_code,
-                        "observed_at": capture.observed_at,
-                        "body_sha256": capture.body_hash,
-                        "content_type": content_type,
-                    }
-                    if "json" in content_type or body.lstrip().startswith((b"{", b"[")):
-                        parsed = load_json(body)
-                        report["top_level_type"] = type(parsed).__name__
-                        report["top_level_keys"] = (
-                            sorted(parsed) if isinstance(parsed, dict) else []
-                        )
-                        report["preview"] = canonical_json(parsed)[:6500]
-                    else:
-                        page = PageText()
-                        page.feed(body.decode("utf-8", "replace"))
-                        report["title"] = " ".join(page.title)
-                        report["preview"] = page.text[:6500]
-                        from urllib.parse import urljoin
+        return self.service.inspect(url)
 
-                        report["links"] = [
-                            {**link, "href": urljoin(capture.url, link["href"])}
-                            for link in page.links[:50]
-                        ]
-                    store.finish_source(
-                        spec.name, source_run_id, source, [], [], checkpoint={"inspection": True}
-                    )
-                    store.finish_run(run_id, "inspected")
-                    self.observed_urls.update({url, capture.url})
-                    return report
-                except Exception as exc:
-                    store.finish_source(
-                        spec.name,
-                        source_run_id,
-                        source,
-                        [],
-                        [],
-                        error=f"{type(exc).__name__}: {exc}",
-                    )
-                    store.finish_run(run_id, "failed", str(exc))
-                    raise
-        finally:
-            if owned:
-                client.close()
+    def tool(self, name: str, arguments: str, *, operation_id: str | None = None) -> dict[str, Any]:
+        with self.strategy.guard() if self.strategy is not None else nullcontext():
+            return self._tool(name, arguments, operation_id=operation_id)
 
-    def tool(self, name: str, arguments: str) -> dict[str, Any]:
+    def _tool(
+        self, name: str, arguments: str, *, operation_id: str | None = None
+    ) -> dict[str, Any]:
         try:
             if len(arguments) > 60_000:
                 raise ValueError("Tool arguments exceed limit")
             args = json.loads(arguments)
-            if name == "inspect_url":
-                return self.inspect(args["url"])
-            if name == "probe_source":
-                if len(self.probes) >= self.max_probes:
-                    raise ValueError("Probe budget exhausted")
-                source = SourceSpec.model_validate_json(args["source_json"])
-                with Store(self.output / "evidence") as store:
-                    report = probe_source(
-                        source, store, client=self.http_client, public_only=self.public_only
-                    )
-                self.probes[report["probe_id"]] = report
-                self.observed_urls.add(report["url"])
-                self.observed_urls.update(capture["url"] for capture in report["captures"])
-                write_json(self.output / "probes.json", list(self.probes.values()))
-                return report
-            raise ValueError(f"Unsupported tool: {name}")
+            if name == "search_sources" and self.search_provider is not None:
+                search = SearchArguments.model_validate(args)
+                result = self.service.search(
+                    search.query,
+                    provider=self.search_provider,
+                    filters=search.filters.model_dump(exclude_none=True)
+                    if search.filters
+                    else None,
+                    operation_id=operation_id,
+                )
+            elif name == "inspect_url":
+                result = self.service.inspect(args["url"], operation_id=operation_id)
+            elif name == "probe_source":
+                result = self.service.probe(
+                    SourceSpec.model_validate_json(args["source_json"]),
+                    operation_id=operation_id,
+                )
+            else:
+                raise ValueError(f"Unsupported tool: {name}")
         except Exception as exc:
             return {"status": "error", "error": f"{type(exc).__name__}: {error_message(exc)}"}
+        # Strategy failures terminate the case; they are not ordinary tool errors
+        # from which the model can silently continue as an unmodified baseline.
+        return self.strategy.project(name, result) if self.strategy is not None else result
 
     def run(self, brief: str) -> dict[str, Any]:
         if (self.output / "proposal.json").exists() or (self.output / "pipeline.json").exists():
             raise ValueError(
                 "Discovery output already contains a proposal; choose a new output directory"
             )
+        self.register_start(brief)
         write_json(
             self.output / "request.json",
             {
@@ -356,30 +336,76 @@ class Discovery:
                 "model": self.model,
                 "started_at": timestamp(),
                 "max_rounds": self.max_rounds,
+                "search": self.search_config,
+                **self.execution_config,
             },
         )
         history: list[Any] = [{"role": "user", "content": brief}]
-        instructions = (
-            INSTRUCTIONS
-            + "\nConnector catalog:\n"
+        instructions = self.instructions
+        if self.execution_config["instructions_source"] == "provided":
+            instructions += "\nDirect runtime mechanics:\n" + (
+                "Use web_search to search for sources. "
+                if self.search_provider is None
+                else "Use search_sources through the configured provider to search for sources. "
+            )
+            instructions += (
+                "Use inspect_url to inspect responses and probe_source to test an exact SourceSpec. "
+                "Finish with the structured ProposalDraft response. Application validation feedback permits repair.\n"
+            )
+        instructions += (
+            "\nConnector catalog:\n"
             + canonical_json(CONNECTOR_CATALOG)
             + "\nSourceSpec schema:\n"
             + canonical_json(SourceSpec.model_json_schema())
         )
         try:
             for round_number in range(1, self.max_rounds + 1):
-                self.event({"event": "model_request", "round": round_number})
+                if self.strategy is not None:
+                    self.strategy.assert_ready()
+                context = self.service.get_context()
+                if self.backend.clock() >= parse_timestamp(context["deadline_at"]):
+                    raise RuntimeError("Discovery deadline exceeded before model request")
+                remaining = context["remaining"]
+                round_tools = [tool for tool in TOOLS if tool["type"] != "web_search"]
+                if remaining["search"] > 0:
+                    round_tools.insert(
+                        0, {"type": "web_search"} if self.search_provider is None else SEARCH_TOOL
+                    )
+                round_instructions = (
+                    instructions
+                    + "\nRemaining operation budgets:\n"
+                    + canonical_json(remaining)
+                    + "\nWhen a budget is exhausted, finish using saved evidence and state any gaps."
+                )
+                model_settings = {
+                    **self.model_settings,
+                    "store": False,
+                    "include": ["reasoning.encrypted_content"]
+                    + (["web_search_call.action.sources"] if self.search_provider is None else []),
+                }
+                if self.search_provider is None:
+                    model_settings["max_tool_calls"] = max(1, min(6, remaining["search"]))
+                self.event(
+                    {
+                        "event": "model_request",
+                        "round": round_number,
+                        "model": self.model,
+                        "instructions": round_instructions,
+                        "input": history,
+                        "tools": round_tools,
+                        "response_schema": ProposalDraft.model_json_schema(),
+                        "model_settings": model_settings,
+                        "omitted_model_settings": self.execution_config["omitted_model_settings"],
+                        "instructions_sha256": self.execution_config["instructions_sha256"],
+                    }
+                )
                 response = self.client.responses.parse(
                     model=self.model,
-                    instructions=instructions,
+                    instructions=round_instructions,
                     input=history,
-                    tools=TOOLS,
+                    tools=round_tools,
                     text_format=ProposalDraft,
-                    max_output_tokens=6000,
-                    max_tool_calls=6,
-                    parallel_tool_calls=False,
-                    store=False,
-                    include=["web_search_call.action.sources", "reasoning.encrypted_content"],
+                    **model_settings,
                 )
                 if response.usage:
                     self.usage["input_tokens"] += response.usage.input_tokens
@@ -404,22 +430,39 @@ class Discovery:
                 calls = []
                 for item in response.output:
                     if item.type == "web_search_call":
-                        self.searches += 1
-                        data = item.model_dump(mode="json")
-                        for source in (data.get("action") or {}).get("sources") or []:
-                            if source.get("url"):
-                                self.observed_urls.add(source["url"])
-                    if item.type == "message":
-                        for content in item.content:
-                            for annotation in getattr(content, "annotations", []):
-                                if getattr(annotation, "type", None) == "url_citation":
-                                    self.observed_urls.add(annotation.url)
+                        if self.search_provider is not None:
+                            self.event(
+                                {"event": "native_search_rejected", "response_id": response.id}
+                            )
+                            history.append(
+                                {
+                                    "role": "user",
+                                    "content": "Native web_search is disabled and establishes no evidence. Use search_sources through the configured provider.",
+                                }
+                            )
+                            continue
+                        try:
+                            self.service.record_search(
+                                item.model_dump(mode="json"),
+                                provider="openai-native",
+                                operation_id=f"search:{response.id}:{item.id}",
+                            )
+                        except ValueError as exc:
+                            self.event({"event": "native_search_failed", "error": str(exc)})
+                            history.append(
+                                {
+                                    "role": "user",
+                                    "content": "Native search did not establish evidence: "
+                                    + str(exc)
+                                    + ". Retry within the remaining budget or use previously saved evidence.",
+                                }
+                            )
                     if item.type == "function_call":
                         calls.append(item)
                 if calls:
                     for call in calls:
                         self.event({"event": "tool_start", "tool": call.name})
-                        result = self.tool(call.name, call.arguments)
+                        result = self.tool(call.name, call.arguments, operation_id=call.call_id)
                         self.event(
                             {
                                 "event": "tool_result",
@@ -440,52 +483,39 @@ class Discovery:
                 try:
                     if draft is None:
                         raise ValueError("No structured proposal returned")
-                    if self.searches == 0:
-                        raise ValueError(
-                            "Use web_search to discover current sources before submitting"
+                    with self.strategy.guard() if self.strategy is not None else nullcontext():
+                        result = self.service.submit_proposal(
+                            draft,
+                            operation_id=f"proposal:{response.id}",
+                            usage=self.usage,
                         )
-                    pipeline, gaps = compile_proposal(draft, self.probes, self.observed_urls)
                 except ValueError as exc:
-                    self.event({"event": "proposal_validation_failed", "error": str(exc)})
+                    error = str(exc)
+                    if self.search_provider is not None:
+                        error = error.replace("web_search", "search_sources")
+                    self.event({"event": "proposal_validation_failed", "error": error})
                     history.append(
                         {
                             "role": "user",
                             "content": "Application validation rejected the draft. Repair it using this feedback: "
-                            + str(exc),
+                            + error,
                         }
                     )
                     continue
-                status = (
-                    "proposed"
-                    if pipeline and not gaps
-                    else "proposed_with_gaps"
-                    if pipeline
-                    else "research_only"
+                self.event(
+                    {
+                        "event": "discovery_complete",
+                        "status": result["status"],
+                        **result["registry"],
+                    }
                 )
-                result = {
-                    "status": status,
-                    "created_at": timestamp(),
-                    "model": self.model,
-                    "usage": self.usage,
-                    "web_search_calls": self.searches,
-                    "proposal": draft.model_dump(mode="json"),
-                    "uncovered_required_needs": gaps,
-                    "verified_source_count": len(pipeline.sources) if pipeline else 0,
-                    "observed_urls": sorted(self.observed_urls),
-                }
-                write_json(self.output / "proposal.json", result)
-                from research_harness.util import atomic_write
-
-                atomic_write(self.output / "proposal.md", render_proposal(draft, gaps))
-                if pipeline:
-                    write_json(self.output / "pipeline.json", pipeline.model_dump(mode="json"))
-                self.event({"event": "discovery_complete", "status": status})
                 return {
                     "output": str(self.output),
-                    "status": status,
+                    "status": result["status"],
                     "verified_sources": result["verified_source_count"],
-                    "uncovered_required_needs": gaps,
+                    "uncovered_required_needs": result["uncovered_required_needs"],
                     "usage": self.usage,
+                    "registry": result["registry"],
                 }
             raise RuntimeError(
                 "Discovery reached its round limit without a validated proposal; evidence and trace are saved"
@@ -500,12 +530,37 @@ class Discovery:
                     "at": timestamp(),
                 },
             )
+            self.register_failure(exc)
             raise
 
 
 def discover(
-    brief: str, output: Path, model: str | None = None, max_rounds: int = 16, progress: Any = None
+    brief: str,
+    output: Path,
+    model: str | None = None,
+    max_rounds: int | None = None,
+    progress: Any = None,
+    *,
+    search_provider: str = "native",
+    search_endpoint: str | None = None,
+    settings: DiscoverySettings | None = None,
+    instructions: str | None = None,
+    strategy: StrategySession | None = None,
 ) -> dict[str, Any]:
+    validate_execution_options(settings, instructions, max_rounds=max_rounds)
+    if search_provider not in {"native", "mcp"}:
+        raise ValueError("Search provider must be native or mcp")
+    if search_provider == "native" and search_endpoint is not None:
+        raise ValueError("--search-endpoint requires --search-provider mcp")
+    provider = None
+    if search_provider == "mcp":
+        provider = (
+            McpSearchProvider(search_endpoint)
+            if search_endpoint is not None
+            else McpSearchProvider()
+        )
+        if find_spec("mcp") is None:
+            raise ValueError("Install the MCP extra: uv sync --extra mcp")
     if not os.environ.get("OPENAI_API_KEY"):
         raise ValueError(
             "Set OPENAI_API_KEY in your shell to run source discovery. No key is required for rh run, probe, replay, or export."
@@ -517,4 +572,8 @@ def discover(
             model=model or os.environ.get("OPENAI_MODEL", "gpt-5.4-mini"),
             max_rounds=max_rounds,
             progress=progress,
+            search_provider=provider,
+            settings=settings,
+            instructions=instructions,
+            strategy=strategy,
         ).run(brief)

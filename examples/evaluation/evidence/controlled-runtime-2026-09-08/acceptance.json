@@ -1,0 +1,238 @@
+{
+  "schema_version": 1,
+  "execution": "fixture",
+  "paid_calls": false,
+  "source_network": false,
+  "fixture_program_sha256": {
+    "examples/evaluation/controlled_runtime_fixture.py": "806832959f6fdb4aa8397aa69eb72ecf60596a1d2cbfe24ff091012634078e0c",
+    "examples/omnigent/normal_runtime_fixture.py": "011fc9fa6fd2d7763da26feed8fc15732867a6f8ea19b3a69bfd3431c71a339f"
+  },
+  "benchmark_sha256": "9a74b449e71576faa6cf2e719ffc8ddf05eb58e47f1a157119411ef4e5fdd365",
+  "fixed_controls": {
+    "execution": "fixture",
+    "model": "gpt-5.4-mini",
+    "model_settings": {
+      "max_output_tokens": 6000,
+      "reasoning": {
+        "effort": "none"
+      }
+    },
+    "provider": "authored-development-fixtures",
+    "provider_settings": {
+      "mode": "authored-fixtures",
+      "external_source_network": false
+    },
+    "budgets": {
+      "search": 8,
+      "inspection": 16,
+      "probe": 12,
+      "deadline_seconds": 600,
+      "model_rounds": 8,
+      "max_output_tokens": 6000
+    },
+    "fixture_sha256": "cc64e5825582c8219a5f714baab940d07a0ed9c3fc9c2dccc6dcd7168d92b21f",
+    "strategy_sha256": "906cbefdce59bd40ae36f047980346d8f8212d526d5f19cdfa9101b2e82ad668",
+    "backend_sha256": "d7bddb02043674ca244c8d1627d136dd2532d9a3b5690f34de4a6e066b44fa8a"
+  },
+  "arms": [
+    {
+      "name": "direct",
+      "summary": {
+        "cases": 1,
+        "correctness": {
+          "scope": "artifact_consistency_and_sampled_source_evidence",
+          "valid": 1,
+          "invalid": 0,
+          "execution_failed": 0,
+          "artifact_error": 0,
+          "unmeasured": [
+            "complete_collection",
+            "publication_cutoffs",
+            "recovery",
+            "citation_entailment"
+          ]
+        },
+        "usefulness": {
+          "scope": "independent_source_predicates",
+          "macro_quality": 1.0,
+          "macro_requirement_recall": 1.0,
+          "macro_source_precision": 1.0,
+          "qualitative_review": "not_measured"
+        },
+        "efficiency": {
+          "model_tokens": {
+            "known_runs": 1,
+            "unknown_runs": 0,
+            "known_subtotal": 440,
+            "total": 440
+          },
+          "completed_token_lower_bounds": {
+            "known_runs": 1,
+            "unknown_runs": 0,
+            "known_subtotal": 440,
+            "total": 440
+          },
+          "elapsed_seconds": {
+            "known_runs": 1,
+            "unknown_runs": 0,
+            "known_subtotal": 0.8908486249993075,
+            "total": 0.8908486249993075
+          },
+          "model_cost_usd": {
+            "known_runs": 0,
+            "unknown_runs": 1,
+            "known_subtotal": 0,
+            "total": null
+          },
+          "provider_cost_usd": {
+            "known_runs": 0,
+            "unknown_runs": 1,
+            "known_subtotal": 0,
+            "total": null
+          }
+        }
+      }
+    },
+    {
+      "name": "omnigent",
+      "summary": {
+        "cases": 1,
+        "correctness": {
+          "scope": "artifact_consistency_and_sampled_source_evidence",
+          "valid": 1,
+          "invalid": 0,
+          "execution_failed": 0,
+          "artifact_error": 0,
+          "unmeasured": [
+            "complete_collection",
+            "publication_cutoffs",
+            "recovery",
+            "citation_entailment"
+          ]
+        },
+        "usefulness": {
+          "scope": "independent_source_predicates",
+          "macro_quality": 1.0,
+          "macro_requirement_recall": 1.0,
+          "macro_source_precision": 1.0,
+          "qualitative_review": "not_measured"
+        },
+        "efficiency": {
+          "model_tokens": {
+            "known_runs": 0,
+            "unknown_runs": 1,
+            "known_subtotal": 0,
+            "total": null
+          },
+          "completed_token_lower_bounds": {
+            "known_runs": 1,
+            "unknown_runs": 0,
+            "known_subtotal": 770,
+            "total": 770
+          },
+          "elapsed_seconds": {
+            "known_runs": 1,
+            "unknown_runs": 0,
+            "known_subtotal": 32.510581374999674,
+            "total": 32.510581374999674
+          },
+          "model_cost_usd": {
+            "known_runs": 0,
+            "unknown_runs": 1,
+            "known_subtotal": 0,
+            "total": null
+          },
+          "provider_cost_usd": {
+            "known_runs": 0,
+            "unknown_runs": 1,
+            "known_subtotal": 0,
+            "total": null
+          }
+        }
+      }
+    }
+  ],
+  "gateways": {
+    "direct": {
+      "schema_version": 1,
+      "adapter": "controlled-responses-gateway",
+      "model": "gpt-5.4-mini",
+      "started_at": "2026-09-08T19:39:55.902580Z",
+      "closed": true,
+      "upstream_requests": 4,
+      "reserved_attempts": 4,
+      "max_rounds": 8,
+      "deadline_seconds": 600,
+      "complete": true,
+      "auxiliary_usage_unknown": false,
+      "interrupted": false,
+      "totals": {
+        "input_tokens": 400,
+        "output_tokens": 40,
+        "total_tokens": 440
+      },
+      "cost_usd": null,
+      "denials": []
+    },
+    "omnigent": {
+      "schema_version": 1,
+      "adapter": "controlled-responses-gateway",
+      "model": "gpt-5.4-mini",
+      "started_at": "2026-09-08T19:40:00.315320Z",
+      "closed": true,
+      "upstream_requests": 7,
+      "reserved_attempts": 7,
+      "max_rounds": 8,
+      "deadline_seconds": 600,
+      "complete": true,
+      "auxiliary_usage_unknown": false,
+      "interrupted": false,
+      "totals": {
+        "input_tokens": 700,
+        "output_tokens": 70,
+        "total_tokens": 770
+      },
+      "cost_usd": null,
+      "denials": [
+        {
+          "id": "request-0008",
+          "reason": "unsupported_auxiliary_endpoint"
+        },
+        {
+          "id": "request-0009",
+          "reason": "unsupported_auxiliary_endpoint"
+        },
+        {
+          "id": "request-0010",
+          "reason": "unsupported_auxiliary_endpoint"
+        },
+        {
+          "id": "request-0011",
+          "reason": "unsupported_auxiliary_endpoint"
+        },
+        {
+          "id": "request-0012",
+          "reason": "unsupported_auxiliary_endpoint"
+        },
+        {
+          "id": "request-0013",
+          "reason": "unsupported_auxiliary_endpoint"
+        },
+        {
+          "id": "request-0014",
+          "reason": "unsupported_auxiliary_endpoint"
+        },
+        {
+          "id": "request-0015",
+          "reason": "unsupported_auxiliary_endpoint"
+        }
+      ]
+    }
+  },
+  "report_sha256": "13f16b990858b06e033a49251350e4b10cee22062e1dbab39bf61ae93f4acd8e",
+  "limitations": [
+    "Deterministic model response policies; no model-quality or cost conclusion",
+    "Discovery-only fixture; workflow dimensions remain unmeasured",
+    "Dollar totals remain unknown; request limits are not a billing cap"
+  ]
+}

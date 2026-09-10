@@ -1,0 +1,70 @@
+{
+  "id": "filing-stable-accession",
+  "title": "Stable filing identities",
+  "brief": "Track filings using stable accession ids, form type, and filed date. Row numbers in a reordered index must not become filing identity.",
+  "topic_group": "company-filings",
+  "source_families": [
+    "filings-registry"
+  ],
+  "tags": [
+    "stable-identity",
+    "required-fields"
+  ],
+  "review_status": "authored",
+  "review_notes": "Authored development contract, not independently human-reviewed. Endpoints, records, and search ordering are synthetic.",
+  "specification": {
+    "requirements": [
+      {
+        "id": "stable-filings",
+        "weight": 1,
+        "any_of": [
+          {
+            "url": "https://filings-registry.fixture.example/index.json",
+            "connector": "json",
+            "id_pointer": "/accession",
+            "required_pointers": [
+              "/form",
+              "/filed_at"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "fixtures": {
+    "path": "fixtures/filing-stable-accession.json",
+    "sha256": "f32c8a1b6aec18089344ef50dc6737b6c93d8e269ebf25dc898a8a38edbf0c35"
+  },
+  "sources": [
+    {
+      "id": "row-number-id",
+      "name": "Row Number Id",
+      "connector": "json",
+      "url": "https://filings-registry.fixture.example/index.json",
+      "items_pointer": "/items",
+      "id_pointer": "/row"
+    },
+    {
+      "id": "accession-id",
+      "name": "Accession Id",
+      "connector": "json",
+      "url": "https://filings-registry.fixture.example/index.json",
+      "items_pointer": "/items",
+      "id_pointer": "/accession",
+      "required_pointers": [
+        "/form",
+        "/filed_at"
+      ]
+    }
+  ],
+  "fixture_plan": {
+    "source_ids": [
+      "accession-id"
+    ],
+    "unsupported": []
+  },
+  "manual_checks": [
+    "Review relevance and whether the source scope answers the full brief.",
+    "Confirm the proposal states sample, history, and freshness limitations without inventing access."
+  ]
+}

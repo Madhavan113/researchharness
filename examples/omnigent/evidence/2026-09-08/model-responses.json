@@ -1,0 +1,141 @@
+[
+  {
+    "id": "resp_fixture_1",
+    "object": "response",
+    "created_at": 1788825600,
+    "status": "completed",
+    "model": "gpt-5.4-mini",
+    "output": [
+      {
+        "type": "function_call",
+        "id": "fc_fixture_1",
+        "call_id": "call_fixture_1",
+        "name": "research_fixture__fixture_probe",
+        "arguments": "{\"operation_id\": \"fixture-operation-001\", \"source\": {\"url\": \"https://fixture.invalid/policy?limit=2&country=US\", \"connector\": \"json\", \"labels\": [\"trade policy\", \"\\u7f8e\\u56fd\", \"quotes: \\\"preserved\\\"\"], \"options\": {\"items_path\": \"data.items\", \"literal\": \"${not-expanded}\"}}}",
+        "status": "completed"
+      }
+    ],
+    "parallel_tool_calls": false,
+    "tool_choice": "auto",
+    "tools": [],
+    "usage": {
+      "input_tokens": 100,
+      "input_tokens_details": {
+        "cached_tokens": 20
+      },
+      "output_tokens": 10,
+      "output_tokens_details": {
+        "reasoning_tokens": 0
+      },
+      "total_tokens": 110
+    }
+  },
+  {
+    "id": "resp_fixture_2",
+    "object": "response",
+    "created_at": 1788825600,
+    "status": "completed",
+    "model": "gpt-5.4-mini",
+    "output": [
+      {
+        "type": "message",
+        "id": "msg_fixture_2",
+        "role": "assistant",
+        "status": "completed",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "Saved fixture-evidence-001",
+            "annotations": []
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "tool_choice": "auto",
+    "tools": [],
+    "usage": {
+      "input_tokens": 100,
+      "input_tokens_details": {
+        "cached_tokens": 20
+      },
+      "output_tokens": 10,
+      "output_tokens_details": {
+        "reasoning_tokens": 0
+      },
+      "total_tokens": 110
+    }
+  },
+  {
+    "id": "resp_fixture_3",
+    "object": "response",
+    "created_at": 1788825600,
+    "status": "completed",
+    "model": "gpt-5.4-mini",
+    "output": [
+      {
+        "type": "message",
+        "id": "msg_fixture_3",
+        "role": "assistant",
+        "status": "completed",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "Reopened fixture-evidence-001",
+            "annotations": []
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "tool_choice": "auto",
+    "tools": [],
+    "usage": {
+      "input_tokens": 100,
+      "input_tokens_details": {
+        "cached_tokens": 20
+      },
+      "output_tokens": 10,
+      "output_tokens_details": {
+        "reasoning_tokens": 0
+      },
+      "total_tokens": 110
+    }
+  },
+  {
+    "id": "resp_fixture_4",
+    "object": "response",
+    "created_at": 1788825600,
+    "status": "completed",
+    "model": "gpt-5.4-mini",
+    "output": [
+      {
+        "type": "message",
+        "id": "msg_fixture_4",
+        "role": "assistant",
+        "status": "completed",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "Reopened fixture-evidence-001",
+            "annotations": []
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "tool_choice": "auto",
+    "tools": [],
+    "usage": {
+      "input_tokens": 100,
+      "input_tokens_details": {
+        "cached_tokens": 20
+      },
+      "output_tokens": 10,
+      "output_tokens_details": {
+        "reasoning_tokens": 0
+      },
+      "total_tokens": 110
+    }
+  }
+]

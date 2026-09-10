@@ -1,0 +1,31 @@
+{
+  "authorship": "Synthetic fixture authored by Codex; no live source was sampled",
+  "search_results": [
+    {
+      "url": "https://legislature.fixture.example/bills.json",
+      "title": "Authored search result"
+    },
+    {
+      "url": "https://legislature.fixture.example/roll-call.pdf",
+      "title": "Authored search result"
+    }
+  ],
+  "responses": [
+    {
+      "url": "https://legislature.fixture.example/bills.json",
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "synthetic": true,
+        "items": [
+          {
+            "id": "bill-1",
+            "status": "committee"
+          }
+        ]
+      }
+    }
+  ]
+}

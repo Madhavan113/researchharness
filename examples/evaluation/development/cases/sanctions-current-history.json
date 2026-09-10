@@ -1,0 +1,70 @@
+{
+  "id": "sanctions-current-history",
+  "title": "Sanctions changes and history",
+  "brief": "Track new sanctions changes and reconstruct the designated-party list as it stood each month in 2020. Keep current update coverage separate from unavailable point-in-time history.",
+  "topic_group": "sanctions",
+  "source_families": [
+    "sanctions-office"
+  ],
+  "tags": [
+    "rss",
+    "historical-gap",
+    "partial-coverage"
+  ],
+  "review_status": "authored",
+  "review_notes": "Authored development contract, not independently human-reviewed. Endpoints, records, and search ordering are synthetic.",
+  "specification": {
+    "requirements": [
+      {
+        "id": "current-updates",
+        "weight": 1,
+        "any_of": [
+          {
+            "url": "https://sanctions-office.fixture.example/updates.xml",
+            "connector": "rss"
+          }
+        ]
+      },
+      {
+        "id": "historical-designations",
+        "weight": 2,
+        "any_of": [
+          {
+            "url": "https://sanctions-office.fixture.example/historical-designations.json",
+            "connector": "json",
+            "published_pointer": "/effective_at"
+          }
+        ]
+      }
+    ]
+  },
+  "fixtures": {
+    "path": "fixtures/sanctions-current-history.json",
+    "sha256": "b73fd2fb660aa76cd662325b534eb0ff8884b79e612ad6fc1600725cb4df315d"
+  },
+  "sources": [
+    {
+      "id": "sanctions-updates",
+      "name": "Sanctions update feed",
+      "connector": "rss",
+      "url": "https://sanctions-office.fixture.example/updates.xml"
+    }
+  ],
+  "fixture_plan": {
+    "source_ids": [
+      "sanctions-updates"
+    ],
+    "unsupported": [
+      {
+        "name": "Historical designation snapshots",
+        "url": "https://sanctions-office.fixture.example/historical-designations.json",
+        "status": "needs_access",
+        "limitation": "Current RSS entries do not reconstruct old point-in-time designation lists."
+      }
+    ]
+  },
+  "manual_checks": [
+    "Review relevance and whether the source scope answers the full brief.",
+    "Confirm the proposal states sample, history, and freshness limitations without inventing access."
+  ]
+}

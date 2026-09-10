@@ -1,0 +1,151 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "paid_calls": 0,
+  "actual_omnigent_pin": "be042b390e293a8d586cbb7e403a2ce0ce38fc62",
+  "actual_strategy_image": "python@sha256:9d2e5553305c7c7b0097999bb17187c69b921ccd6bc9d40e4bb5ebe652c00285",
+  "iterations": 3,
+  "candidates_per_iteration": 2,
+  "combined_actual_omnigent_search_verified": true,
+  "model_measurement": false,
+  "coding_proposer": {
+    "attempts": [
+      {
+        "iteration": 1,
+        "binding_verified": true,
+        "sealed_files": 133,
+        "requests": 9,
+        "synthetic_tokens": 990,
+        "generated_program_executions": 1,
+        "feedback_files": 339
+      },
+      {
+        "iteration": 2,
+        "binding_verified": true,
+        "sealed_files": 133,
+        "requests": 9,
+        "synthetic_tokens": 990,
+        "generated_program_executions": 1,
+        "feedback_files": 1157
+      },
+      {
+        "iteration": 3,
+        "binding_verified": true,
+        "sealed_files": 133,
+        "requests": 9,
+        "synthetic_tokens": 990,
+        "generated_program_executions": 1,
+        "feedback_files": 1975
+      }
+    ],
+    "requests": 27,
+    "synthetic_tokens": 2970
+  },
+  "development": {
+    "evaluations": [
+      {
+        "phase": "development",
+        "case_id": "search-transit-notices",
+        "output": "search/comparisons/baseline/omnigent/cases/search-transit-notices",
+        "strategy_sha256": "8fc61dde3267f416ef3d064735097d0d9e931a0baa0c8efaa11deeec24c5570e",
+        "provider_requests": 7,
+        "synthetic_tokens": 770,
+        "strategy_executions": 10,
+        "execution_verified_as_model": false
+      },
+      {
+        "phase": "development",
+        "case_id": "search-transit-notices",
+        "output": "search/comparisons/candidate-0001-01/omnigent/cases/search-transit-notices",
+        "strategy_sha256": "4b48826a7f0fbe94076ae80af04fe5ed8aed6c938be314ca33c431ac789ed214",
+        "provider_requests": 7,
+        "synthetic_tokens": 770,
+        "strategy_executions": 10,
+        "execution_verified_as_model": false
+      },
+      {
+        "phase": "development",
+        "case_id": "search-transit-notices",
+        "output": "search/comparisons/candidate-0001-02/omnigent/cases/search-transit-notices",
+        "strategy_sha256": "57621b36e4f7fd4a4620124ca4aa9f8121212ee9f373972e2a12696d3bb9a595",
+        "provider_requests": 7,
+        "synthetic_tokens": 770,
+        "strategy_executions": 10,
+        "execution_verified_as_model": false
+      },
+      {
+        "phase": "development",
+        "case_id": "search-transit-notices",
+        "output": "search/comparisons/candidate-0002-01/omnigent/cases/search-transit-notices",
+        "strategy_sha256": "0d7dc4a0a418ee02b73576f4de654ec4cea71d1482c7e4f9dc74647520380cf9",
+        "provider_requests": 7,
+        "synthetic_tokens": 770,
+        "strategy_executions": 10,
+        "execution_verified_as_model": false
+      },
+      {
+        "phase": "development",
+        "case_id": "search-transit-notices",
+        "output": "search/comparisons/candidate-0002-02/omnigent/cases/search-transit-notices",
+        "strategy_sha256": "02a04bba4c197ec0d1504466595717bd457f85b41a919a96c4e324d08b52a531",
+        "provider_requests": 7,
+        "synthetic_tokens": 770,
+        "strategy_executions": 10,
+        "execution_verified_as_model": false
+      },
+      {
+        "phase": "development",
+        "case_id": "search-transit-notices",
+        "output": "search/comparisons/candidate-0003-01/omnigent/cases/search-transit-notices",
+        "strategy_sha256": "25da495fc79fb89e3ea3b6aad23123020c023332727aa631227b80b4a62539eb",
+        "provider_requests": 7,
+        "synthetic_tokens": 770,
+        "strategy_executions": 10,
+        "execution_verified_as_model": false
+      },
+      {
+        "phase": "development",
+        "case_id": "search-transit-notices",
+        "output": "search/comparisons/candidate-0003-02/omnigent/cases/search-transit-notices",
+        "strategy_sha256": "99e5bb352329f3e39c82c14f51b782cb83f6af872691b5c5bf6981700cf53b91",
+        "provider_requests": 7,
+        "synthetic_tokens": 770,
+        "strategy_executions": 10,
+        "execution_verified_as_model": false
+      }
+    ],
+    "all_quality_scores": 1.0,
+    "all_token_counts": 770,
+    "selected_candidates_including_baseline": 7
+  },
+  "private_final": {
+    "evaluations": 7,
+    "distinct_authored_cases": 1,
+    "requests": 49,
+    "synthetic_tokens": 5390,
+    "strategy_executions": 70,
+    "all_quality_scores": 1.0,
+    "execution_verified_as_model": false,
+    "raw_contents_published": false
+  },
+  "total_synthetic_model_requests": 125,
+  "total_synthetic_tokens": 13750,
+  "actual_docker_executions": {
+    "research_strategies": 140,
+    "public_interface_checks": 14,
+    "generated_proposer_programs": 3,
+    "total": 157
+  },
+  "selection_frozen_before_final": true,
+  "proposer_revoked_before_final": true,
+  "final_retries_did_not_execute": true,
+  "private_final_absent_from_proposer_files": true,
+  "raw_acceptance_sha256": "41e47ec532df561f59ac3af2f2f46dc674421ebe30c9480a83d2d5f79f7f16ce",
+  "limitations": [
+    "All model responses and source payloads are authored fixtures. Passing scores and fixed token counts do not measure model quality, billing or optimization gains.",
+    "The one-case final runtime fixture is separate from the private ten-case benchmark draft. All benchmark cases still require independent human review.",
+    "Final package/execution contents and native runtime account/session credentials are excluded. Complete originals remain in the local run directory.",
+    "checkpoint-source and host-metadata are reviewer artifacts, never proposer feedback.",
+    "Human review, live provider configuration, the pending spending decision and measured baseline/search/final runs remain open."
+  ]
+}

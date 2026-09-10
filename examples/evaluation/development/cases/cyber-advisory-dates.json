@@ -1,0 +1,64 @@
+{
+  "id": "cyber-advisory-dates",
+  "title": "Advisory release versus amendment",
+  "brief": "Monitor cybersecurity advisories while distinguishing the original publication date from later amendments. Preserve identity across updates.",
+  "topic_group": "cyber-advisories",
+  "source_families": [
+    "cyber-office"
+  ],
+  "tags": [
+    "timestamps",
+    "revisions"
+  ],
+  "review_status": "authored",
+  "review_notes": "Authored development contract, not independently human-reviewed. Endpoints, records, and search ordering are synthetic.",
+  "specification": {
+    "requirements": [
+      {
+        "id": "original-release-date",
+        "weight": 1,
+        "any_of": [
+          {
+            "url": "https://cyber-office.fixture.example/advisories.json",
+            "connector": "json",
+            "published_pointer": "/datePublished"
+          }
+        ]
+      }
+    ]
+  },
+  "fixtures": {
+    "path": "fixtures/cyber-advisory-dates.json",
+    "sha256": "2677cbc54d4d8e37276909822ecf7051a0ba39a8be8edf3662a975005386a75b"
+  },
+  "sources": [
+    {
+      "id": "modified-as-published",
+      "name": "Modified As Published",
+      "connector": "json",
+      "url": "https://cyber-office.fixture.example/advisories.json",
+      "items_pointer": "/items",
+      "id_pointer": "/id",
+      "published_pointer": "/lastModified"
+    },
+    {
+      "id": "original-publication",
+      "name": "Original Publication",
+      "connector": "json",
+      "url": "https://cyber-office.fixture.example/advisories.json",
+      "items_pointer": "/items",
+      "id_pointer": "/id",
+      "published_pointer": "/datePublished"
+    }
+  ],
+  "fixture_plan": {
+    "source_ids": [
+      "original-publication"
+    ],
+    "unsupported": []
+  },
+  "manual_checks": [
+    "Review relevance and whether the source scope answers the full brief.",
+    "Confirm the proposal states sample, history, and freshness limitations without inventing access."
+  ]
+}

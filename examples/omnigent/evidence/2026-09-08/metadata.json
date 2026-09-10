@@ -1,0 +1,27 @@
+{
+  "evidence_type": "real-runtime-offline-model-fixture",
+  "omnigent_commit": "be042b390e293a8d586cbb7e403a2ce0ce38fc62",
+  "python": "3.13.12",
+  "platform": "macOS-26.5-arm64-arm-64bit-Mach-O",
+  "model": "gpt-5.4-mini",
+  "adapter": "openai-agents",
+  "paid_model_calls": 0,
+  "ui_verified": false,
+  "upstream_lock_sha256": "7b93050f6154be735ee66cdef7f3a014a66d1501173584a0f83fe016bcb78cdb",
+  "source_sha256": {
+    "compatibility.py": "01524d3ba6d3305ce6577e9be33a78b813a7f0a94fa5ad5c10266f6253def17b",
+    "fixture_server.py": "9b27cf286ca0437014b3a7abda716ef42446bd30a2b0356ae02b418c64518e75",
+    "compatibility-agent/config.yaml": "2ad0efeec5fce9a367e0e35de77e2ad6bec3819c100aa60c4348936f822405c8",
+    "compatibility-agent/instructions.md": "96f6e3608b7b89bdf645270faa79a767ccb77f0e996d3e44464e3c2f3470f3dd"
+  },
+  "packages": {
+    "omnigent": "0.13.0.dev0",
+    "omnigent-client": "0.13.0.dev0",
+    "omnigent-ui-sdk": "0.13.0.dev0",
+    "openai": "2.41.0",
+    "openai-agents": "0.13.6",
+    "mcp": "1.28.1",
+    "httpx": "0.28.1"
+  },
+  "checks_passed": 10
+}

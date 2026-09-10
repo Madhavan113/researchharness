@@ -1,0 +1,1911 @@
+{
+  "schema_version": 1,
+  "benchmark_id": "controlled-runtime-acceptance",
+  "benchmark_sha256": "9a74b449e71576faa6cf2e719ffc8ddf05eb58e47f1a157119411ef4e5fdd365",
+  "split": "development",
+  "review_status_counts": {
+    "authored": 1,
+    "reviewed": 0
+  },
+  "comparison_axis": "runtime",
+  "fixed_controls": {
+    "execution": "fixture",
+    "model": "gpt-5.4-mini",
+    "model_settings": {
+      "max_output_tokens": 6000,
+      "reasoning": {
+        "effort": "none"
+      },
+      "service_tier": "default"
+    },
+    "budget_control": {
+      "schema_version": 1,
+      "policy": {
+        "mode": "fixture",
+        "upstream_base_url": "https://fixture.invalid/v1",
+        "model": "gpt-5.4-mini",
+        "service_tier": "default"
+      },
+      "rates": {
+        "model": "gpt-5.4-mini",
+        "snapshot": "gpt-5.4-mini",
+        "input_usd_per_million": "0.75",
+        "output_usd_per_million": "4.5",
+        "max_input_tokens_per_request": 400000,
+        "price_source_url": "https://developers.openai.com/api/docs/models/gpt-5.4-mini",
+        "price_as_of": "2026-09-08"
+      },
+      "rates_sha256": "ff87b946f81b3902381bcba9c0d6d9146737beaae23840166411bd83100bf25d",
+      "ceiling_nanodollars": 10000000000,
+      "authorization": {
+        "status": "draft",
+        "reference": null
+      },
+      "authorization_is_dispatch_permission": false,
+      "input_bound": {
+        "method": "fixture_host_bound",
+        "max_input_tokens": 400000,
+        "locally_tokenized": false
+      }
+    },
+    "provider": "authored-development-fixtures",
+    "provider_settings": {
+      "mode": "authored-fixtures",
+      "external_source_network": false
+    },
+    "budgets": {
+      "search": 8,
+      "inspection": 16,
+      "probe": 12,
+      "deadline_seconds": 600,
+      "model_rounds": 8,
+      "max_output_tokens": 6000
+    },
+    "fixture_sha256": "cc64e5825582c8219a5f714baab940d07a0ed9c3fc9c2dccc6dcd7168d92b21f",
+    "strategy_sha256": "906cbefdce59bd40ae36f047980346d8f8212d526d5f19cdfa9101b2e82ad668",
+    "backend_sha256": "3d7859b11bc84bd949f427a0d92dd96827f54b4883f276978341765e6485ce13"
+  },
+  "arms": [
+    {
+      "name": "direct",
+      "manifest_sha256": "dcd6395ed81e9ca3da05ddf186b4bceccbd625b500df3f1ae084d215c2521464",
+      "controls": {
+        "execution": "fixture",
+        "runtime": "direct-controlled-responses",
+        "model": "gpt-5.4-mini",
+        "model_settings": {
+          "max_output_tokens": 6000,
+          "reasoning": {
+            "effort": "none"
+          },
+          "service_tier": "default"
+        },
+        "budget_control": {
+          "schema_version": 1,
+          "policy": {
+            "mode": "fixture",
+            "upstream_base_url": "https://fixture.invalid/v1",
+            "model": "gpt-5.4-mini",
+            "service_tier": "default"
+          },
+          "rates": {
+            "model": "gpt-5.4-mini",
+            "snapshot": "gpt-5.4-mini",
+            "input_usd_per_million": "0.75",
+            "output_usd_per_million": "4.5",
+            "max_input_tokens_per_request": 400000,
+            "price_source_url": "https://developers.openai.com/api/docs/models/gpt-5.4-mini",
+            "price_as_of": "2026-09-08"
+          },
+          "rates_sha256": "ff87b946f81b3902381bcba9c0d6d9146737beaae23840166411bd83100bf25d",
+          "ceiling_nanodollars": 10000000000,
+          "authorization": {
+            "status": "draft",
+            "reference": null
+          },
+          "authorization_is_dispatch_permission": false,
+          "input_bound": {
+            "method": "fixture_host_bound",
+            "max_input_tokens": 400000,
+            "locally_tokenized": false
+          }
+        },
+        "provider": "authored-development-fixtures",
+        "provider_settings": {
+          "mode": "authored-fixtures",
+          "external_source_network": false
+        },
+        "budgets": {
+          "search": 8,
+          "inspection": 16,
+          "probe": 12,
+          "deadline_seconds": 600,
+          "model_rounds": 8,
+          "max_output_tokens": 6000
+        },
+        "fixture_sha256": "cc64e5825582c8219a5f714baab940d07a0ed9c3fc9c2dccc6dcd7168d92b21f",
+        "strategy_sha256": "906cbefdce59bd40ae36f047980346d8f8212d526d5f19cdfa9101b2e82ad668",
+        "backend_sha256": "3d7859b11bc84bd949f427a0d92dd96827f54b4883f276978341765e6485ce13"
+      },
+      "summary": {
+        "cases": 1,
+        "correctness": {
+          "scope": "artifact_consistency_and_sampled_source_evidence",
+          "valid": 1,
+          "invalid": 0,
+          "execution_failed": 0,
+          "artifact_error": 0,
+          "unmeasured": [
+            "complete_collection",
+            "publication_cutoffs",
+            "recovery",
+            "citation_entailment"
+          ]
+        },
+        "usefulness": {
+          "scope": "independent_source_predicates",
+          "macro_quality": 1.0,
+          "macro_requirement_recall": 1.0,
+          "macro_source_precision": 1.0,
+          "qualitative_review": "not_measured"
+        },
+        "efficiency": {
+          "model_tokens": {
+            "known_runs": 1,
+            "unknown_runs": 0,
+            "known_subtotal": 440,
+            "total": 440
+          },
+          "completed_token_lower_bounds": {
+            "known_runs": 1,
+            "unknown_runs": 0,
+            "known_subtotal": 440,
+            "total": 440
+          },
+          "elapsed_seconds": {
+            "known_runs": 1,
+            "unknown_runs": 0,
+            "known_subtotal": 0.9058237909994205,
+            "total": 0.9058237909994205
+          },
+          "model_cost_usd": {
+            "known_runs": 0,
+            "unknown_runs": 1,
+            "known_subtotal": 0,
+            "total": null
+          },
+          "provider_cost_usd": {
+            "known_runs": 0,
+            "unknown_runs": 1,
+            "known_subtotal": 0,
+            "total": null
+          }
+        }
+      },
+      "results": [
+        {
+          "case_id": "controlled-policy",
+          "run": {
+            "case_id": "controlled-policy",
+            "status": "completed",
+            "artifacts": "cases/controlled-policy/research",
+            "runtime_usage": null,
+            "gateway_usage": "cases/controlled-policy/gateway/archive.json",
+            "execution_id": "cba5448932a84352bf455779015b80fd",
+            "error": null,
+            "elapsed_seconds": 0.9058237909994205,
+            "model_cost_usd": null,
+            "provider_cost_usd": null,
+            "failed_run_tokens": null
+          },
+          "score": {
+            "evaluator_version": 1,
+            "scope": "sampled_source_selection",
+            "status": "ok",
+            "quality": 1.0,
+            "requirement_recall": 1.0,
+            "source_precision": 1.0,
+            "total_tokens": 440,
+            "completed_token_lower_bound": 440,
+            "runtime_usage": null,
+            "gateway_usage": {
+              "status": "verified_complete",
+              "total_tokens": 440,
+              "completed_token_lower_bound": 440,
+              "input_tokens": 400,
+              "output_tokens": 40,
+              "cached_input_tokens": 0,
+              "cached_input_token_lower_bound": 0,
+              "returned_models": [
+                "gpt-5.4-mini"
+              ],
+              "dispatched_requests": 4,
+              "reserved_attempts": 4,
+              "response_count": 4,
+              "files": {
+                "archive.json": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/direct/cases/controlled-policy/gateway/archive.json",
+                  "sha256": "fa3cd89a45b228381a4cd779a430790120e909191823f5d63a6887e86c25be2d"
+                },
+                "gateway.json": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/direct/cases/controlled-policy/gateway/gateway.json",
+                  "sha256": "067ecc367a555a4962169435daeac8927d5f24c7c1e2f7469cde1bd1273385f3"
+                },
+                "report.json": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/direct/cases/controlled-policy/gateway/report.json",
+                  "sha256": "cd7916e316657832262081984906cfb0c228e705b9ef37d12c50f6f683033fe1"
+                },
+                "request-0001/forwarded.json": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/direct/cases/controlled-policy/gateway/request-0001/forwarded.json",
+                  "sha256": "11f8abab30468177a1d1be551e5f7a67a7e93b70e40ad3c1b89d23fb35c66ad4"
+                },
+                "request-0001/incoming.json": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/direct/cases/controlled-policy/gateway/request-0001/incoming.json",
+                  "sha256": "784e4a6067b6f2253722b7e4ab7ad9e45dca54446e4a0df0e3018dbef2b4b461"
+                },
+                "request-0001/record.json": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/direct/cases/controlled-policy/gateway/request-0001/record.json",
+                  "sha256": "6ba78444e8d995d7e83457cd06fc03ddd6ee75112aba2287c88ecfc2e02a6363"
+                },
+                "request-0001/response.body": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/direct/cases/controlled-policy/gateway/request-0001/response.body",
+                  "sha256": "54f22ae49ccd322eef33311dab03b1c6a36d4d80373f0d98f2f718cb84f29077"
+                },
+                "request-0002/forwarded.json": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/direct/cases/controlled-policy/gateway/request-0002/forwarded.json",
+                  "sha256": "2d4f878034282fabcd59d2ee45279f9d6435697e84e33bc7de757edb7877053b"
+                },
+                "request-0002/incoming.json": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/direct/cases/controlled-policy/gateway/request-0002/incoming.json",
+                  "sha256": "ab643630ae859cbb2ec2cef1878c85a6ad5aea39df4dc39bc63ac9f4efc3a98b"
+                },
+                "request-0002/record.json": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/direct/cases/controlled-policy/gateway/request-0002/record.json",
+                  "sha256": "1cbbf2d2e6117459bfc82576bc77e44e8b46dd72f70cdd623f3f5c60429ca5bd"
+                },
+                "request-0002/response.body": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/direct/cases/controlled-policy/gateway/request-0002/response.body",
+                  "sha256": "988c9213e468ef32b4f6366447c68685300787e0deb878522400cd63778ee87e"
+                },
+                "request-0003/forwarded.json": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/direct/cases/controlled-policy/gateway/request-0003/forwarded.json",
+                  "sha256": "8122a2f63b65e0b01d07a662a8c4c217a561527a8f081bd29426f4e31796ffd8"
+                },
+                "request-0003/incoming.json": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/direct/cases/controlled-policy/gateway/request-0003/incoming.json",
+                  "sha256": "94b72f26b8542a19f002ce05dc97545b9f24d65d050621a3bc1a162fa5957a0f"
+                },
+                "request-0003/record.json": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/direct/cases/controlled-policy/gateway/request-0003/record.json",
+                  "sha256": "74f9df2e3da280f6befe496e10649d62d3ba38c42be3f8e1c49276e6fc8716d3"
+                },
+                "request-0003/response.body": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/direct/cases/controlled-policy/gateway/request-0003/response.body",
+                  "sha256": "fe74c3f3ad4495957b8afe29b4d99b7c8bfe776375c66ebade7281497b75d26b"
+                },
+                "request-0004/forwarded.json": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/direct/cases/controlled-policy/gateway/request-0004/forwarded.json",
+                  "sha256": "807b905979d987ceaafde42bfcbc6ba776c74480b9af189ba13d29e1fe125365"
+                },
+                "request-0004/incoming.json": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/direct/cases/controlled-policy/gateway/request-0004/incoming.json",
+                  "sha256": "e67f69423262a2469907b5111057fa52f9299dde7151d54956cf1a73dc947b20"
+                },
+                "request-0004/record.json": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/direct/cases/controlled-policy/gateway/request-0004/record.json",
+                  "sha256": "4f7f9725221efb91d1c8978b128bc890d6e666f8b068c73177fea6bd9e86d562"
+                },
+                "request-0004/response.body": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/direct/cases/controlled-policy/gateway/request-0004/response.body",
+                  "sha256": "4cd9d206a487b29cd90275a6cfc291b09b5e45308fcdfd24415e4dad742352a8"
+                }
+              },
+              "errors": [],
+              "unknown_requests": [],
+              "responses": [
+                {
+                  "response_id": "resp_direct_1",
+                  "model": "gpt-5.4-mini",
+                  "status": "completed",
+                  "input_tokens": 100,
+                  "output_tokens": 10,
+                  "provider_usage": {
+                    "input_tokens": 100,
+                    "input_tokens_details": {
+                      "cached_tokens": 0
+                    },
+                    "output_tokens": 10,
+                    "output_tokens_details": {
+                      "reasoning_tokens": 0
+                    },
+                    "total_tokens": 110
+                  }
+                },
+                {
+                  "response_id": "resp_direct_2",
+                  "model": "gpt-5.4-mini",
+                  "status": "completed",
+                  "input_tokens": 100,
+                  "output_tokens": 10,
+                  "provider_usage": {
+                    "input_tokens": 100,
+                    "input_tokens_details": {
+                      "cached_tokens": 0
+                    },
+                    "output_tokens": 10,
+                    "output_tokens_details": {
+                      "reasoning_tokens": 0
+                    },
+                    "total_tokens": 110
+                  }
+                },
+                {
+                  "response_id": "resp_direct_3",
+                  "model": "gpt-5.4-mini",
+                  "status": "completed",
+                  "input_tokens": 100,
+                  "output_tokens": 10,
+                  "provider_usage": {
+                    "input_tokens": 100,
+                    "input_tokens_details": {
+                      "cached_tokens": 0
+                    },
+                    "output_tokens": 10,
+                    "output_tokens_details": {
+                      "reasoning_tokens": 0
+                    },
+                    "total_tokens": 110
+                  }
+                },
+                {
+                  "response_id": "resp_direct_4",
+                  "model": "gpt-5.4-mini",
+                  "status": "completed",
+                  "input_tokens": 100,
+                  "output_tokens": 10,
+                  "provider_usage": {
+                    "input_tokens": 100,
+                    "input_tokens_details": {
+                      "cached_tokens": 0
+                    },
+                    "output_tokens": 10,
+                    "output_tokens_details": {
+                      "reasoning_tokens": 0
+                    },
+                    "total_tokens": 110
+                  }
+                }
+              ],
+              "verified_requests": [
+                {
+                  "request_id": "request-0001",
+                  "request_sha256": "11f8abab30468177a1d1be551e5f7a67a7e93b70e40ad3c1b89d23fb35c66ad4",
+                  "incoming_sha256": "784e4a6067b6f2253722b7e4ab7ad9e45dca54446e4a0df0e3018dbef2b4b461",
+                  "forwarded_sha256": "11f8abab30468177a1d1be551e5f7a67a7e93b70e40ad3c1b89d23fb35c66ad4",
+                  "dispatched": true,
+                  "usage": {
+                    "response_id": "resp_direct_1",
+                    "model": "gpt-5.4-mini",
+                    "status": "completed",
+                    "input_tokens": 100,
+                    "output_tokens": 10,
+                    "provider_usage": {
+                      "input_tokens": 100,
+                      "input_tokens_details": {
+                        "cached_tokens": 0
+                      },
+                      "output_tokens": 10,
+                      "output_tokens_details": {
+                        "reasoning_tokens": 0
+                      },
+                      "total_tokens": 110
+                    }
+                  },
+                  "response_service_tier": "default",
+                  "status": "complete",
+                  "issues": [],
+                  "evidence_sha256": "6b67509fad7a87c826e85dce520bad4c2ffd7c8991f2f8c41f38613c49ddf652",
+                  "budget_operation_id": "cba5448932a84352bf455779015b80fd/request-0001",
+                  "budget_reserved_nanodollars": 327000000,
+                  "budget_reservation_pending": false,
+                  "budget_dispatch_pending": false,
+                  "budget_dispatch_marked": true
+                },
+                {
+                  "request_id": "request-0002",
+                  "request_sha256": "2d4f878034282fabcd59d2ee45279f9d6435697e84e33bc7de757edb7877053b",
+                  "incoming_sha256": "ab643630ae859cbb2ec2cef1878c85a6ad5aea39df4dc39bc63ac9f4efc3a98b",
+                  "forwarded_sha256": "2d4f878034282fabcd59d2ee45279f9d6435697e84e33bc7de757edb7877053b",
+                  "dispatched": true,
+                  "usage": {
+                    "response_id": "resp_direct_2",
+                    "model": "gpt-5.4-mini",
+                    "status": "completed",
+                    "input_tokens": 100,
+                    "output_tokens": 10,
+                    "provider_usage": {
+                      "input_tokens": 100,
+                      "input_tokens_details": {
+                        "cached_tokens": 0
+                      },
+                      "output_tokens": 10,
+                      "output_tokens_details": {
+                        "reasoning_tokens": 0
+                      },
+                      "total_tokens": 110
+                    }
+                  },
+                  "response_service_tier": "default",
+                  "status": "complete",
+                  "issues": [],
+                  "evidence_sha256": "3b925f1d328bc8b2585f3510308d192ef801d9f1de7e6f8101d873cabc4d40ac",
+                  "budget_operation_id": "cba5448932a84352bf455779015b80fd/request-0002",
+                  "budget_reserved_nanodollars": 327000000,
+                  "budget_reservation_pending": false,
+                  "budget_dispatch_pending": false,
+                  "budget_dispatch_marked": true
+                },
+                {
+                  "request_id": "request-0003",
+                  "request_sha256": "8122a2f63b65e0b01d07a662a8c4c217a561527a8f081bd29426f4e31796ffd8",
+                  "incoming_sha256": "94b72f26b8542a19f002ce05dc97545b9f24d65d050621a3bc1a162fa5957a0f",
+                  "forwarded_sha256": "8122a2f63b65e0b01d07a662a8c4c217a561527a8f081bd29426f4e31796ffd8",
+                  "dispatched": true,
+                  "usage": {
+                    "response_id": "resp_direct_3",
+                    "model": "gpt-5.4-mini",
+                    "status": "completed",
+                    "input_tokens": 100,
+                    "output_tokens": 10,
+                    "provider_usage": {
+                      "input_tokens": 100,
+                      "input_tokens_details": {
+                        "cached_tokens": 0
+                      },
+                      "output_tokens": 10,
+                      "output_tokens_details": {
+                        "reasoning_tokens": 0
+                      },
+                      "total_tokens": 110
+                    }
+                  },
+                  "response_service_tier": "default",
+                  "status": "complete",
+                  "issues": [],
+                  "evidence_sha256": "257d92e492981c786f00fef1d8918e35e52a8c6d762b5f62bd10af7726e729fe",
+                  "budget_operation_id": "cba5448932a84352bf455779015b80fd/request-0003",
+                  "budget_reserved_nanodollars": 327000000,
+                  "budget_reservation_pending": false,
+                  "budget_dispatch_pending": false,
+                  "budget_dispatch_marked": true
+                },
+                {
+                  "request_id": "request-0004",
+                  "request_sha256": "807b905979d987ceaafde42bfcbc6ba776c74480b9af189ba13d29e1fe125365",
+                  "incoming_sha256": "e67f69423262a2469907b5111057fa52f9299dde7151d54956cf1a73dc947b20",
+                  "forwarded_sha256": "807b905979d987ceaafde42bfcbc6ba776c74480b9af189ba13d29e1fe125365",
+                  "dispatched": true,
+                  "usage": {
+                    "response_id": "resp_direct_4",
+                    "model": "gpt-5.4-mini",
+                    "status": "completed",
+                    "input_tokens": 100,
+                    "output_tokens": 10,
+                    "provider_usage": {
+                      "input_tokens": 100,
+                      "input_tokens_details": {
+                        "cached_tokens": 0
+                      },
+                      "output_tokens": 10,
+                      "output_tokens_details": {
+                        "reasoning_tokens": 0
+                      },
+                      "total_tokens": 110
+                    }
+                  },
+                  "response_service_tier": "default",
+                  "status": "complete",
+                  "issues": [],
+                  "evidence_sha256": "cfa6da62833b149a4d4dbe94d62e153b38b8928a0c88039352d97376da12a652",
+                  "budget_operation_id": "cba5448932a84352bf455779015b80fd/request-0004",
+                  "budget_reserved_nanodollars": 327000000,
+                  "budget_reservation_pending": false,
+                  "budget_dispatch_pending": false,
+                  "budget_dispatch_marked": true
+                }
+              ],
+              "budget_control": {
+                "schema_version": 1,
+                "policy": {
+                  "mode": "fixture",
+                  "upstream_base_url": "https://fixture.invalid/v1",
+                  "model": "gpt-5.4-mini",
+                  "service_tier": "default"
+                },
+                "rates": {
+                  "model": "gpt-5.4-mini",
+                  "snapshot": "gpt-5.4-mini",
+                  "input_usd_per_million": "0.75",
+                  "output_usd_per_million": "4.5",
+                  "max_input_tokens_per_request": 400000,
+                  "price_source_url": "https://developers.openai.com/api/docs/models/gpt-5.4-mini",
+                  "price_as_of": "2026-09-08"
+                },
+                "rates_sha256": "ff87b946f81b3902381bcba9c0d6d9146737beaae23840166411bd83100bf25d",
+                "ceiling_nanodollars": 10000000000,
+                "authorization": {
+                  "status": "draft",
+                  "reference": null
+                },
+                "authorization_is_dispatch_permission": false,
+                "input_bound": {
+                  "method": "fixture_host_bound",
+                  "max_input_tokens": 400000,
+                  "locally_tokenized": false
+                }
+              },
+              "budget_control_verified": true,
+              "budget_settlement_complete": true,
+              "cost_usd": null,
+              "limitations": [
+                "Host archive consistency is not a signature or access-isolation proof.",
+                "Token accounting does not establish task success or provider billing."
+              ],
+              "binding": {
+                "execution_id": "cba5448932a84352bf455779015b80fd",
+                "case_id": "controlled-policy",
+                "runtime": "direct-controlled-responses",
+                "phase": "discovery",
+                "task_sha256": "3c6abcef7e0fb7f920ceb1dca102ded87ddba090ae2cba70671df2b29fac3862"
+              },
+              "interrupted": false,
+              "auxiliary_usage_unknown": false
+            },
+            "token_evidence_source": "gateway",
+            "reported_model": "gpt-5.4-mini",
+            "reported_search_providers": [
+              "authored-development-fixtures"
+            ],
+            "coverage": [
+              {
+                "id": "policy",
+                "covered": true,
+                "source_ids": [
+                  "policy"
+                ]
+              }
+            ],
+            "errors": [],
+            "artifacts": "/private/tmp/rh-budgeted-runtime-20260908/comparison/direct/cases/controlled-policy/research",
+            "specification_sha256": "7fa57d462e33193b4ffa8cee98257bb695015806d8dca4b2295959855e84eec6",
+            "artifact_sha256": {
+              "proposal.json": "6bc2cf425ec53a54146d07336e6321d80ebe7cc212deca5a24457422b0d625bb",
+              "trace.jsonl": "b54456dcce083c67cd147ab0cfcb441d4e6460d2343aa956913011d6d9405028",
+              "probes.json": "cc9d5aec11eccdd13f50507fbe8f149cb2e8717425982153ba5df976e9688084",
+              "receipts.json": "3ea6ac2bbfffd695e64df7eef607cf071b4f55b95be9795405baa3c1ff1cd97e",
+              "pipeline.json": "d488fbc47cb434a15dc26b68a7e5b435fa1aa7a9f26b8640233aa6daf1dcfb78"
+            }
+          },
+          "control_evidence": {
+            "scope": "observed_artifact_metadata",
+            "model": {
+              "configured": "gpt-5.4-mini",
+              "observed": "gpt-5.4-mini",
+              "status": "matched"
+            },
+            "search_provider": {
+              "configured": "authored-development-fixtures",
+              "observed": [
+                "authored-development-fixtures"
+              ],
+              "status": "matched",
+              "reason": null
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "omnigent",
+      "manifest_sha256": "d0acfc32af9a5ffe7765aedda782a01140d5a338467ca432816b2b4f19bdd80d",
+      "controls": {
+        "execution": "fixture",
+        "runtime": "omnigent-controlled-responses",
+        "model": "gpt-5.4-mini",
+        "model_settings": {
+          "max_output_tokens": 6000,
+          "reasoning": {
+            "effort": "none"
+          },
+          "service_tier": "default"
+        },
+        "budget_control": {
+          "schema_version": 1,
+          "policy": {
+            "mode": "fixture",
+            "upstream_base_url": "https://fixture.invalid/v1",
+            "model": "gpt-5.4-mini",
+            "service_tier": "default"
+          },
+          "rates": {
+            "model": "gpt-5.4-mini",
+            "snapshot": "gpt-5.4-mini",
+            "input_usd_per_million": "0.75",
+            "output_usd_per_million": "4.5",
+            "max_input_tokens_per_request": 400000,
+            "price_source_url": "https://developers.openai.com/api/docs/models/gpt-5.4-mini",
+            "price_as_of": "2026-09-08"
+          },
+          "rates_sha256": "ff87b946f81b3902381bcba9c0d6d9146737beaae23840166411bd83100bf25d",
+          "ceiling_nanodollars": 10000000000,
+          "authorization": {
+            "status": "draft",
+            "reference": null
+          },
+          "authorization_is_dispatch_permission": false,
+          "input_bound": {
+            "method": "fixture_host_bound",
+            "max_input_tokens": 400000,
+            "locally_tokenized": false
+          }
+        },
+        "provider": "authored-development-fixtures",
+        "provider_settings": {
+          "mode": "authored-fixtures",
+          "external_source_network": false
+        },
+        "budgets": {
+          "search": 8,
+          "inspection": 16,
+          "probe": 12,
+          "deadline_seconds": 600,
+          "model_rounds": 8,
+          "max_output_tokens": 6000
+        },
+        "fixture_sha256": "cc64e5825582c8219a5f714baab940d07a0ed9c3fc9c2dccc6dcd7168d92b21f",
+        "strategy_sha256": "906cbefdce59bd40ae36f047980346d8f8212d526d5f19cdfa9101b2e82ad668",
+        "backend_sha256": "3d7859b11bc84bd949f427a0d92dd96827f54b4883f276978341765e6485ce13"
+      },
+      "summary": {
+        "cases": 1,
+        "correctness": {
+          "scope": "artifact_consistency_and_sampled_source_evidence",
+          "valid": 1,
+          "invalid": 0,
+          "execution_failed": 0,
+          "artifact_error": 0,
+          "unmeasured": [
+            "complete_collection",
+            "publication_cutoffs",
+            "recovery",
+            "citation_entailment"
+          ]
+        },
+        "usefulness": {
+          "scope": "independent_source_predicates",
+          "macro_quality": 1.0,
+          "macro_requirement_recall": 1.0,
+          "macro_source_precision": 1.0,
+          "qualitative_review": "not_measured"
+        },
+        "efficiency": {
+          "model_tokens": {
+            "known_runs": 1,
+            "unknown_runs": 0,
+            "known_subtotal": 770,
+            "total": 770
+          },
+          "completed_token_lower_bounds": {
+            "known_runs": 1,
+            "unknown_runs": 0,
+            "known_subtotal": 770,
+            "total": 770
+          },
+          "elapsed_seconds": {
+            "known_runs": 1,
+            "unknown_runs": 0,
+            "known_subtotal": 33.190696708999894,
+            "total": 33.190696708999894
+          },
+          "model_cost_usd": {
+            "known_runs": 0,
+            "unknown_runs": 1,
+            "known_subtotal": 0,
+            "total": null
+          },
+          "provider_cost_usd": {
+            "known_runs": 0,
+            "unknown_runs": 1,
+            "known_subtotal": 0,
+            "total": null
+          }
+        }
+      },
+      "results": [
+        {
+          "case_id": "controlled-policy",
+          "run": {
+            "case_id": "controlled-policy",
+            "status": "completed",
+            "artifacts": "cases/controlled-policy/runtime/research",
+            "runtime_usage": "cases/controlled-policy/runtime/omnigent/runtime-usage.discovery.json",
+            "gateway_usage": "cases/controlled-policy/gateway/archive.json",
+            "execution_id": "decafeb6e9134d03b760797321856943",
+            "error": null,
+            "elapsed_seconds": 33.190696708999894,
+            "model_cost_usd": null,
+            "provider_cost_usd": null,
+            "failed_run_tokens": null
+          },
+          "score": {
+            "evaluator_version": 1,
+            "scope": "sampled_source_selection",
+            "status": "ok",
+            "quality": 1.0,
+            "requirement_recall": 1.0,
+            "source_precision": 1.0,
+            "total_tokens": 770,
+            "completed_token_lower_bound": 770,
+            "runtime_usage": {
+              "status": "verified_lower_bound",
+              "total_tokens": null,
+              "completed_token_lower_bound": 770,
+              "errors": [],
+              "files": {
+                "runtime_usage": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/omnigent/cases/controlled-policy/runtime/omnigent/runtime-usage.discovery.json",
+                  "sha256": "45f9d1b5d1a4285d08d826ad27ce9e6a42a0b0617173f4c91b1aae0385a68e05"
+                },
+                "runtime_usage_events": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/omnigent/cases/controlled-policy/runtime/omnigent/events/5e5e4fef2e9783ed90591f6a3082fd77979441486ed33d9cf225ca937694687f.jsonl",
+                  "sha256": "5e5e4fef2e9783ed90591f6a3082fd77979441486ed33d9cf225ca937694687f"
+                }
+              },
+              "response_count": 1,
+              "auxiliary_usage_unknown": true,
+              "interrupted": false
+            },
+            "gateway_usage": {
+              "status": "verified_complete",
+              "total_tokens": 770,
+              "completed_token_lower_bound": 770,
+              "input_tokens": 700,
+              "output_tokens": 70,
+              "cached_input_tokens": 0,
+              "cached_input_token_lower_bound": 0,
+              "returned_models": [
+                "gpt-5.4-mini"
+              ],
+              "dispatched_requests": 7,
+              "reserved_attempts": 7,
+              "response_count": 7,
+              "files": {
+                "archive.json": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/omnigent/cases/controlled-policy/gateway/archive.json",
+                  "sha256": "eb0d0398e838dca20e517d94c2a0fabcbe4d8d502760e3fb71f0a0017297ad0a"
+                },
+                "gateway.json": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/omnigent/cases/controlled-policy/gateway/gateway.json",
+                  "sha256": "9f898320ca983711a78e8eb638cc6adff6a7c8d09a8be8374506c3d09970a187"
+                },
+                "report.json": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/omnigent/cases/controlled-policy/gateway/report.json",
+                  "sha256": "323d7e0d659698b22da89f3e31db8cfd154b4c8c5134140b7e822c048aa534b2"
+                },
+                "request-0001/forwarded.json": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0001/forwarded.json",
+                  "sha256": "53ead0843181af87826bd98070a812f7ad2dfd55cbc8756f1e529b5017b970af"
+                },
+                "request-0001/incoming.json": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0001/incoming.json",
+                  "sha256": "03cea9482fc0016c61c7f3694e31543bf7bf4e8eac04a68aa3bf9fa32646c204"
+                },
+                "request-0001/record.json": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0001/record.json",
+                  "sha256": "a5cefd89db4f0e72062a6d18f72f2fc099457307fd1be6d9c17f69ea2ad04c40"
+                },
+                "request-0001/response.body": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0001/response.body",
+                  "sha256": "6633220eafc41aec1e4135d39afc870c7dd672defa7dd4c59a676859271b0de5"
+                },
+                "request-0002/forwarded.json": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0002/forwarded.json",
+                  "sha256": "0ebd01d3ce39331f1b59936de808c1f4ac1d8b42bf4494139ecc687a3cb77c62"
+                },
+                "request-0002/incoming.json": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0002/incoming.json",
+                  "sha256": "08a737b663c81fff17e6c3946695616a245f156af180a99bec4c8e2301dfb025"
+                },
+                "request-0002/record.json": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0002/record.json",
+                  "sha256": "438c858b68cb135e42bf9763e1cd59fdb3c1e36500ce67b86c388e23d9e54b79"
+                },
+                "request-0002/response.body": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0002/response.body",
+                  "sha256": "3f453ecef00b0b6a3cbf664352838e2d9b25f624bb1acd088444eeb2024c8ebb"
+                },
+                "request-0003/forwarded.json": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0003/forwarded.json",
+                  "sha256": "956aa3c65651467ac7ecf6b33fe34fa584bade5740ff4d2c01694c5fe449c44e"
+                },
+                "request-0003/incoming.json": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0003/incoming.json",
+                  "sha256": "d033bddae4d582f58bb5dfde85f08a2ea62a106bd45af1310c4e8a431a727cbf"
+                },
+                "request-0003/record.json": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0003/record.json",
+                  "sha256": "ef669528dc1677911c062c2c090dfb63fb741677cbb6ef585d37122db759ccbf"
+                },
+                "request-0003/response.body": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0003/response.body",
+                  "sha256": "9ef626834140f0fa1dcf0a08e406260bd7a9de8c49e3e3ba8da7ab15300c3538"
+                },
+                "request-0004/forwarded.json": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0004/forwarded.json",
+                  "sha256": "28f366e88c4c83cd74b2cb1f5d9a6aa315e493f5d501c6eebd931a8191315110"
+                },
+                "request-0004/incoming.json": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0004/incoming.json",
+                  "sha256": "565293e5b895eede1afffc8b954db2a5f9aa4c8a7019f01cc93682fa93bdae4a"
+                },
+                "request-0004/record.json": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0004/record.json",
+                  "sha256": "ff4aa0fd6992078bfb167922193a2544790f74edb345d614a240399d82784278"
+                },
+                "request-0004/response.body": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0004/response.body",
+                  "sha256": "4696bb6b5c429a0552ec916d98740b88faefcd768e3f1cf850b7f660a929a5ba"
+                },
+                "request-0005/forwarded.json": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0005/forwarded.json",
+                  "sha256": "4d9a602ff22a9ea47fe7b9a0e37fd58229728a2d934a513d09a3f626e7c0854d"
+                },
+                "request-0005/incoming.json": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0005/incoming.json",
+                  "sha256": "706e3deff55828e461c63e594c412e3b368b569acabc1549469e73605289c986"
+                },
+                "request-0005/record.json": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0005/record.json",
+                  "sha256": "39c714de4a24739399e8954bb2b65220cbf107b529d19ea79c8a3b377265ac32"
+                },
+                "request-0005/response.body": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0005/response.body",
+                  "sha256": "2978bbb6aa6340908e85492e410a2a8eb77df78c9b8a28a00744b380c447fa3f"
+                },
+                "request-0006/forwarded.json": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0006/forwarded.json",
+                  "sha256": "01d9aeead5cff39b46969b6a6fd41d411e8115434562dfcfd76497a9ea1f400e"
+                },
+                "request-0006/incoming.json": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0006/incoming.json",
+                  "sha256": "39ea5ff9f0f0a6382a7b7fc09ff8f27e6a8de31d0cda4408c3302c051492f0ba"
+                },
+                "request-0006/record.json": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0006/record.json",
+                  "sha256": "2732cfbf2c9f6b8d8841e51834edf332e50ce9bc55131fc4caf99b8187132c38"
+                },
+                "request-0006/response.body": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0006/response.body",
+                  "sha256": "d1451175736955637404ef5f2e2832dec94645f7dfc0fe7e4e2ffe69afb7f575"
+                },
+                "request-0007/forwarded.json": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0007/forwarded.json",
+                  "sha256": "a98153fe4a1d4d2b747a90ff3f6c956d9b40049e06a09853d21005f0989f93a1"
+                },
+                "request-0007/incoming.json": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0007/incoming.json",
+                  "sha256": "2d5a593f7369aeac44de10546ac3c2c68e8441f1aec8ae39867272f749ad5e3c"
+                },
+                "request-0007/record.json": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0007/record.json",
+                  "sha256": "dc307a664a23fa881c9fb3df4b49f35b157ab2543983ec14d726c6c4f73f4594"
+                },
+                "request-0007/response.body": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0007/response.body",
+                  "sha256": "3dbeb4bafce9a4c4404d854a94a92493a8c5ab272c8c3a148f7c5a00e97c8940"
+                },
+                "request-0008/incoming.json": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0008/incoming.json",
+                  "sha256": "345999de560a89ed86bb7f5ae933d0f53c326b13807e54a347134e0a4a74f70d"
+                },
+                "request-0008/record.json": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0008/record.json",
+                  "sha256": "8e7edea7bb634743011516a5561bd3310d2061871c865efeece8c1b023a7bcd1"
+                },
+                "request-0009/incoming.json": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0009/incoming.json",
+                  "sha256": "345999de560a89ed86bb7f5ae933d0f53c326b13807e54a347134e0a4a74f70d"
+                },
+                "request-0009/record.json": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0009/record.json",
+                  "sha256": "142e6a27793e761d47ea2879eebfc5198c2e3fd39665702adde6af1b5a177565"
+                },
+                "request-0010/incoming.json": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0010/incoming.json",
+                  "sha256": "345999de560a89ed86bb7f5ae933d0f53c326b13807e54a347134e0a4a74f70d"
+                },
+                "request-0010/record.json": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0010/record.json",
+                  "sha256": "fbfc55a4f16be06b4ed08f12cec83c1d741e3f8e28d1a26645b398a454fb859c"
+                },
+                "request-0011/incoming.json": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0011/incoming.json",
+                  "sha256": "345999de560a89ed86bb7f5ae933d0f53c326b13807e54a347134e0a4a74f70d"
+                },
+                "request-0011/record.json": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0011/record.json",
+                  "sha256": "503ff87224ede8d65c68fc8d7d0e4c909180a46be33eeae5b516bff88c5c3c5e"
+                },
+                "request-0012/incoming.json": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0012/incoming.json",
+                  "sha256": "345999de560a89ed86bb7f5ae933d0f53c326b13807e54a347134e0a4a74f70d"
+                },
+                "request-0012/record.json": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0012/record.json",
+                  "sha256": "9e0a8680cbd560b8340cb5ef1a16dd17e610ba9655da4861daae4fd2ee72f48d"
+                },
+                "request-0013/incoming.json": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0013/incoming.json",
+                  "sha256": "345999de560a89ed86bb7f5ae933d0f53c326b13807e54a347134e0a4a74f70d"
+                },
+                "request-0013/record.json": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0013/record.json",
+                  "sha256": "269947b2e8761cbdffcc907a42e8e9f88eb599f1ce2b6b0faac1bc33502c60b1"
+                },
+                "request-0014/incoming.json": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0014/incoming.json",
+                  "sha256": "345999de560a89ed86bb7f5ae933d0f53c326b13807e54a347134e0a4a74f70d"
+                },
+                "request-0014/record.json": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0014/record.json",
+                  "sha256": "2e57269baf4f593255e2ed14fd525b6fcf58a5d9169dfd999f03ea40a3d2f808"
+                },
+                "request-0015/incoming.json": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0015/incoming.json",
+                  "sha256": "345999de560a89ed86bb7f5ae933d0f53c326b13807e54a347134e0a4a74f70d"
+                },
+                "request-0015/record.json": {
+                  "path": "/private/tmp/rh-budgeted-runtime-20260908/comparison/omnigent/cases/controlled-policy/gateway/request-0015/record.json",
+                  "sha256": "acfe0f2fb76b0876319646604647c792530b46ced53e307828e1006ce593de69"
+                }
+              },
+              "errors": [],
+              "unknown_requests": [],
+              "responses": [
+                {
+                  "response_id": "resp_0",
+                  "model": "gpt-5.4-mini",
+                  "status": "completed",
+                  "input_tokens": 100,
+                  "output_tokens": 10,
+                  "provider_usage": {
+                    "input_tokens": 100,
+                    "input_tokens_details": {
+                      "cached_tokens": 0
+                    },
+                    "output_tokens": 10,
+                    "output_tokens_details": {
+                      "reasoning_tokens": 0
+                    },
+                    "total_tokens": 110
+                  }
+                },
+                {
+                  "response_id": "resp_1",
+                  "model": "gpt-5.4-mini",
+                  "status": "completed",
+                  "input_tokens": 100,
+                  "output_tokens": 10,
+                  "provider_usage": {
+                    "input_tokens": 100,
+                    "input_tokens_details": {
+                      "cached_tokens": 0
+                    },
+                    "output_tokens": 10,
+                    "output_tokens_details": {
+                      "reasoning_tokens": 0
+                    },
+                    "total_tokens": 110
+                  }
+                },
+                {
+                  "response_id": "resp_2",
+                  "model": "gpt-5.4-mini",
+                  "status": "completed",
+                  "input_tokens": 100,
+                  "output_tokens": 10,
+                  "provider_usage": {
+                    "input_tokens": 100,
+                    "input_tokens_details": {
+                      "cached_tokens": 0
+                    },
+                    "output_tokens": 10,
+                    "output_tokens_details": {
+                      "reasoning_tokens": 0
+                    },
+                    "total_tokens": 110
+                  }
+                },
+                {
+                  "response_id": "resp_3",
+                  "model": "gpt-5.4-mini",
+                  "status": "completed",
+                  "input_tokens": 100,
+                  "output_tokens": 10,
+                  "provider_usage": {
+                    "input_tokens": 100,
+                    "input_tokens_details": {
+                      "cached_tokens": 0
+                    },
+                    "output_tokens": 10,
+                    "output_tokens_details": {
+                      "reasoning_tokens": 0
+                    },
+                    "total_tokens": 110
+                  }
+                },
+                {
+                  "response_id": "resp_4",
+                  "model": "gpt-5.4-mini",
+                  "status": "completed",
+                  "input_tokens": 100,
+                  "output_tokens": 10,
+                  "provider_usage": {
+                    "input_tokens": 100,
+                    "input_tokens_details": {
+                      "cached_tokens": 0
+                    },
+                    "output_tokens": 10,
+                    "output_tokens_details": {
+                      "reasoning_tokens": 0
+                    },
+                    "total_tokens": 110
+                  }
+                },
+                {
+                  "response_id": "resp_5",
+                  "model": "gpt-5.4-mini",
+                  "status": "completed",
+                  "input_tokens": 100,
+                  "output_tokens": 10,
+                  "provider_usage": {
+                    "input_tokens": 100,
+                    "input_tokens_details": {
+                      "cached_tokens": 0
+                    },
+                    "output_tokens": 10,
+                    "output_tokens_details": {
+                      "reasoning_tokens": 0
+                    },
+                    "total_tokens": 110
+                  }
+                },
+                {
+                  "response_id": "resp_6",
+                  "model": "gpt-5.4-mini",
+                  "status": "completed",
+                  "input_tokens": 100,
+                  "output_tokens": 10,
+                  "provider_usage": {
+                    "input_tokens": 100,
+                    "input_tokens_details": {
+                      "cached_tokens": 0
+                    },
+                    "output_tokens": 10,
+                    "output_tokens_details": {
+                      "reasoning_tokens": 0
+                    },
+                    "total_tokens": 110
+                  }
+                }
+              ],
+              "verified_requests": [
+                {
+                  "request_id": "request-0001",
+                  "request_sha256": "53ead0843181af87826bd98070a812f7ad2dfd55cbc8756f1e529b5017b970af",
+                  "incoming_sha256": "03cea9482fc0016c61c7f3694e31543bf7bf4e8eac04a68aa3bf9fa32646c204",
+                  "forwarded_sha256": "53ead0843181af87826bd98070a812f7ad2dfd55cbc8756f1e529b5017b970af",
+                  "dispatched": true,
+                  "usage": {
+                    "response_id": "resp_0",
+                    "model": "gpt-5.4-mini",
+                    "status": "completed",
+                    "input_tokens": 100,
+                    "output_tokens": 10,
+                    "provider_usage": {
+                      "input_tokens": 100,
+                      "input_tokens_details": {
+                        "cached_tokens": 0
+                      },
+                      "output_tokens": 10,
+                      "output_tokens_details": {
+                        "reasoning_tokens": 0
+                      },
+                      "total_tokens": 110
+                    }
+                  },
+                  "response_service_tier": "default",
+                  "status": "complete",
+                  "issues": [],
+                  "evidence_sha256": "5d1b6507189d8e77acbaebe98a8daf9361a325da48f26de8487f86ac46c6b939",
+                  "budget_operation_id": "decafeb6e9134d03b760797321856943/request-0001",
+                  "budget_reserved_nanodollars": 327000000,
+                  "budget_reservation_pending": false,
+                  "budget_dispatch_pending": false,
+                  "budget_dispatch_marked": true
+                },
+                {
+                  "request_id": "request-0002",
+                  "request_sha256": "0ebd01d3ce39331f1b59936de808c1f4ac1d8b42bf4494139ecc687a3cb77c62",
+                  "incoming_sha256": "08a737b663c81fff17e6c3946695616a245f156af180a99bec4c8e2301dfb025",
+                  "forwarded_sha256": "0ebd01d3ce39331f1b59936de808c1f4ac1d8b42bf4494139ecc687a3cb77c62",
+                  "dispatched": true,
+                  "usage": {
+                    "response_id": "resp_1",
+                    "model": "gpt-5.4-mini",
+                    "status": "completed",
+                    "input_tokens": 100,
+                    "output_tokens": 10,
+                    "provider_usage": {
+                      "input_tokens": 100,
+                      "input_tokens_details": {
+                        "cached_tokens": 0
+                      },
+                      "output_tokens": 10,
+                      "output_tokens_details": {
+                        "reasoning_tokens": 0
+                      },
+                      "total_tokens": 110
+                    }
+                  },
+                  "response_service_tier": "default",
+                  "status": "complete",
+                  "issues": [],
+                  "evidence_sha256": "eae9d359a6b8c191ec71f539f1af5cab8a1719acf87922d3a89faddab2aeec69",
+                  "budget_operation_id": "decafeb6e9134d03b760797321856943/request-0002",
+                  "budget_reserved_nanodollars": 327000000,
+                  "budget_reservation_pending": false,
+                  "budget_dispatch_pending": false,
+                  "budget_dispatch_marked": true
+                },
+                {
+                  "request_id": "request-0003",
+                  "request_sha256": "956aa3c65651467ac7ecf6b33fe34fa584bade5740ff4d2c01694c5fe449c44e",
+                  "incoming_sha256": "d033bddae4d582f58bb5dfde85f08a2ea62a106bd45af1310c4e8a431a727cbf",
+                  "forwarded_sha256": "956aa3c65651467ac7ecf6b33fe34fa584bade5740ff4d2c01694c5fe449c44e",
+                  "dispatched": true,
+                  "usage": {
+                    "response_id": "resp_2",
+                    "model": "gpt-5.4-mini",
+                    "status": "completed",
+                    "input_tokens": 100,
+                    "output_tokens": 10,
+                    "provider_usage": {
+                      "input_tokens": 100,
+                      "input_tokens_details": {
+                        "cached_tokens": 0
+                      },
+                      "output_tokens": 10,
+                      "output_tokens_details": {
+                        "reasoning_tokens": 0
+                      },
+                      "total_tokens": 110
+                    }
+                  },
+                  "response_service_tier": "default",
+                  "status": "complete",
+                  "issues": [],
+                  "evidence_sha256": "0c791da5da7359facbea12710b28e57d79e027b9c6867d9087a54d3d8ffabe6a",
+                  "budget_operation_id": "decafeb6e9134d03b760797321856943/request-0003",
+                  "budget_reserved_nanodollars": 327000000,
+                  "budget_reservation_pending": false,
+                  "budget_dispatch_pending": false,
+                  "budget_dispatch_marked": true
+                },
+                {
+                  "request_id": "request-0004",
+                  "request_sha256": "28f366e88c4c83cd74b2cb1f5d9a6aa315e493f5d501c6eebd931a8191315110",
+                  "incoming_sha256": "565293e5b895eede1afffc8b954db2a5f9aa4c8a7019f01cc93682fa93bdae4a",
+                  "forwarded_sha256": "28f366e88c4c83cd74b2cb1f5d9a6aa315e493f5d501c6eebd931a8191315110",
+                  "dispatched": true,
+                  "usage": {
+                    "response_id": "resp_3",
+                    "model": "gpt-5.4-mini",
+                    "status": "completed",
+                    "input_tokens": 100,
+                    "output_tokens": 10,
+                    "provider_usage": {
+                      "input_tokens": 100,
+                      "input_tokens_details": {
+                        "cached_tokens": 0
+                      },
+                      "output_tokens": 10,
+                      "output_tokens_details": {
+                        "reasoning_tokens": 0
+                      },
+                      "total_tokens": 110
+                    }
+                  },
+                  "response_service_tier": "default",
+                  "status": "complete",
+                  "issues": [],
+                  "evidence_sha256": "23a3cc2ef35668f01fc56233ff6803767829634b886306a83e2f5ee57c55935a",
+                  "budget_operation_id": "decafeb6e9134d03b760797321856943/request-0004",
+                  "budget_reserved_nanodollars": 327000000,
+                  "budget_reservation_pending": false,
+                  "budget_dispatch_pending": false,
+                  "budget_dispatch_marked": true
+                },
+                {
+                  "request_id": "request-0005",
+                  "request_sha256": "4d9a602ff22a9ea47fe7b9a0e37fd58229728a2d934a513d09a3f626e7c0854d",
+                  "incoming_sha256": "706e3deff55828e461c63e594c412e3b368b569acabc1549469e73605289c986",
+                  "forwarded_sha256": "4d9a602ff22a9ea47fe7b9a0e37fd58229728a2d934a513d09a3f626e7c0854d",
+                  "dispatched": true,
+                  "usage": {
+                    "response_id": "resp_4",
+                    "model": "gpt-5.4-mini",
+                    "status": "completed",
+                    "input_tokens": 100,
+                    "output_tokens": 10,
+                    "provider_usage": {
+                      "input_tokens": 100,
+                      "input_tokens_details": {
+                        "cached_tokens": 0
+                      },
+                      "output_tokens": 10,
+                      "output_tokens_details": {
+                        "reasoning_tokens": 0
+                      },
+                      "total_tokens": 110
+                    }
+                  },
+                  "response_service_tier": "default",
+                  "status": "complete",
+                  "issues": [],
+                  "evidence_sha256": "c1e49c72c6f7b69c26a29a8cf7f0f90ef0c4a9dbb76a03875203c1bb84ffb694",
+                  "budget_operation_id": "decafeb6e9134d03b760797321856943/request-0005",
+                  "budget_reserved_nanodollars": 327000000,
+                  "budget_reservation_pending": false,
+                  "budget_dispatch_pending": false,
+                  "budget_dispatch_marked": true
+                },
+                {
+                  "request_id": "request-0006",
+                  "request_sha256": "01d9aeead5cff39b46969b6a6fd41d411e8115434562dfcfd76497a9ea1f400e",
+                  "incoming_sha256": "39ea5ff9f0f0a6382a7b7fc09ff8f27e6a8de31d0cda4408c3302c051492f0ba",
+                  "forwarded_sha256": "01d9aeead5cff39b46969b6a6fd41d411e8115434562dfcfd76497a9ea1f400e",
+                  "dispatched": true,
+                  "usage": {
+                    "response_id": "resp_5",
+                    "model": "gpt-5.4-mini",
+                    "status": "completed",
+                    "input_tokens": 100,
+                    "output_tokens": 10,
+                    "provider_usage": {
+                      "input_tokens": 100,
+                      "input_tokens_details": {
+                        "cached_tokens": 0
+                      },
+                      "output_tokens": 10,
+                      "output_tokens_details": {
+                        "reasoning_tokens": 0
+                      },
+                      "total_tokens": 110
+                    }
+                  },
+                  "response_service_tier": "default",
+                  "status": "complete",
+                  "issues": [],
+                  "evidence_sha256": "bbab2d7fdb54364608d2b910fcdf5e82b0832e59ed4f50219faf1cd2c343b960",
+                  "budget_operation_id": "decafeb6e9134d03b760797321856943/request-0006",
+                  "budget_reserved_nanodollars": 327000000,
+                  "budget_reservation_pending": false,
+                  "budget_dispatch_pending": false,
+                  "budget_dispatch_marked": true
+                },
+                {
+                  "request_id": "request-0007",
+                  "request_sha256": "a98153fe4a1d4d2b747a90ff3f6c956d9b40049e06a09853d21005f0989f93a1",
+                  "incoming_sha256": "2d5a593f7369aeac44de10546ac3c2c68e8441f1aec8ae39867272f749ad5e3c",
+                  "forwarded_sha256": "a98153fe4a1d4d2b747a90ff3f6c956d9b40049e06a09853d21005f0989f93a1",
+                  "dispatched": true,
+                  "usage": {
+                    "response_id": "resp_6",
+                    "model": "gpt-5.4-mini",
+                    "status": "completed",
+                    "input_tokens": 100,
+                    "output_tokens": 10,
+                    "provider_usage": {
+                      "input_tokens": 100,
+                      "input_tokens_details": {
+                        "cached_tokens": 0
+                      },
+                      "output_tokens": 10,
+                      "output_tokens_details": {
+                        "reasoning_tokens": 0
+                      },
+                      "total_tokens": 110
+                    }
+                  },
+                  "response_service_tier": "default",
+                  "status": "complete",
+                  "issues": [],
+                  "evidence_sha256": "0420e56bfbb08fde4a6738610c0ccc215f856862ce7d429c4431fabbe601e2b8",
+                  "budget_operation_id": "decafeb6e9134d03b760797321856943/request-0007",
+                  "budget_reserved_nanodollars": 327000000,
+                  "budget_reservation_pending": false,
+                  "budget_dispatch_pending": false,
+                  "budget_dispatch_marked": true
+                },
+                {
+                  "request_id": "request-0008",
+                  "request_sha256": null,
+                  "incoming_sha256": "345999de560a89ed86bb7f5ae933d0f53c326b13807e54a347134e0a4a74f70d",
+                  "forwarded_sha256": null,
+                  "dispatched": false,
+                  "usage": null,
+                  "response_service_tier": null,
+                  "status": "not_dispatched",
+                  "issues": [],
+                  "evidence_sha256": "172b1312cedfa3a7cd7c15885ec7cfeb64dfb1b6b80f541f3cf4c492c9aefb22",
+                  "budget_operation_id": null,
+                  "budget_reserved_nanodollars": null,
+                  "budget_reservation_pending": false,
+                  "budget_dispatch_pending": false,
+                  "budget_dispatch_marked": false
+                },
+                {
+                  "request_id": "request-0009",
+                  "request_sha256": null,
+                  "incoming_sha256": "345999de560a89ed86bb7f5ae933d0f53c326b13807e54a347134e0a4a74f70d",
+                  "forwarded_sha256": null,
+                  "dispatched": false,
+                  "usage": null,
+                  "response_service_tier": null,
+                  "status": "not_dispatched",
+                  "issues": [],
+                  "evidence_sha256": "ef1c595dee0de6e25cade68d7653fe881506b663b03c6cd75e6764f234695c29",
+                  "budget_operation_id": null,
+                  "budget_reserved_nanodollars": null,
+                  "budget_reservation_pending": false,
+                  "budget_dispatch_pending": false,
+                  "budget_dispatch_marked": false
+                },
+                {
+                  "request_id": "request-0010",
+                  "request_sha256": null,
+                  "incoming_sha256": "345999de560a89ed86bb7f5ae933d0f53c326b13807e54a347134e0a4a74f70d",
+                  "forwarded_sha256": null,
+                  "dispatched": false,
+                  "usage": null,
+                  "response_service_tier": null,
+                  "status": "not_dispatched",
+                  "issues": [],
+                  "evidence_sha256": "60a739199bab87c4c253bfae0f350d74c97b5609ee89e78f91b142a87dc8d03d",
+                  "budget_operation_id": null,
+                  "budget_reserved_nanodollars": null,
+                  "budget_reservation_pending": false,
+                  "budget_dispatch_pending": false,
+                  "budget_dispatch_marked": false
+                },
+                {
+                  "request_id": "request-0011",
+                  "request_sha256": null,
+                  "incoming_sha256": "345999de560a89ed86bb7f5ae933d0f53c326b13807e54a347134e0a4a74f70d",
+                  "forwarded_sha256": null,
+                  "dispatched": false,
+                  "usage": null,
+                  "response_service_tier": null,
+                  "status": "not_dispatched",
+                  "issues": [],
+                  "evidence_sha256": "6fcd95eca63de589294d1538848fa0652a2771bff0a4647921195786ff3aca8b",
+                  "budget_operation_id": null,
+                  "budget_reserved_nanodollars": null,
+                  "budget_reservation_pending": false,
+                  "budget_dispatch_pending": false,
+                  "budget_dispatch_marked": false
+                },
+                {
+                  "request_id": "request-0012",
+                  "request_sha256": null,
+                  "incoming_sha256": "345999de560a89ed86bb7f5ae933d0f53c326b13807e54a347134e0a4a74f70d",
+                  "forwarded_sha256": null,
+                  "dispatched": false,
+                  "usage": null,
+                  "response_service_tier": null,
+                  "status": "not_dispatched",
+                  "issues": [],
+                  "evidence_sha256": "3ab8f4b9df169be59fdda4d889a786076b939be120559259ce8c74c6e9ed1756",
+                  "budget_operation_id": null,
+                  "budget_reserved_nanodollars": null,
+                  "budget_reservation_pending": false,
+                  "budget_dispatch_pending": false,
+                  "budget_dispatch_marked": false
+                },
+                {
+                  "request_id": "request-0013",
+                  "request_sha256": null,
+                  "incoming_sha256": "345999de560a89ed86bb7f5ae933d0f53c326b13807e54a347134e0a4a74f70d",
+                  "forwarded_sha256": null,
+                  "dispatched": false,
+                  "usage": null,
+                  "response_service_tier": null,
+                  "status": "not_dispatched",
+                  "issues": [],
+                  "evidence_sha256": "548e6a52486eedaee2e37edf1fbfcb1dfe686ee72007f2f8563eb2598cf4d817",
+                  "budget_operation_id": null,
+                  "budget_reserved_nanodollars": null,
+                  "budget_reservation_pending": false,
+                  "budget_dispatch_pending": false,
+                  "budget_dispatch_marked": false
+                },
+                {
+                  "request_id": "request-0014",
+                  "request_sha256": null,
+                  "incoming_sha256": "345999de560a89ed86bb7f5ae933d0f53c326b13807e54a347134e0a4a74f70d",
+                  "forwarded_sha256": null,
+                  "dispatched": false,
+                  "usage": null,
+                  "response_service_tier": null,
+                  "status": "not_dispatched",
+                  "issues": [],
+                  "evidence_sha256": "42e667c49a36b94733871aebe128042ebca22065fe406f0144aac913a7a33af1",
+                  "budget_operation_id": null,
+                  "budget_reserved_nanodollars": null,
+                  "budget_reservation_pending": false,
+                  "budget_dispatch_pending": false,
+                  "budget_dispatch_marked": false
+                },
+                {
+                  "request_id": "request-0015",
+                  "request_sha256": null,
+                  "incoming_sha256": "345999de560a89ed86bb7f5ae933d0f53c326b13807e54a347134e0a4a74f70d",
+                  "forwarded_sha256": null,
+                  "dispatched": false,
+                  "usage": null,
+                  "response_service_tier": null,
+                  "status": "not_dispatched",
+                  "issues": [],
+                  "evidence_sha256": "63a8faa52f168640074574f61c089ae68972cae877b494e74416237489844e57",
+                  "budget_operation_id": null,
+                  "budget_reserved_nanodollars": null,
+                  "budget_reservation_pending": false,
+                  "budget_dispatch_pending": false,
+                  "budget_dispatch_marked": false
+                }
+              ],
+              "budget_control": {
+                "schema_version": 1,
+                "policy": {
+                  "mode": "fixture",
+                  "upstream_base_url": "https://fixture.invalid/v1",
+                  "model": "gpt-5.4-mini",
+                  "service_tier": "default"
+                },
+                "rates": {
+                  "model": "gpt-5.4-mini",
+                  "snapshot": "gpt-5.4-mini",
+                  "input_usd_per_million": "0.75",
+                  "output_usd_per_million": "4.5",
+                  "max_input_tokens_per_request": 400000,
+                  "price_source_url": "https://developers.openai.com/api/docs/models/gpt-5.4-mini",
+                  "price_as_of": "2026-09-08"
+                },
+                "rates_sha256": "ff87b946f81b3902381bcba9c0d6d9146737beaae23840166411bd83100bf25d",
+                "ceiling_nanodollars": 10000000000,
+                "authorization": {
+                  "status": "draft",
+                  "reference": null
+                },
+                "authorization_is_dispatch_permission": false,
+                "input_bound": {
+                  "method": "fixture_host_bound",
+                  "max_input_tokens": 400000,
+                  "locally_tokenized": false
+                }
+              },
+              "budget_control_verified": true,
+              "budget_settlement_complete": true,
+              "cost_usd": null,
+              "limitations": [
+                "Host archive consistency is not a signature or access-isolation proof.",
+                "Token accounting does not establish task success or provider billing."
+              ],
+              "binding": {
+                "execution_id": "decafeb6e9134d03b760797321856943",
+                "case_id": "controlled-policy",
+                "runtime": "omnigent-controlled-responses",
+                "phase": "discovery",
+                "task_sha256": "f72f81fa55937080de5d352c5eb3da48eb9415d422548f9f7b05af2b40370b15"
+              },
+              "interrupted": false,
+              "auxiliary_usage_unknown": false
+            },
+            "token_evidence_source": "gateway",
+            "reported_model": "gpt-5.4-mini",
+            "reported_search_providers": [
+              "authored-development-fixtures"
+            ],
+            "coverage": [
+              {
+                "id": "policy",
+                "covered": true,
+                "source_ids": [
+                  "policy"
+                ]
+              }
+            ],
+            "errors": [],
+            "artifacts": "/private/tmp/rh-budgeted-runtime-20260908/comparison/omnigent/cases/controlled-policy/runtime/research",
+            "specification_sha256": "7fa57d462e33193b4ffa8cee98257bb695015806d8dca4b2295959855e84eec6",
+            "artifact_sha256": {
+              "proposal.json": "75a00f505715f5911ef504c4526a7187b6bce871b9d35e7e7221addfcab8f95b",
+              "runtime_usage": "45f9d1b5d1a4285d08d826ad27ce9e6a42a0b0617173f4c91b1aae0385a68e05",
+              "runtime_usage_events": "5e5e4fef2e9783ed90591f6a3082fd77979441486ed33d9cf225ca937694687f",
+              "trace.jsonl": "46c7a0517a4277313ba02dd64f5066849699005c6c95755f13fb1b801dc45172",
+              "probes.json": "a96568bc03efe414708f8bc1b82f9af3ba5eeeda76ae1cfb967da1c4bf4cc6c7",
+              "receipts.json": "66494105c9531c16bf2f648a06aa7cf44b07a0b2f9e0c145565e6218d785de66",
+              "pipeline.json": "d488fbc47cb434a15dc26b68a7e5b435fa1aa7a9f26b8640233aa6daf1dcfb78"
+            }
+          },
+          "control_evidence": {
+            "scope": "observed_artifact_metadata",
+            "model": {
+              "configured": "gpt-5.4-mini",
+              "observed": "gpt-5.4-mini",
+              "status": "matched"
+            },
+            "search_provider": {
+              "configured": "authored-development-fixtures",
+              "observed": [
+                "authored-development-fixtures"
+              ],
+              "status": "matched",
+              "reason": null
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "paired_differences": [
+    {
+      "reference": "direct",
+      "candidate": "omnigent",
+      "macro_quality_difference": 0.0
+    }
+  ],
+  "limitations": [
+    "Fixture execution measures software behavior, not model performance.",
+    "Controls are recorded by the trusted runner; matching metadata does not authenticate execution.",
+    "No observed search provider leaves provider use unverified; the configured provider is not evidence that a search occurred.",
+    "Source predicates require qualitative review and cannot prove complete collection or recovery.",
+    "No confidence interval or broad scientific conclusion is inferred from this case set."
+  ],
+  "workflow": {
+    "direct": {
+      "schema_version": 1,
+      "measurement": "workflow_correctness_summary",
+      "scope": "recorded_checks_from_trusted_workflow_evaluations",
+      "status": "incomplete",
+      "cases": 1,
+      "case_counts": {
+        "passed": 0,
+        "failed": 0,
+        "incomplete": 0,
+        "missing": 1,
+        "invalid": 0
+      },
+      "valid_reports": 0,
+      "unavailable_reports": 1,
+      "recorded_check_counts": {
+        "passed": 0,
+        "failed": 0,
+        "unknown": 0
+      },
+      "dimensions": {
+        "capture": {
+          "case_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0,
+            "not_measured": 0,
+            "missing": 1,
+            "invalid": 0
+          },
+          "recorded_check_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0
+          }
+        },
+        "collection": {
+          "case_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0,
+            "not_measured": 0,
+            "missing": 1,
+            "invalid": 0
+          },
+          "recorded_check_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0
+          }
+        },
+        "export": {
+          "case_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0,
+            "not_measured": 0,
+            "missing": 1,
+            "invalid": 0
+          },
+          "recorded_check_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0
+          }
+        },
+        "pipeline": {
+          "case_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0,
+            "not_measured": 0,
+            "missing": 1,
+            "invalid": 0
+          },
+          "recorded_check_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0
+          }
+        },
+        "publication": {
+          "case_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0,
+            "not_measured": 0,
+            "missing": 1,
+            "invalid": 0
+          },
+          "recorded_check_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0
+          }
+        },
+        "replay": {
+          "case_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0,
+            "not_measured": 0,
+            "missing": 1,
+            "invalid": 0
+          },
+          "recorded_check_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0
+          }
+        },
+        "snapshot": {
+          "case_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0,
+            "not_measured": 0,
+            "missing": 1,
+            "invalid": 0
+          },
+          "recorded_check_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0
+          }
+        }
+      },
+      "unmeasured": [],
+      "results": [
+        {
+          "case_id": "controlled-policy",
+          "status": "missing",
+          "report_sha256": null
+        }
+      ],
+      "limitations": [
+        "Every expected case remains in the denominator, including executions with no workflow report.",
+        "A passed case means its recorded checks passed; absent workflow dimensions are not measured.",
+        "Missing, invalid, and unknown evidence cannot establish workflow correctness.",
+        "Report validation does not authenticate execution, case ownership, or artifact provenance.",
+        "No research usefulness, model quality, or cost score is inferred."
+      ]
+    },
+    "omnigent": {
+      "schema_version": 1,
+      "measurement": "workflow_correctness_summary",
+      "scope": "recorded_checks_from_trusted_workflow_evaluations",
+      "status": "incomplete",
+      "cases": 1,
+      "case_counts": {
+        "passed": 0,
+        "failed": 0,
+        "incomplete": 0,
+        "missing": 1,
+        "invalid": 0
+      },
+      "valid_reports": 0,
+      "unavailable_reports": 1,
+      "recorded_check_counts": {
+        "passed": 0,
+        "failed": 0,
+        "unknown": 0
+      },
+      "dimensions": {
+        "capture": {
+          "case_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0,
+            "not_measured": 0,
+            "missing": 1,
+            "invalid": 0
+          },
+          "recorded_check_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0
+          }
+        },
+        "collection": {
+          "case_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0,
+            "not_measured": 0,
+            "missing": 1,
+            "invalid": 0
+          },
+          "recorded_check_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0
+          }
+        },
+        "export": {
+          "case_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0,
+            "not_measured": 0,
+            "missing": 1,
+            "invalid": 0
+          },
+          "recorded_check_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0
+          }
+        },
+        "pipeline": {
+          "case_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0,
+            "not_measured": 0,
+            "missing": 1,
+            "invalid": 0
+          },
+          "recorded_check_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0
+          }
+        },
+        "publication": {
+          "case_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0,
+            "not_measured": 0,
+            "missing": 1,
+            "invalid": 0
+          },
+          "recorded_check_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0
+          }
+        },
+        "replay": {
+          "case_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0,
+            "not_measured": 0,
+            "missing": 1,
+            "invalid": 0
+          },
+          "recorded_check_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0
+          }
+        },
+        "snapshot": {
+          "case_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0,
+            "not_measured": 0,
+            "missing": 1,
+            "invalid": 0
+          },
+          "recorded_check_counts": {
+            "passed": 0,
+            "failed": 0,
+            "unknown": 0
+          }
+        }
+      },
+      "unmeasured": [],
+      "results": [
+        {
+          "case_id": "controlled-policy",
+          "status": "missing",
+          "report_sha256": null
+        }
+      ],
+      "limitations": [
+        "Every expected case remains in the denominator, including executions with no workflow report.",
+        "A passed case means its recorded checks passed; absent workflow dimensions are not measured.",
+        "Missing, invalid, and unknown evidence cannot establish workflow correctness.",
+        "Report validation does not authenticate execution, case ownership, or artifact provenance.",
+        "No research usefulness, model quality, or cost score is inferred."
+      ]
+    }
+  },
+  "controller_limitations": [
+    "Shared semantic instructions are identical; assembled prompts and tool schemas differ.",
+    "Model requests require a host gateway; native Omnigent drops some authored limits.",
+    "Source fixtures measure behavior on authored data, not live-source freshness.",
+    "Generation and operation limits are not an exact provider billing cap.",
+    "This directory is trusted controller state, not an M6 candidate sandbox."
+  ],
+  "pilot_budget": {
+    "purpose": "compatibility",
+    "execution": "fixture",
+    "cost_semantics": "Supplied token-rate accounting, not a provider invoice; fixture amounts are synthetic",
+    "rates": {
+      "model": "gpt-5.4-mini",
+      "snapshot": "gpt-5.4-mini",
+      "input_usd_per_million": "0.75",
+      "output_usd_per_million": "4.5",
+      "max_input_tokens_per_request": 400000,
+      "price_source_url": "https://developers.openai.com/api/docs/models/gpt-5.4-mini",
+      "price_as_of": "2026-09-08"
+    },
+    "accounting_observed_at": "2026-09-08T22:20:42.476951Z",
+    "comparison_settlement_complete": true,
+    "comparison_settled_nanodollars": 1320000,
+    "comparison_held_nanodollars": 0,
+    "shared_ledger_accounting": {
+      "settled_nanodollars": 1320000,
+      "held_nanodollars": 0,
+      "committed_nanodollars": 1320000,
+      "remaining_nanodollars": 9998680000,
+      "committed_usd": "0.001320000",
+      "remaining_usd": "9.998680000"
+    },
+    "authorization": {
+      "status": "draft",
+      "reference": null
+    }
+  }
+}

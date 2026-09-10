@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "authorization": {
+    "status": "draft",
+    "reference": null
+  },
+  "proposed_ceiling_usd": "10",
+  "upstream_base_url": "https://api.openai.com/v1",
+  "proposed_service_tier": "default",
+  "comparison": {
+    "execution": "model",
+    "model": "gpt-5.4-mini-2026-03-17",
+    "source_mode": "authored-fixtures",
+    "settings": {
+      "max_rounds": 16,
+      "max_output_tokens": 6000,
+      "reasoning_effort": "none",
+      "max_searches": 8,
+      "max_inspections": 16,
+      "max_probes": 12,
+      "deadline_seconds": 600,
+      "service_tier": "default"
+    }
+  },
+  "case_count": 20,
+  "rates": {
+    "model": "gpt-5.4-mini-2026-03-17",
+    "snapshot": "gpt-5.4-mini-2026-03-17",
+    "input_usd_per_million": "0.75",
+    "output_usd_per_million": "4.50",
+    "max_input_tokens_per_request": 400000,
+    "price_source_url": "https://developers.openai.com/api/docs/models/gpt-5.4-mini",
+    "price_as_of": "2026-09-08"
+  }
+}

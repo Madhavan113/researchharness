@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "rates": {
+    "model": "gpt-5.4-mini-2026-03-17",
+    "snapshot": "gpt-5.4-mini-2026-03-17",
+    "input_usd_per_million": "0.75",
+    "output_usd_per_million": "4.5",
+    "max_input_tokens_per_request": 400000,
+    "price_source_url": "https://developers.openai.com/api/docs/models/gpt-5.4-mini",
+    "price_as_of": "2026-09-08"
+  },
+  "rates_sha256": "2f49c79dc6691154544ca3ca4850a0ea485f7a9ad950f4685bb6f4de429bd920",
+  "settings": {
+    "max_rounds": 16,
+    "max_output_tokens": 6000,
+    "reasoning_effort": "none",
+    "service_tier": "default",
+    "max_searches": 8,
+    "max_inspections": 16,
+    "max_probes": 12,
+    "deadline_seconds": 600
+  },
+  "case_count": 20,
+  "arms_per_pair": 2,
+  "per_request": {
+    "requests": 1,
+    "nanodollars": 327000000,
+    "usd": "0.327000000"
+  },
+  "per_case": {
+    "requests": 16,
+    "nanodollars": 5232000000,
+    "usd": "5.232000000"
+  },
+  "per_pair": {
+    "requests": 32,
+    "nanodollars": 10464000000,
+    "usd": "10.464000000"
+  },
+  "full_benchmark": {
+    "requests": 640,
+    "nanodollars": 209280000000,
+    "usd": "209.280000000"
+  },
+  "authorization": "not established by this plan",
+  "scope": "supplied token rates only; excludes unmodelled fees, taxes and price changes",
+  "proposal_sha256": "ce391c4d4785e45b4aa1b413a5ef97fe6433577fef06b82868b1ba4a026a24db",
+  "authorization_record": {
+    "status": "draft",
+    "reference": null
+  },
+  "proposed_ceiling_usd": "10",
+  "upstream_base_url": "https://api.openai.com/v1",
+  "proposed_service_tier": "default",
+  "dispatcher_budget_enforcement": "available through the budgeted pilot; draft is not dispatch permission",
+  "paid_calls": false,
+  "assumptions": [
+    "Standard token prices at the documented date; no cached-input discount assumed",
+    "Full model context reserved as input plus the configured output cap",
+    "No native provider tools, regional endpoint, priority tier, or external source fees",
+    "Settlement may reduce held funds only with independently verified terminal usage",
+    "This is worst-case rate-based planning, not an expected invoice or approval"
+  ]
+}

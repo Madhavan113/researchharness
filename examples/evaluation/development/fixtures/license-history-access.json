@@ -1,0 +1,21 @@
+{
+  "authorship": "Synthetic fixture authored by Codex; no live source was sampled",
+  "search_results": [
+    {
+      "url": "https://export-office.fixture.example/license-history.json",
+      "title": "Authored search result"
+    }
+  ],
+  "responses": [
+    {
+      "url": "https://export-office.fixture.example/license-history.json",
+      "status": 401,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "error": "Licensed archive"
+      }
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+[
+  {
+    "captures": [
+      {
+        "body_sha256": "6eae91360f7dd2b109fb4959240e6350ebc965a53a7ac85913835f9b6bbecb6a",
+        "capture_id": "2db273d1ce544beaada4a71de8c5a0c5",
+        "status_code": 200,
+        "url": "http://127.0.0.1:57377/policy.json"
+      }
+    ],
+    "discovery_id": "c21c1c177f5e4b1d9f289be8e2d3fc79",
+    "error": null,
+    "issues": [],
+    "limits": [
+      "One-page structural sample; pagination completeness, historical coverage, and sustained availability are not established.",
+      "Order-book follow-up requests are tested during pipeline execution."
+    ],
+    "observed_at": "2026-09-08T18:57:44.213243Z",
+    "operation_id": "probe-1",
+    "probe_id": "fd6400412dfc42baaa7774a9e8a3c3f3",
+    "publication_profile": {
+      "newest_declared_timestamp": "2026-09-01T00:00:00.000000Z",
+      "oldest_declared_timestamp": "2026-09-01T00:00:00.000000Z",
+      "records_with_declared_timestamp": 1
+    },
+    "receipt_id": "1f7444642c094ab5b38638229e39dd3f",
+    "record_count": 1,
+    "record_kinds": [
+      "observation"
+    ],
+    "sample_fields": [
+      "id",
+      "published_at",
+      "title"
+    ],
+    "samples": [
+      {
+        "content_scope": null,
+        "data_preview": "{\"id\":\"policy-1\",\"published_at\":\"2026-09-01T00:00:00Z\",\"title\":\"Fixture export policy\"}",
+        "key": "policy-1",
+        "kind": "observation",
+        "published_at": "2026-09-01T00:00:00.000000Z",
+        "title": "Fixture export policy"
+      }
+    ],
+    "source_fingerprint": "d24af31f0a3efba1d6f1e3b756d4dabe2600fcf0ed798a5d18d5574e3667020d",
+    "source_id": "policy",
+    "status": "verified_sample",
+    "url": "http://127.0.0.1:57377/policy.json"
+  }
+]

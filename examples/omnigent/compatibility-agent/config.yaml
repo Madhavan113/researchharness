@@ -1,0 +1,14 @@
+spec_version: 1
+name: research-compatibility
+description: Offline MCP and OpenAI Agents adapter compatibility fixture.
+executor:
+  type: omnigent
+  model: gpt-5.4-mini
+  config:
+    harness: openai-agents
+interaction:
+  conversational: true
+  modalities:
+    input: [text]
+    output: [text]
+instructions: instructions.md

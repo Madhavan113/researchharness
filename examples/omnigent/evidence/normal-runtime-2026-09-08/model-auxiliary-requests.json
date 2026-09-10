@@ -1,0 +1,18 @@
+[
+  {
+    "path": "/v1/responses/compact",
+    "request": {
+      "model": "gpt-4.1",
+      "previous_response_id": "resp_6"
+    },
+    "status": 404
+  },
+  {
+    "path": "/v1/responses/compact",
+    "request": {
+      "model": "gpt-4.1",
+      "previous_response_id": "resp_14"
+    },
+    "status": 404
+  }
+]

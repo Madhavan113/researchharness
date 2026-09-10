@@ -1,0 +1,2 @@
+# Preserve generated JUnit failure text byte-for-byte.
+examples/evaluation/evidence/search-orchestration-2026-09-09/pytest.xml -whitespace

@@ -1,0 +1,12 @@
+{
+  "mcp_json_text_preserved": true,
+  "mcp_structured_content_only_lost": true,
+  "mcp_schema_validation_error_preserved": true,
+  "real_sdk_instruction_argument_result_roundtrip": true,
+  "synthetic_usage_aggregation": true,
+  "cache_discount_metadata_lost_at_pinned_adapter": true,
+  "updated_instructions_and_warm_history": true,
+  "fresh_executor_replays_supplied_history": true,
+  "interruption_closes_sdk_http_stream": true,
+  "interrupted_turn_does_not_report_completion_usage": true
+}

@@ -1,0 +1,49 @@
+{
+  "id": "rates-workbook-unsupported",
+  "title": "Historical rate workbook",
+  "brief": "Find the central bank's historical rate workbook and describe the connector needed to ingest its monthly worksheets. Do not claim that a downloadable spreadsheet is a supported JSON feed.",
+  "topic_group": "monetary-policy",
+  "source_families": [
+    "central-bank"
+  ],
+  "tags": [
+    "unsupported",
+    "spreadsheet"
+  ],
+  "review_status": "authored",
+  "review_notes": "Authored development contract, not independently human-reviewed. Endpoints, records, and search ordering are synthetic.",
+  "specification": {
+    "requirements": [
+      {
+        "id": "monthly-rates",
+        "weight": 1,
+        "any_of": [
+          {
+            "url": "https://central-bank.fixture.example/rates.xlsx",
+            "connector": "json"
+          }
+        ]
+      }
+    ]
+  },
+  "fixtures": {
+    "path": "fixtures/rates-workbook-unsupported.json",
+    "sha256": "884b07a26b8a57c06ed39acccc7d34915ffa953fb44ce87d8cc78c7ac268506f"
+  },
+  "sources": [],
+  "fixture_plan": {
+    "source_ids": [],
+    "unsupported": [
+      {
+        "name": "Monthly rate workbook",
+        "url": "https://central-bank.fixture.example/rates.xlsx",
+        "status": "needs_connector",
+        "limitation": "The current harness has no workbook extraction connector; the acceptance rule is a future normalized-source placeholder."
+      }
+    ]
+  },
+  "manual_checks": [
+    "Review relevance and whether the source scope answers the full brief.",
+    "Confirm the proposal states sample, history, and freshness limitations without inventing access."
+  ]
+}

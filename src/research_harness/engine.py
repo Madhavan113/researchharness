@@ -10,7 +10,7 @@ import httpx
 
 from research_harness.config import PipelineSpec, SourceSpec
 from research_harness.connectors import SourceContractError, load_json, normalize
-from research_harness.http import Fetcher
+from research_harness.http import Fetcher, OperationCancelled
 from research_harness.records import NORMALIZER_VERSION, Capture, Issue, Record
 from research_harness.store import Store
 from research_harness.util import (
@@ -220,17 +220,21 @@ def run_pipeline(
     public_only: bool = True,
     clock: Callable[[], datetime] = utcnow,
     on_progress: Callable[[dict[str, Any]], None] | None = None,
+    run_id: str | None = None,
+    check_cancelled: Callable[[], None] | None = None,
 ) -> dict[str, Any]:
     if only_source and not any(source.id == only_source for source in spec.sources):
         raise ValueError(f"Unknown source: {only_source}")
     owned_client = client is None
     client = client or httpx.Client()
     try:
-        with store.writer():
-            run_id = store.start_run(spec)
+        with store.writer(spec.name):
+            run_id = store.start_run(spec, run_id=run_id)
             summaries = []
             try:
                 for source in spec.sources:
+                    if check_cancelled:
+                        check_cancelled()
                     if not source.enabled or (only_source and source.id != only_source):
                         continue
                     state = store.state(spec.name, source.id)
@@ -253,12 +257,19 @@ def run_pipeline(
                         client=client,
                         clock=clock,
                         public_only=public_only,
+                        check_cancelled=check_cancelled,
                     )
                     collector = Collector(source, fetcher, store)
                     error = None
                     checkpoint = None
+                    cancelled = None
                     try:
                         checkpoint = collector.collect()
+                        if check_cancelled:
+                            check_cancelled()
+                    except OperationCancelled as exc:
+                        cancelled = exc
+                        error = str(exc)
                     except Exception as exc:
                         error = f"{type(exc).__name__}: {exc}"
                     summary = store.finish_source(
@@ -269,11 +280,14 @@ def run_pipeline(
                         collector.issues,
                         error=error,
                         checkpoint=checkpoint,
+                        failure_status="cancelled" if cancelled else "failed",
                     )
                     summary.update({"requests": fetcher.requests, "pages": collector.pages})
                     summaries.append(summary)
                     if on_progress:
                         on_progress(summary)
+                    if cancelled:
+                        raise cancelled
                 status = (
                     "succeeded"
                     if all(summary["status"] in {"succeeded", "not_due"} for summary in summaries)
@@ -286,7 +300,21 @@ def run_pipeline(
                     "status": status,
                     "sources": summaries,
                 }
+            except OperationCancelled as exc:
+                store.finish_run(run_id, "cancelled", str(exc))
+                return {
+                    "run_id": run_id,
+                    "pipeline": spec.name,
+                    "status": "cancelled",
+                    "sources": summaries,
+                    "error": str(exc),
+                }
             except BaseException as exc:
+                with store.transaction():
+                    store.execute(
+                        "UPDATE source_runs SET status='interrupted', finished_at=?, error=? WHERE run_id=? AND status='running'",
+                        (timestamp(clock()), type(exc).__name__, run_id),
+                    )
                 store.finish_run(run_id, "interrupted", type(exc).__name__)
                 raise
     finally:
@@ -309,7 +337,7 @@ def probe_source(
     owned_client = client is None
     client = client or httpx.Client()
     try:
-        with store.writer():
+        with store.writer(spec.name, shared=True):
             run_id = store.start_run(spec)
             source_run_id = store.start_source(run_id, source)
             fetcher = Fetcher(
@@ -329,29 +357,7 @@ def probe_source(
             except Exception as exc:
                 error = f"{type(exc).__name__}: {exc}"
             # Preserve captures/quarantine; probes do not advance ingestion state or publish records.
-            with store.db:
-                store.db.execute(
-                    "UPDATE source_runs SET status=?, finished_at=?, quarantined=?, error=? WHERE id=?",
-                    (
-                        "probed" if not error and not collector.issues else "probe_failed",
-                        timestamp(clock()),
-                        len(collector.issues),
-                        error,
-                        source_run_id,
-                    ),
-                )
-                for capture_id, issue in collector.issues:
-                    store.db.execute(
-                        "INSERT INTO quarantine (source_run_id,capture_id,location,error,candidate_text,created_at) VALUES (?,?,?,?,?,?)",
-                        (
-                            source_run_id,
-                            capture_id,
-                            issue.location,
-                            issue.error,
-                            repr(issue.candidate)[:8000],
-                            timestamp(clock()),
-                        ),
-                    )
+            store.finish_probe(source_run_id, collector.issues, error)
             passed = not error and not collector.issues and bool(collector.records)
             store.finish_run(run_id, "probed" if passed else "probe_failed", error)
             captures = store.captures_for_run(run_id)
@@ -493,6 +499,7 @@ def export_dataset(
         )
     manifest = {
         "pipeline": spec.name,
+        "dataset_scope": store.dataset_scope,
         "config_fingerprint": spec.fingerprint(),
         "as_of": cutoff_text,
         "record_count": len(records),

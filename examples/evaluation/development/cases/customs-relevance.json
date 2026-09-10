@@ -1,0 +1,61 @@
+{
+  "id": "customs-relevance",
+  "title": "Customs classification rulings",
+  "brief": "Monitor customs classification rulings. Do not use port holiday calendars simply because they are official, public, and parseable.",
+  "topic_group": "customs-classification",
+  "source_families": [
+    "customs-office"
+  ],
+  "tags": [
+    "irrelevant-parseable",
+    "relevance"
+  ],
+  "review_status": "authored",
+  "review_notes": "Authored development contract, not independently human-reviewed. Endpoints, records, and search ordering are synthetic.",
+  "specification": {
+    "requirements": [
+      {
+        "id": "rulings",
+        "weight": 1,
+        "any_of": [
+          {
+            "url": "https://customs-office.fixture.example/rulings.json",
+            "connector": "json"
+          }
+        ]
+      }
+    ]
+  },
+  "fixtures": {
+    "path": "fixtures/customs-relevance.json",
+    "sha256": "1eb0a7b4dd3f0242e0253d6db85ccc0c7e61449ac9e41727bdd382178c5791fb"
+  },
+  "sources": [
+    {
+      "id": "port-holidays",
+      "name": "Port Holidays",
+      "connector": "json",
+      "url": "https://customs-office.fixture.example/port-holidays.json",
+      "items_pointer": "/items",
+      "id_pointer": "/id"
+    },
+    {
+      "id": "customs-rulings",
+      "name": "Customs Rulings",
+      "connector": "json",
+      "url": "https://customs-office.fixture.example/rulings.json",
+      "items_pointer": "/items",
+      "id_pointer": "/id"
+    }
+  ],
+  "fixture_plan": {
+    "source_ids": [
+      "customs-rulings"
+    ],
+    "unsupported": []
+  },
+  "manual_checks": [
+    "Review relevance and whether the source scope answers the full brief.",
+    "Confirm the proposal states sample, history, and freshness limitations without inventing access."
+  ]
+}

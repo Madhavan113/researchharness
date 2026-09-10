@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "source_run": "/private/tmp/rh-omnigent-phased-budget",
+  "fixture_only": true,
+  "live_provider_verified": false,
+  "browser_walkthrough_verified": false,
+  "artifact_sha256": {
+    "acceptance.json": "eef1768870532e0bacf3fffc990c6ca75b9ac74a34db9bdfb94ef8311d5f105d",
+    "agent/config.yaml": "3e41404785db39ff84e6dc6d8013b4f6fc023088948d3fcb5bdaa1301ed4ba0e",
+    "agent/instructions.md": "28b67d3de67ee65b42ba107baa368b8fd1b2b05a0cd970782e2875f42c9d347c",
+    "agent/tools/mcp/README.md": "983aaf7e57e37db53eee90e0059ef830bd148fec1072e538d980f5680335e9ad",
+    "agent/tools/mcp/research.yaml": "49b92f396c6cbdad9dcdc61e9cb9926c590516c2a2e45108fe6f1cb71d84a509",
+    "budget-denial.json": "d019dd885e116c8186d06738a8f829b9645e965d47e0f4a244766eb38b1a90ee",
+    "case.json": "852318b06145e8a8e92f64e74f7c4963416099bdcdee5b846f7332384788a060",
+    "fixture.json": "4584905a0433bf995b0bb26e5e0c53c1387b88630aaa228ae6c0cfc068db4c48",
+    "metadata.json": "d65ae9fc8ed4aa8a37fdcf198b7ec44e7148336cd9aa514d19147f8a850072b9",
+    "model-auxiliary-requests.json": "1d13da4b6b83f5a0df88de34ac809e815a1a8ce443a248d011f812a23e8437aa",
+    "model-errors.json": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+    "model-requests.json.gz": "770378f7c9464efbc19c37b8442a809f903b5ca7afa0c899bb030bc7bda824f3",
+    "model-responses.json": "c4f1a3be26d1a68b127dbccbba3b7dff619dc2ebe19a0840bbd3743900ba5d03",
+    "omnigent/events/14cddcf6b1225d16cbf0f726adefe052a6cad558dd8de0fb00cb6293ded947f1.jsonl": "14cddcf6b1225d16cbf0f726adefe052a6cad558dd8de0fb00cb6293ded947f1",
+    "omnigent/events/dbe3e18516a9668d8c7f6425a18fb5fbcec429757422e0910a5d8d80e5de5dd4.jsonl": "dbe3e18516a9668d8c7f6425a18fb5fbcec429757422e0910a5d8d80e5de5dd4",
+    "omnigent/events.jsonl": "dbe3e18516a9668d8c7f6425a18fb5fbcec429757422e0910a5d8d80e5de5dd4",
+    "omnigent/response-phases.json": "56613a5e8636f9c2e52e1c936723f57ad709e0053bcdf2e29d0f4a68486ef5e2",
+    "omnigent/runner.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "omnigent/runtime-usage.discovery.json": "b819055ccf1ae54035df47b84abdd0681c5e3a0417792191b60bf07b562cdefc",
+    "omnigent/runtime-usage.followup.json": "15feabe9065d3565c618ad66b1d8abc2e673df5d411f59434f1e5aeb51fec818",
+    "omnigent/runtime-usage.json": "e27be26372f413157b43757cb94b7623d4c5a9c09553436012d268d799ddfd5f",
+    "omnigent/runtime.json": "8ec7b3cf8c27fa62094a5fb612488a91ab115b83ebd6deafd7a918dbd8242c83",
+    "omnigent/server.log": "6e684421521584494aa1f5a517ead2bf671bf70d437d33d0569b59df54c6fbda",
+    "omnigent/session.json": "ed69e70d3134d385bbf4f17d6b1fc69df7f9e0355702d439bd4400d3f0d1c2a9",
+    "omnigent/trace-manifest.json": "2f3633a5aaf799c65bd9c1b2a3dcbad92baf2f5fcc8979400f5724ac6976d670",
+    "research/context.json": "1a90734dff0c9881ba3182ad905ec772adc4cd5aa3dd8dee77defef3fc38ee42",
+    "research/evidence/raw/6e/6eae91360f7dd2b109fb4959240e6350ebc965a53a7ac85913835f9b6bbecb6a": "6eae91360f7dd2b109fb4959240e6350ebc965a53a7ac85913835f9b6bbecb6a",
+    "research/pipeline.json": "0b444de56fd01238fbd9c9cb86f3a75dc6fc2bd797e802472e517f131297aef9",
+    "research/probes.json": "873b43fa03a72bec9ef41feb90cedc23df006e77237a39d93d378c7c5fb9d47f",
+    "research/proposal.json": "f4223173f1793675d91b7fd777b9991874bd0f7357f0ede05a157836a2c09c25",
+    "research/proposal.md": "5802d27a478d98ec5b7d513c71e0f637639952f91678f74acc196a08845f2674",
+    "research/receipts.json": "f2e415d9e62f20c95b9a683471219ddce2bea69eff4aacf89e5ae592b2eb8755",
+    "research/trace.jsonl": "6121b42e77932b63de8a177b5f0a507a5f38a72cf483f0b6ac1eed5b19cd37ff",
+    "source-requests.json": "b8421b8751748a0ad4e9d97be98131e9d7bd3b65ab9a0fe8d5fb683f8d98a203"
+  },
+  "compressed_payloads": {
+    "model-requests.json.gz": {
+      "encoding": "gzip",
+      "uncompressed_sha256": "a67f2be91f63a13390bf508d5cf6cf2d85cacff3f1976ecc55fcd50f9d94e169",
+      "uncompressed_bytes": 462734
+    }
+  },
+  "excluded": "Runner credentials, runtime databases, process locks, generated Omnigent internal state; no hidden reasoning was available."
+}

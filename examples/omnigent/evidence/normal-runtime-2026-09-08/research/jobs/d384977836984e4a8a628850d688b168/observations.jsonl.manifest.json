@@ -1,0 +1,23 @@
+{
+  "pipeline": "fixture-policy",
+  "dataset_scope": "dc4f72af522b4d2e80c821b378f1bf44",
+  "config_fingerprint": "c416207c4bd6e822ed47aea505258f89f6c453654147ce976d3ca3a02c39fa99",
+  "as_of": "2026-09-08T18:57:44.656392Z",
+  "record_count": 1,
+  "kind_filter": null,
+  "data_sha256": "f4cd539faba67a76e00a4cb8509ee96c5a55c8f254eb59ade819c5c0b9bf5217",
+  "normalizer_version": "1",
+  "sources": [
+    {
+      "source_id": "policy",
+      "enabled": true,
+      "latest_run_status": "succeeded",
+      "configuration_matches_latest_run": true,
+      "last_success_at": "2026-09-08T18:57:44.613077Z",
+      "poll_interval_seconds": 900,
+      "error": null,
+      "stale": false
+    }
+  ],
+  "selection": "Latest successfully published observation per source/kind/key available by the cutoff, limited to source ids in this configuration. Use a saved historical configuration to reproduce its source universe. Absence from a later response is not interpreted as deletion."
+}

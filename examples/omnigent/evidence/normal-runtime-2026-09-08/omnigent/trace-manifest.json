@@ -1,0 +1,18 @@
+{
+  "session_id": "638a55a99bed444fbde67c44fbbfe8f4",
+  "server_url": "http://127.0.0.1:57379",
+  "exported_at": "2026-09-08T18:57:48.203001Z",
+  "status": "idle",
+  "artifacts": {
+    "runtime.json": "a7427f8b82dba3457c848edc47843a2598ceefd183f5da7518ce9511baa502ef",
+    "runtime-usage.discovery.json": "540129ebdd397f8fa31eab85aa4970ca43d91d447518aba0feca900269258be9",
+    "session.json": "41746bc636fcabc0e444ddeab7661c73562b7d439bb00618834cc351fd543c4e",
+    "response-phases.json": "7fe777898e1d3db6fcc5f41ab085139e4fb8316cb62d9b9b29300166040716f9",
+    "runtime-usage.followup.json": "0946a2e3b2eb77e73f2cb319bd82aafa6894057530aa9d61a5b1ffd8b8b0b890",
+    "runtime-usage.json": "23ac6f83c129e52f4f765a8b98bb5fba46460a0e956e411e5f63a641dd33d05e",
+    "events/c2a33ca18fb7525108c98e407dc7717706864eed268328879802d8a150905886.jsonl": "c2a33ca18fb7525108c98e407dc7717706864eed268328879802d8a150905886"
+  },
+  "hidden_reasoning_available": false,
+  "provider_usage_complete": false,
+  "stream_errors": []
+}

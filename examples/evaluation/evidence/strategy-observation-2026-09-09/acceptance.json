@@ -1,0 +1,16 @@
+{
+  "status": "passed",
+  "paid_calls": 0,
+  "live_provider": false,
+  "source_network": false,
+  "normal_server_runner": true,
+  "direct_tool_dispatch": true,
+  "actual_strategy_containers": 2,
+  "model_requests": 4,
+  "strategy_sha256": "4ea95aeacc0392218f15cb9da45b4f2a8e3f24bc496ebfbdd6a28dba61a1a5b2",
+  "matched_projection": true,
+  "stored_receipts_unchanged": true,
+  "exact_retry_without_strategy_reexecution": true,
+  "candidate_host_import_guard_passed": true,
+  "scope": "Observation projection and recovery fixtures, not proposal-quality or optimization evaluation"
+}

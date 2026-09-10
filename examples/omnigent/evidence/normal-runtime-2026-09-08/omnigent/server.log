@@ -1,0 +1,66 @@
+Starting omnigent server on 127.0.0.1:57379
+  database:  sqlite:////private/tmp/rh-omnigent-phased-verified/omnigent/sessions.db
+  artifacts: /private/tmp/rh-omnigent-phased-verified/omnigent/artifacts
+  log:       /private/tmp/rh-omnigent-phased-verified/omnigent/data/logs/server/server-20260908-145741-203395.log
+INFO  [omnigent.runtime.harnesses.process_manager] HarnessProcessManager started; instance_dir=/tmp/omnigent-501/ap-55973c509b6549868c227ef9c36e77f7
+INFO  [omnigent.server.app] Registered built-in claude-native-ui agent as 58a1bc5bf0bba6d31ceeb7661f8d751c
+INFO  [omnigent.server.app] Registered built-in codex-native-ui agent as 16a06503889b0c3034496821afd41b9e
+INFO  [omnigent.server.app] Registered built-in pi-native-ui agent as a1b7caa17404f6716180ba69aa37c592
+INFO  [omnigent.server.app] Registered built-in opencode-native-ui agent as cf65137fc096a61a6434956c92093549
+INFO  [omnigent.server.app] Registered built-in cursor-native-ui agent as a5fac3a24c1961af2dbb1cafe0a81425
+INFO  [omnigent.server.app] Registered built-in kiro-native-ui agent as cc8fef6623a8792be9c039cf2673ce93
+INFO  [omnigent.server.app] Registered built-in goose-native-ui agent as 93dd98c4a79bd26a1dd5dc592ee38afb
+INFO  [omnigent.server.app] Registered built-in antigravity-native-ui agent as db097e89797b66fb7e30699813ae09d2
+INFO  [omnigent.server.app] Registered built-in qwen-native-ui agent as 2cffe181a2fc6cf417a49e1cf8b28d77
+INFO  [omnigent.server.app] Registered built-in kimi-native-ui agent as 9e7d109e7da66e8b5ed4ec3ecb54cef1
+INFO  [omnigent.server.app] Registered built-in hermes-native-ui agent as 32113910cf31fcc63dc96bbde428b97c
+INFO  [omnigent.server.app] Registered built-in devin agent as 507a2065d93e0c5f3a7c752e0bf478aa
+INFO  [omnigent.server.app] Registered built-in grok agent as ae9886388305e5dea605277965797cf1
+INFO  [omnigent.server.app] Registered built-in debby agent as eac9e787e68ae6774d77e618031c287a
+INFO  [omnigent.server.app] Registered built-in polly agent as 057995d1517418e6839f51d340785dd6
+INFO  [omnigent.policies.registry] Policy registry loaded: 31 entries from 12 modules
+INFO  [omnigent.server.scheduled.scheduler] ScheduledTaskScheduler started with 0 job(s)
+INFO  [omnigent.server.routes.runner_tunnel] Runner runner_token_2531b3a81db2cfc3205da1989b0f0af5 connected (version=0.13.0.dev0, harnesses=['claude-native', 'claude-sdk', 'codex', 'openai-agents', 'open-responses', 'pi'])
+INFO  [omnigent.server.app] _on_runner_connect: runner=runner_token_2531b3a81db2cfc3205da1989b0f0af5, 0 bound session(s)
+INFO  [httpx] HTTP Request: GET http://runner/v1/sessions/638a55a99bed444fbde67c44fbbfe8f4 "HTTP/1.1 404 Not Found"
+INFO  [httpx] HTTP Request: GET http://runner/v1/sessions/638a55a99bed444fbde67c44fbbfe8f4 "HTTP/1.1 404 Not Found"
+INFO  [httpx] HTTP Request: GET http://runner/v1/sessions/638a55a99bed444fbde67c44fbbfe8f4/skills "HTTP/1.1 200 OK"
+INFO  [httpx] HTTP Request: GET http://runner/v1/sessions/638a55a99bed444fbde67c44fbbfe8f4 "HTTP/1.1 200 OK"
+INFO  [httpx] HTTP Request: POST http://runner/v1/sessions "HTTP/1.1 201 Created"
+INFO  [omnigent.server.routes.sessions] Relay: creating new for session=638a55a99bed444fbde67c44fbbfe8f4 runner=runner_token_2531b3a81db2cfc3205da1989b0f0af5
+INFO  [omnigent.server.routes.sessions] Relay: connecting to runner GET /stream for session=638a55a99bed444fbde67c44fbbfe8f4
+INFO  [httpx] HTTP Request: GET http://runner/v1/sessions/638a55a99bed444fbde67c44fbbfe8f4/stream "HTTP/1.1 200 OK"
+INFO  [omnigent.server.routes.sessions] Relay: connected to runner GET /stream for session=638a55a99bed444fbde67c44fbbfe8f4
+INFO  [omnigent.server.routes.sessions] Relay: reusing existing for session=638a55a99bed444fbde67c44fbbfe8f4 runner=runner_token_2531b3a81db2cfc3205da1989b0f0af5
+INFO  [httpx] HTTP Request: GET http://runner/v1/sessions/638a55a99bed444fbde67c44fbbfe8f4/resources/terminals?order=asc&limit=1000 "HTTP/1.1 200 OK"
+INFO  [omnigent.server.routes.sessions] Relay: reusing existing for session=638a55a99bed444fbde67c44fbbfe8f4 runner=runner_token_2531b3a81db2cfc3205da1989b0f0af5
+INFO  [httpx] HTTP Request: POST http://runner/v1/sessions/638a55a99bed444fbde67c44fbbfe8f4/events "HTTP/1.1 202 Accepted"
+INFO  [omnigent.server.routes.sessions] turn dispatched to runner for session=638a55a99bed444fbde67c44fbbfe8f4
+INFO  [httpx] HTTP Request: POST http://runner/v1/sessions/638a55a99bed444fbde67c44fbbfe8f4/mcp/execute "HTTP/1.1 200 OK"
+INFO  [httpx] HTTP Request: POST http://runner/v1/sessions/638a55a99bed444fbde67c44fbbfe8f4/mcp/execute "HTTP/1.1 200 OK"
+INFO  [httpx] HTTP Request: POST http://runner/v1/sessions/638a55a99bed444fbde67c44fbbfe8f4/mcp/execute "HTTP/1.1 200 OK"
+INFO  [httpx] HTTP Request: POST http://runner/v1/sessions/638a55a99bed444fbde67c44fbbfe8f4/mcp/execute "HTTP/1.1 200 OK"
+INFO  [httpx] HTTP Request: POST http://runner/v1/sessions/638a55a99bed444fbde67c44fbbfe8f4/mcp/execute "HTTP/1.1 200 OK"
+INFO  [httpx] HTTP Request: POST http://runner/v1/sessions/638a55a99bed444fbde67c44fbbfe8f4/mcp/execute "HTTP/1.1 200 OK"
+INFO  [httpx] HTTP Request: POST http://runner/v1/sessions/638a55a99bed444fbde67c44fbbfe8f4/mcp/execute "HTTP/1.1 200 OK"
+INFO  [httpx] HTTP Request: POST http://runner/v1/sessions/638a55a99bed444fbde67c44fbbfe8f4/mcp/execute "HTTP/1.1 200 OK"
+INFO  [omnigent.server.routes.sessions] Relay: reusing existing for session=638a55a99bed444fbde67c44fbbfe8f4 runner=runner_token_2531b3a81db2cfc3205da1989b0f0af5
+INFO  [httpx] HTTP Request: POST http://runner/v1/sessions/638a55a99bed444fbde67c44fbbfe8f4/events "HTTP/1.1 202 Accepted"
+INFO  [omnigent.server.routes.sessions] turn dispatched to runner for session=638a55a99bed444fbde67c44fbbfe8f4
+INFO  [httpx] HTTP Request: POST http://runner/v1/sessions/638a55a99bed444fbde67c44fbbfe8f4/mcp/execute "HTTP/1.1 200 OK"
+INFO  [httpx] HTTP Request: POST http://runner/v1/sessions/638a55a99bed444fbde67c44fbbfe8f4/mcp/execute "HTTP/1.1 200 OK"
+INFO  [httpx] HTTP Request: POST http://runner/v1/sessions/638a55a99bed444fbde67c44fbbfe8f4/mcp/execute "HTTP/1.1 200 OK"
+INFO  [httpx] HTTP Request: POST http://runner/v1/sessions/638a55a99bed444fbde67c44fbbfe8f4/mcp/execute "HTTP/1.1 200 OK"
+INFO  [httpx] HTTP Request: POST http://runner/v1/sessions/638a55a99bed444fbde67c44fbbfe8f4/mcp/execute "HTTP/1.1 200 OK"
+INFO  [httpx] HTTP Request: POST http://runner/v1/sessions/638a55a99bed444fbde67c44fbbfe8f4/mcp/execute "HTTP/1.1 200 OK"
+INFO  [httpx] HTTP Request: POST http://runner/v1/sessions/638a55a99bed444fbde67c44fbbfe8f4/mcp/execute "HTTP/1.1 200 OK"
+INFO  [httpx] HTTP Request: POST http://runner/v1/sessions/638a55a99bed444fbde67c44fbbfe8f4/mcp/execute "HTTP/1.1 200 OK"
+WARNI [omnigent.server.routes.runner_tunnel] Tunnel helper task disconnected for runner runner_token_2531b3a81db2cfc3205da1989b0f0af5: tunnel-receive:runner_token_2531b3a81db2cfc3205da1989b0f0af5 (code=1000, reason='')
+WARNI [omnigent.runner.transports.ws_tunnel.registry] Deregistering runner runner_token_2531b3a81db2cfc3205da1989b0f0af5; aborting 1 in-flight request(s)
+WARNI [omnigent.server.routes.runner_tunnel] Runner runner_token_2531b3a81db2cfc3205da1989b0f0af5 websocket disconnected (code=1000, reason='')
+INFO  [omnigent.server.routes.sessions] Relay: task exiting for session=638a55a99bed444fbde67c44fbbfe8f4
+INFO  [omnigent.server.routes.sessions] Relay: runner transport lost for session=638a55a99bed444fbde67c44fbbfe8f4; retrying for 10.0s
+Starting omnigent server on 127.0.0.1:57379
+  database:  sqlite:////private/tmp/rh-omnigent-phased-verified/omnigent/sessions.db
+  artifacts: /private/tmp/rh-omnigent-phased-verified/omnigent/artifacts
+  log:       /private/tmp/rh-omnigent-phased-verified/omnigent/data/logs/server/server-20260908-145746-042326.log

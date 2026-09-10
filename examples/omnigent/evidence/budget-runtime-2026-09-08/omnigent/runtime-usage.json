@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "question_id": "de0f7b0683d04c448d2c1dae64b92a1f",
+  "discovery_id": "c21c1c177f5e4b1d9f289be8e2d3fc79",
+  "phase": "workflow",
+  "source_event_file": "events/dbe3e18516a9668d8c7f6425a18fb5fbcec429757422e0910a5d8d80e5de5dd4.jsonl",
+  "source_event_sha256": "dbe3e18516a9668d8c7f6425a18fb5fbcec429757422e0910a5d8d80e5de5dd4",
+  "responses": {
+    "resp_5209c4c81a92441984220f91": {
+      "model": "gpt-5.4-mini",
+      "input_tokens": 700,
+      "output_tokens": 70,
+      "status": "completed"
+    },
+    "deny_8ee5505111e6153c": {
+      "model": "gpt-5.4-mini",
+      "input_tokens": null,
+      "output_tokens": null,
+      "status": "completed"
+    }
+  },
+  "totals": {
+    "input_tokens": 700,
+    "output_tokens": 70,
+    "total_tokens": 770
+  },
+  "complete": false,
+  "auxiliary_usage_unknown": true,
+  "interrupted": false
+}

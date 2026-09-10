@@ -1,0 +1,121 @@
+[
+  {
+    "id": "4a1ff96d55a441cfbfaafba69a7addd9",
+    "discovery_id": "af34b394a912440a95779a264bd69076",
+    "operation_id": "search-1",
+    "kind": "search",
+    "created_at": "2026-09-08T18:57:44.148465Z",
+    "payload": {
+      "discovery_id": "af34b394a912440a95779a264bd69076",
+      "filters": {},
+      "operation_id": "search-1",
+      "provider": "normal-omnigent-offline-fixture",
+      "provider_arguments": {
+        "filters": {},
+        "query": "official policy feed"
+      },
+      "provider_response": {
+        "isError": false,
+        "structuredContent": {
+          "results": [
+            {
+              "title": "Fixture policy feed",
+              "url": "http://127.0.0.1:57378/policy.json"
+            }
+          ]
+        }
+      },
+      "provider_usage": {
+        "fixture_calls": 1
+      },
+      "query": "official policy feed",
+      "receipt_id": "4a1ff96d55a441cfbfaafba69a7addd9",
+      "results": [
+        {
+          "title": "Fixture policy feed",
+          "url": "http://127.0.0.1:57378/policy.json"
+        }
+      ]
+    }
+  },
+  {
+    "id": "256a9c7ce8864a369df65190a4fde4b1",
+    "discovery_id": "af34b394a912440a95779a264bd69076",
+    "operation_id": "inspect-1",
+    "kind": "inspection",
+    "created_at": "2026-09-08T18:57:44.185235Z",
+    "payload": {
+      "body_sha256": "6eae91360f7dd2b109fb4959240e6350ebc965a53a7ac85913835f9b6bbecb6a",
+      "capture_id": "e278eb570d5b48c98e1d7e998b2eb1ba",
+      "content_type": "application/json",
+      "discovery_id": "af34b394a912440a95779a264bd69076",
+      "observed_at": "2026-09-08T18:57:44.183988Z",
+      "operation_id": "inspect-1",
+      "preview": "{\"items\":[{\"id\":\"policy-1\",\"published_at\":\"2026-09-01T00:00:00Z\",\"title\":\"Fixture export policy\"}]}",
+      "receipt_id": "256a9c7ce8864a369df65190a4fde4b1",
+      "requested_url": "http://127.0.0.1:57378/policy.json",
+      "status_code": 200,
+      "top_level_keys": [
+        "items"
+      ],
+      "top_level_type": "dict",
+      "url": "http://127.0.0.1:57378/policy.json"
+    }
+  },
+  {
+    "id": "a964991f6b99495a85c099b3adb9e011",
+    "discovery_id": "af34b394a912440a95779a264bd69076",
+    "operation_id": "probe-1",
+    "kind": "probe",
+    "created_at": "2026-09-08T18:57:44.213425Z",
+    "payload": {
+      "captures": [
+        {
+          "body_sha256": "6eae91360f7dd2b109fb4959240e6350ebc965a53a7ac85913835f9b6bbecb6a",
+          "capture_id": "b6627f2e96dc43a7a36820cbff13c600",
+          "status_code": 200,
+          "url": "http://127.0.0.1:57378/policy.json"
+        }
+      ],
+      "discovery_id": "af34b394a912440a95779a264bd69076",
+      "error": null,
+      "issues": [],
+      "limits": [
+        "One-page structural sample; pagination completeness, historical coverage, and sustained availability are not established.",
+        "Order-book follow-up requests are tested during pipeline execution."
+      ],
+      "observed_at": "2026-09-08T18:57:44.213126Z",
+      "operation_id": "probe-1",
+      "probe_id": "de20e554dd424845a5bbe5d17498a44a",
+      "publication_profile": {
+        "newest_declared_timestamp": "2026-09-01T00:00:00.000000Z",
+        "oldest_declared_timestamp": "2026-09-01T00:00:00.000000Z",
+        "records_with_declared_timestamp": 1
+      },
+      "receipt_id": "a964991f6b99495a85c099b3adb9e011",
+      "record_count": 1,
+      "record_kinds": [
+        "observation"
+      ],
+      "sample_fields": [
+        "id",
+        "published_at",
+        "title"
+      ],
+      "samples": [
+        {
+          "content_scope": null,
+          "data_preview": "{\"id\":\"policy-1\",\"published_at\":\"2026-09-01T00:00:00Z\",\"title\":\"Fixture export policy\"}",
+          "key": "policy-1",
+          "kind": "observation",
+          "published_at": "2026-09-01T00:00:00.000000Z",
+          "title": "Fixture export policy"
+        }
+      ],
+      "source_fingerprint": "7127e6c28eb102ad338f0ea41e8679113498307b2391e15863409f212ab4927f",
+      "source_id": "policy",
+      "status": "verified_sample",
+      "url": "http://127.0.0.1:57378/policy.json"
+    }
+  }
+]

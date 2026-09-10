@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "auditor": "root fresh-process verification after independent agent source review; agent artifact audit was interrupted by capacity",
+  "phase": "finalized",
+  "proposals": [
+    {
+      "iteration": 1,
+      "binding_verified": true,
+      "sealed_files": 133,
+      "requests": 9,
+      "synthetic_tokens": 990,
+      "generated_program_executions": 1,
+      "feedback_files": 339
+    },
+    {
+      "iteration": 2,
+      "binding_verified": true,
+      "sealed_files": 133,
+      "requests": 9,
+      "synthetic_tokens": 990,
+      "generated_program_executions": 1,
+      "feedback_files": 1157
+    },
+    {
+      "iteration": 3,
+      "binding_verified": true,
+      "sealed_files": 133,
+      "requests": 9,
+      "synthetic_tokens": 990,
+      "generated_program_executions": 1,
+      "feedback_files": 1975
+    }
+  ],
+  "research_executions": 14,
+  "research_strategy_executions": 140,
+  "interface_strategy_executions": 14,
+  "generated_program_executions": 3,
+  "synthetic_tokens": 13750,
+  "selected_candidates": 7,
+  "model_measurement": false
+}

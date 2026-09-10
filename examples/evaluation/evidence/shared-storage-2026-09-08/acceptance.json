@@ -1,0 +1,256 @@
+{
+  "schema_version": 1,
+  "started_at": "2026-09-08T22:30:35.656674Z",
+  "status": "passed",
+  "paid_calls": 0,
+  "fixture_sha256": "9fdecc6eec445ade3f8f95848b75b0bbf93d2c9040da34d8e5f4f0071d76bbc0",
+  "versions": {
+    "postgres": "postgres (PostgreSQL) 17.11",
+    "minio": "minio version RELEASE.2025-09-07T16-13-09Z (commit-id=07c3a429bfed433e49018cb0f78a52145d4bedeb)\nRuntime: go1.24.6 linux/arm64\nLicense: GNU AGPLv3 - https://www.gnu.org/licenses/agpl-3.0.html\nCopyright: 2015-2025 MinIO, Inc."
+  },
+  "tests": {
+    "command": [
+      "uv",
+      "run",
+      "--extra",
+      "mcp",
+      "python",
+      "-m",
+      "pytest",
+      "tests/test_backend.py",
+      "tests/test_pipeline.py",
+      "tests/test_http.py",
+      "tests/test_research_service.py",
+      "tests/test_research_search.py",
+      "tests/test_research_jobs.py",
+      "-ra"
+    ],
+    "environment": [
+      "RH_TEST_DATABASE_URL",
+      "RH_TEST_BLOB_BUCKET",
+      "RH_TEST_BLOB_ENDPOINT",
+      "RH_TEST_BLOB_ACCESS_KEY",
+      "RH_TEST_BLOB_SECRET_KEY",
+      "RH_TEST_BLOB_REGION"
+    ],
+    "exit_code": 0,
+    "cases": 125,
+    "postgres_cases": 49,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "reused_from": "/private/tmp/rh-shared-storage-20260908-final",
+    "executed_in_this_attempt": false,
+    "prior_acceptance_sha256": "97403ca255c2c8ce66c70f3abec9817f82f65aa8708b020f19a9ea8541cb3b69"
+  },
+  "workflow": {
+    "status": "passed",
+    "mode": "postgres",
+    "schema_version": 4,
+    "backend_services_restarted": true,
+    "fresh_backend_client": true,
+    "question_id": "13b88b5cc45c49928d980a587bbb161d",
+    "discovery_id": "641016dfdf9d48eb897e6b02e3224ad9",
+    "pipeline_version_id": "7a87cb5f240b4c7f96eed7eeca668c5d",
+    "source_requests": 4,
+    "collection_job_ids": [
+      "92466518ff0945dbb73d59aabc04d9e0",
+      "54d40003367d46fd9e5005c52972fd13"
+    ],
+    "export_job_id": "d81732dfa005450bb70b28766b5033aa",
+    "detached_worker_pids": [
+      18211,
+      18212,
+      18213
+    ],
+    "export_sha256": "f98060646e97011067caedf6789d3165eb3348d33b46ec36d959d2b62e2be44b",
+    "replay": {
+      "run_id": "3b34c00ed3e94e2ebe4c1cd61bc6e82c",
+      "normalizer_version": "1",
+      "replayed_at": "2026-09-08T22:30:38.376126Z",
+      "network_requests": 0,
+      "published": false,
+      "records": [
+        {
+          "source_id": "policy",
+          "kind": "observation",
+          "key": "policy-1",
+          "data": {
+            "id": "policy-1",
+            "title": "Before publication cutoff",
+            "published_at": "2026-09-01T00:00:00Z"
+          },
+          "published_at": "2026-09-01T00:00:00.000000Z",
+          "content_hash": "d1cfa236241d29c914fa892a7e6e64580d918a8dfcf475fbde0c35a836de7aaa",
+          "observed_at": "2026-09-08T22:30:37.458296Z",
+          "capture_id": "f3b1f0871c9446638638cbd238404079"
+        }
+      ],
+      "issues": []
+    },
+    "remaining_operation_budgets": {
+      "inspection": 15,
+      "probe": 11,
+      "search": 7
+    },
+    "checks": [
+      "search/inspection/probe receipts",
+      "atomic proposal registration",
+      "detached collection and export workers",
+      "queued export cutoff",
+      "fresh clients after storage restart",
+      "export read from S3 after local deletion",
+      "same-operation retry without fetching",
+      "replay without publication",
+      "Postgres writer exclusion",
+      "question namespace isolation"
+    ]
+  },
+  "containers": [
+    {
+      "name": "rh-shared-9ed39b123d1b-postgres",
+      "id": "ba43be9ac29a04e17457cf9bcde9e46f1394e638127616151f1fd77600f8f0c5",
+      "image": "postgres@sha256:18cfe3ef5e6815560c98237d6216d1e5119702fb0f3894c8785dd58b8bbe5d73",
+      "ports": {
+        "5432/tcp": [
+          {
+            "HostIp": "127.0.0.1",
+            "HostPort": "56536"
+          }
+        ]
+      }
+    },
+    {
+      "name": "rh-shared-9ed39b123d1b-minio",
+      "id": "297dd111df29fe098422954e51910f1c6bda408dedc4f8147293f6aa230d7c33",
+      "image": "minio/minio@sha256:14cea493d9a34af32f524e538b8346cf79f3321eff8e708c1e2960462bd8936e",
+      "ports": {
+        "9000/tcp": [
+          {
+            "HostIp": "127.0.0.1",
+            "HostPort": "56538"
+          }
+        ]
+      }
+    }
+  ],
+  "cleanup": [
+    {
+      "name": "rh-shared-9ed39b123d1b-minio",
+      "removed": true
+    },
+    {
+      "name": "rh-shared-9ed39b123d1b-postgres",
+      "removed": true
+    }
+  ],
+  "commands": [
+    [
+      "docker",
+      "image",
+      "inspect",
+      "postgres@sha256:18cfe3ef5e6815560c98237d6216d1e5119702fb0f3894c8785dd58b8bbe5d73",
+      "--format",
+      "{{.Id}}"
+    ],
+    [
+      "docker",
+      "image",
+      "inspect",
+      "minio/minio@sha256:14cea493d9a34af32f524e538b8346cf79f3321eff8e708c1e2960462bd8936e",
+      "--format",
+      "{{.Id}}"
+    ],
+    [
+      "docker",
+      "run",
+      "-d",
+      "--pull=never",
+      "--name",
+      "rh-shared-9ed39b123d1b-postgres",
+      "--label",
+      "research-harness.fixture=rh-shared-9ed39b123d1b",
+      "--env-file",
+      "<private-temporary-env-file>",
+      "--publish",
+      "127.0.0.1:56536:5432",
+      "--mount",
+      "type=volume,destination=/var/lib/postgresql/data",
+      "postgres@sha256:18cfe3ef5e6815560c98237d6216d1e5119702fb0f3894c8785dd58b8bbe5d73"
+    ],
+    [
+      "docker",
+      "inspect",
+      "rh-shared-9ed39b123d1b-postgres",
+      "--format",
+      "{{json .NetworkSettings.Ports}}"
+    ],
+    [
+      "docker",
+      "run",
+      "-d",
+      "--pull=never",
+      "--name",
+      "rh-shared-9ed39b123d1b-minio",
+      "--label",
+      "research-harness.fixture=rh-shared-9ed39b123d1b",
+      "--env-file",
+      "<private-temporary-env-file>",
+      "--publish",
+      "127.0.0.1:56538:9000",
+      "--mount",
+      "type=volume,destination=/data",
+      "minio/minio@sha256:14cea493d9a34af32f524e538b8346cf79f3321eff8e708c1e2960462bd8936e",
+      "server",
+      "/data",
+      "--address",
+      ":9000"
+    ],
+    [
+      "docker",
+      "inspect",
+      "rh-shared-9ed39b123d1b-minio",
+      "--format",
+      "{{json .NetworkSettings.Ports}}"
+    ],
+    [
+      "docker",
+      "exec",
+      "rh-shared-9ed39b123d1b-postgres",
+      "postgres",
+      "--version"
+    ],
+    [
+      "docker",
+      "exec",
+      "rh-shared-9ed39b123d1b-minio",
+      "minio",
+      "--version"
+    ],
+    [
+      "docker",
+      "restart",
+      "rh-shared-9ed39b123d1b-postgres"
+    ],
+    [
+      "docker",
+      "restart",
+      "rh-shared-9ed39b123d1b-minio"
+    ],
+    [
+      "docker",
+      "rm",
+      "-f",
+      "-v",
+      "rh-shared-9ed39b123d1b-minio"
+    ],
+    [
+      "docker",
+      "rm",
+      "-f",
+      "-v",
+      "rh-shared-9ed39b123d1b-postgres"
+    ]
+  ],
+  "finished_at": "2026-09-08T22:30:40.264127Z"
+}

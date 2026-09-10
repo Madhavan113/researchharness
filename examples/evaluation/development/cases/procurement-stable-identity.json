@@ -1,0 +1,62 @@
+{
+  "id": "procurement-stable-identity",
+  "title": "Procurement notice revisions",
+  "brief": "Track revisions to procurement notices. Use a stable notice identifier so a title correction updates an existing notice rather than creating a different record.",
+  "topic_group": "procurement",
+  "source_families": [
+    "procurement-office"
+  ],
+  "tags": [
+    "stable-identity",
+    "revisions"
+  ],
+  "review_status": "authored",
+  "review_notes": "Authored development contract, not independently human-reviewed. Endpoints, records, and search ordering are synthetic.",
+  "specification": {
+    "requirements": [
+      {
+        "id": "stable-notices",
+        "weight": 1,
+        "any_of": [
+          {
+            "url": "https://procurement-office.fixture.example/notices.json",
+            "connector": "json",
+            "id_pointer": "/notice_id"
+          }
+        ]
+      }
+    ]
+  },
+  "fixtures": {
+    "path": "fixtures/procurement-stable-identity.json",
+    "sha256": "f0f3bb4ad1f84df882a2466aa0770ef9b62fb14793adc9bd317c9105dfaf962d"
+  },
+  "sources": [
+    {
+      "id": "title-as-id",
+      "name": "Title As Id",
+      "connector": "json",
+      "url": "https://procurement-office.fixture.example/notices.json",
+      "items_pointer": "/items",
+      "id_pointer": "/title"
+    },
+    {
+      "id": "stable-notice-id",
+      "name": "Stable Notice Id",
+      "connector": "json",
+      "url": "https://procurement-office.fixture.example/notices.json",
+      "items_pointer": "/items",
+      "id_pointer": "/notice_id"
+    }
+  ],
+  "fixture_plan": {
+    "source_ids": [
+      "stable-notice-id"
+    ],
+    "unsupported": []
+  },
+  "manual_checks": [
+    "Review relevance and whether the source scope answers the full brief.",
+    "Confirm the proposal states sample, history, and freshness limitations without inventing access."
+  ]
+}

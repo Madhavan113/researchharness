@@ -1,0 +1,34 @@
+{
+  "source": {
+    "id": "policy",
+    "name": "Fixture policy feed",
+    "connector": "json",
+    "url": "http://127.0.0.1:57378/policy.json",
+    "parameters": [],
+    "pagination": {
+      "mode": "none",
+      "next_pointer": null,
+      "cursor_parameter": null,
+      "stop_when_missing": false
+    },
+    "items_pointer": "/items",
+    "id_pointer": "/id",
+    "published_pointer": "/published_at",
+    "required_pointers": [
+      "/title"
+    ],
+    "include_orderbooks": false,
+    "poll_interval_seconds": 900,
+    "max_pages": 10,
+    "max_records": 5000,
+    "min_records": 1,
+    "enabled": true
+  },
+  "items": [
+    {
+      "id": "policy-1",
+      "title": "Fixture export policy",
+      "published_at": "2026-09-01T00:00:00Z"
+    }
+  ]
+}

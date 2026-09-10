@@ -1,0 +1,23 @@
+{
+  "status": "passed",
+  "normal_server_runner": true,
+  "model_and_source_fixtures": true,
+  "live_provider_verified": false,
+  "ui_page_available": true,
+  "browser_walkthrough_verified": false,
+  "saved": {
+    "question_id": "dc4f72af522b4d2e80c821b378f1bf44",
+    "discovery_id": "af34b394a912440a95779a264bd69076",
+    "proposal_id": "ad8fb68943a64220aef35bdc9e5f548a",
+    "pipeline_version_id": "26e3310f897a4f619fa20921fbb7920b"
+  },
+  "session_id": "638a55a99bed444fbde67c44fbbfe8f4",
+  "server_runner_restart_preserved_case": true,
+  "model_requests": 19,
+  "usage_scopes_verified": true,
+  "provider_usage_complete": false,
+  "collection_job_id": "339491819af24ec685993a569990e87e",
+  "export_job_id": "d384977836984e4a8a628850d688b168",
+  "collection_and_export_reopened": true,
+  "source_http_requests": 3
+}

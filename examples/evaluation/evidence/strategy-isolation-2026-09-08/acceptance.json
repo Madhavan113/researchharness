@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "scope": "Isolated strategy software/runtime tests; no model optimization or held-out evaluation",
+  "paid_calls": false,
+  "test_command": "RH_TEST_STRATEGY_IMAGE=python@sha256:9d2e5553305c7c7b0097999bb17187c69b921ccd6bc9d40e4bb5ebe652c00285 uv run --extra mcp pytest tests/test_strategy_sandbox.py -ra",
+  "tests_passed": 21,
+  "actual_containers": 10,
+  "reports": [
+    {
+      "test": "test_actual_candidate_cannot_a0/isolation",
+      "status": "completed",
+      "cleanup": "removed",
+      "container_created": true,
+      "output_truncated": false
+    },
+    {
+      "test": "test_actual_candidate_projects0/run",
+      "status": "completed",
+      "cleanup": "removed",
+      "container_created": true,
+      "output_truncated": false
+    },
+    {
+      "test": "test_actual_host_interruption_0/interrupted",
+      "status": "interrupted",
+      "cleanup": "removed",
+      "container_created": true,
+      "output_truncated": false
+    },
+    {
+      "test": "test_actual_invalid_candidates0/invalid",
+      "status": "failed",
+      "cleanup": "removed",
+      "container_created": true,
+      "output_truncated": false
+    },
+    {
+      "test": "test_actual_invalid_candidates1/invalid",
+      "status": "failed",
+      "cleanup": "removed",
+      "container_created": true,
+      "output_truncated": false
+    },
+    {
+      "test": "test_actual_invalid_candidates2/invalid",
+      "status": "failed",
+      "cleanup": "removed",
+      "container_created": true,
+      "output_truncated": false
+    },
+    {
+      "test": "test_actual_invalid_candidates3/invalid",
+      "status": "failed",
+      "cleanup": "removed",
+      "container_created": true,
+      "output_truncated": false
+    },
+    {
+      "test": "test_actual_runaway_candidates0/bounded",
+      "status": "failed",
+      "cleanup": "absent",
+      "container_created": true,
+      "output_truncated": false
+    },
+    {
+      "test": "test_actual_runaway_candidates1/bounded",
+      "status": "failed",
+      "cleanup": "absent",
+      "container_created": true,
+      "output_truncated": true
+    },
+    {
+      "test": "test_actual_runaway_candidates2/bounded",
+      "status": "failed",
+      "cleanup": "absent",
+      "container_created": true,
+      "output_truncated": false
+    },
+    {
+      "test": "test_candidate_is_never_import0/attempt",
+      "status": "failed",
+      "cleanup": "not_created",
+      "container_created": false,
+      "output_truncated": false
+    }
+  ],
+  "checks": [
+    "ranked/formatted result produced by container Python",
+    "host credential and private file canaries inaccessible",
+    "host input/root read-only and nonroot process",
+    "Docker socket unavailable and network denied",
+    "invalid outputs, timeout, output flood and memory overrun fail",
+    "host interruption retains artifacts and removes owned container",
+    "attempt replay refused and active recovery locked"
+  ]
+}
