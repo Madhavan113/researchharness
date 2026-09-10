@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import importlib.util
 import os
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -15,6 +16,65 @@ from research_harness.store import PostgresDialect, Store
 # Postgres and an S3-compatible bucket as well as SQLite, each in a throwaway schema and key
 # prefix; see docs/backend.md.
 BACKENDS = ["sqlite"] + (["postgres"] if os.environ.get("RH_TEST_DATABASE_URL") else [])
+
+# Runtime fixtures need RH_TEST_STRATEGY_IMAGE (a locally pulled digest-pinned Python image)
+# and RH_TEST_OMNIGENT_PYTHON (the pinned checkout's separate .venv/bin/python), plus the mcp
+# extra. RH_TEST_REQUIRE_RUNTIME=1 requires this configuration and rejects every skip;
+# ordinary runs retain visible skip reasons. See docs/testing.md for local and CI commands.
+REQUIRE_RUNTIME = pytest.StashKey[bool]()
+
+
+def pytest_configure(config):
+    value = os.environ.get("RH_TEST_REQUIRE_RUNTIME", "0")
+    if value not in {"0", "1"}:
+        raise pytest.UsageError("RH_TEST_REQUIRE_RUNTIME must be 0 or 1 (or unset)")
+    config.stash[REQUIRE_RUNTIME] = value == "1"
+    if value != "1":
+        return
+    missing = [
+        name
+        for name in ("RH_TEST_STRATEGY_IMAGE", "RH_TEST_OMNIGENT_PYTHON")
+        if not os.environ.get(name, "").strip()
+    ]
+    if importlib.util.find_spec("mcp") is None:
+        missing.append("MCP dependency (install with uv sync --locked --extra mcp)")
+    if missing:
+        raise pytest.UsageError("Required runtime configuration is missing: " + ", ".join(missing))
+    python = Path(os.environ["RH_TEST_OMNIGENT_PYTHON"]).expanduser()
+    if not python.is_file() or not os.access(python, os.X_OK):
+        raise pytest.UsageError("RH_TEST_OMNIGENT_PYTHON must name an executable Python file")
+
+
+def pytest_report_header(config):
+    if config.stash.get(REQUIRE_RUNTIME, False):
+        return "Runtime checks: required; all skips fail (RH_TEST_REQUIRE_RUNTIME=1)"
+    return "Runtime checks: optional; skip reasons are reported (set RH_TEST_REQUIRE_RUNTIME=1 to require them)"
+
+
+def _require_executed(config, report):
+    if config.stash.get(REQUIRE_RUNTIME, False) and report.skipped:
+        report.outcome = "failed"
+        report.longrepr = (
+            f"{report.nodeid}: RH_TEST_REQUIRE_RUNTIME=1 forbids skipped checks.\n"
+            f"Original skip: {report.longrepr}"
+        )
+        # A skipped xfail must not retain a status that masks the strict failure.
+        if hasattr(report, "wasxfail"):
+            del report.wasxfail
+
+
+@pytest.hookimpl(wrapper=True, tryfirst=True)
+def pytest_make_collect_report(collector):
+    report = yield
+    _require_executed(collector.config, report)
+    return report
+
+
+@pytest.hookimpl(wrapper=True, tryfirst=True)
+def pytest_runtest_makereport(item, call):
+    report = yield
+    _require_executed(item.config, report)
+    return report
 
 
 class Clock:

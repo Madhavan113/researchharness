@@ -226,6 +226,8 @@ The first release is ready for a pilot when the trade-policy walkthrough works t
 
 Required checks include changed configuration after probing, an unrelated run's probe id, unobserved citations, duplicate tool delivery, interruption during collection, provider failure, operation-budget exhaustion, and concurrent writers. Run the current core suite plus service/MCP integration tests. The [local Postgres/MinIO acceptance](backend.md#local-shared-storage-acceptance) now exercises shared-storage tests and the durable research/job/export workflow. Remote deployments still need their own environment-specific acceptance.
 
+The [test configurations](testing.md) distinguish ordinary runs with visible skips from required runtime execution. `RH_TEST_REQUIRE_RUNTIME=1` requires the MCP and separate Omnigent/Docker configuration and turns any remaining skip into a failure. The GitHub Actions workflow exercises both configurations on Ubuntu with frozen dependencies and runtime pins. Hosted run outcomes and local evidence belong in the shared tracker; neither CI nor fixture success establishes live model performance.
+
 Human verification should include following source references, inspecting an unresolved requirement, asking for a collection, reopening the case, and checking that exported observations trace back to the saved run. Test a second adapter only after this workflow passes on the first.
 
 After the local pilot, the next increments are authenticated HTTP MCP with shared storage, repeat collection and change summaries, then specialist workflows. Multi-user access needs workspace ownership and checks on every domain lookup; an Omnigent login alone does not add those checks to the research backend.

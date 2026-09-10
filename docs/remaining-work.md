@@ -95,7 +95,7 @@ Fix direction: keep `index.json`, `acceptance.json`, `verification.json` and the
 
 Acceptance: a new checkpoint adds under 1 MB to the repository and its README says where the archive lives and how to verify it.
 
-### RW-7 · Make runtime test skips visible and enforceable · `open` · confirmed
+### RW-7 · Make runtime test skips visible and enforceable · `in_progress` · confirmed
 
 Files: `pyproject.toml` (`addopts`), `tests/conftest.py`, ten skip sites (for example `tests/test_strategy_sandbox.py:28`, `tests/test_omnigent_integration.py:138`, `tests/test_comparison_runtime.py:647`), new `.github/workflows/`.
 

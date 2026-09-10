@@ -99,6 +99,8 @@ uv run ruff check src tests
 uv run ruff format --check src tests
 ```
 
+Pytest lists skip reasons by default. Follow the [test configurations](docs/testing.md) to include MCP, Docker and the pinned Omnigent runtime; `RH_TEST_REQUIRE_RUNTIME=1` makes missing configuration and skipped checks fail. The [CI workflow](.github/workflows/tests.yml) runs ordinary checks and the required runtime configuration on pushes and pull requests.
+
 ## Product research
 
 The earlier company-analysis and prediction-market proposals provide context for the data layer:

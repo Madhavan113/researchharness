@@ -33,6 +33,8 @@ An eight-area read-only review (paper fidelity, sandbox isolation, budget ledger
 
 ## Reproducing the evidence
 
+This section records the original PR #1 configuration and counts. Later changes to skip reporting and required CI/runtime checks are documented in [test configurations](testing.md); use the shared tracker for current checkpoint results.
+
 Environment requirements for the full configuration: Docker running with the pinned image already present (`python@sha256:9d2e5553305c7c7b0097999bb17187c69b921ccd6bc9d40e4bb5ebe652c00285`, a multi-arch index), the pinned Omnigent venv, and the `mcp` extra.
 
 ```sh
