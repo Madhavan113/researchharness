@@ -80,7 +80,7 @@ Retain completed handoffs so another agent can distinguish implemented behavior 
 
 ### September 10, 2026 — RW-3 final selection handoff
 
-Owner: `/root`; done for RW-3 implementation and verification. The resumed goal had new actionable evidence from commit `54c8b56`; the previous blocked handoff is superseded for offline software work. PR #1 is merged at `37b2277`; this follow-up is based on that main-branch commit on `fix/final-candidate-eligibility`. Changed files: `optimization/archive.py`, `optimization/controller.py`, archive/final/controller regression tests, the strategy guide, remaining-work list, README, plan and this tracker. No benchmark or historical evidence archive changed.
+Owner: `/root`; done for RW-3 implementation, verification and publication. The resumed goal had new actionable evidence from commit `54c8b56`; the previous blocked handoff is superseded for offline software work. PR #1 is merged at `37b2277`; implementation commit `0889a7a` is pushed on `fix/final-candidate-eligibility` and included in [PR #2](https://github.com/Madhavan113/researchharness/pull/2). Changed files: `optimization/archive.py`, `optimization/controller.py`, archive/final/controller regression tests, the strategy guide, remaining-work list, README, plan and this tracker. No benchmark or historical evidence archive changed.
 
 Final selection now uses a Pareto frontier restricted to positive macro quality and no failed development cases. It retains `ranked`, the diagnostic `raw_candidate_ids` and explicit exclusion reasons. A partially failed candidate cannot dominate an eligible one. Both the archive and coordinator validate the selected set and required baseline before beginning private evaluation. Ineligible legacy selections are refused without rewriting the selection; completed final retries keep their existing behavior. An ineligible baseline leaves the coordinator journal unchanged, creates no private output and dispatches no provider work.
 
@@ -88,7 +88,7 @@ Eight regression cases cover the cheap all-failed candidate (quality 0 at two to
 
 `uv run ruff check src tests` and `uv run ruff format --check src tests` pass across 96 Python files. All 151 local Markdown links in the five changed documents resolve; `git diff --check` passes. These are offline software checks with synthetic responses, not model-quality measurements. No paid calls occurred.
 
-Next: RW-4 reservation/reconciliation fixes, then the remaining prioritized review items. The provider/budget and human-review questions remain pending; all twenty development cases and ten private held-out cases remain authored. The full goal stays active with its original scope. Publish this bounded fix as a follow-up PR to the merged checkpoint.
+Next: RW-4 reservation/reconciliation fixes, then the remaining prioritized review items. The provider/budget and human-review questions remain pending; all twenty development cases and ten private held-out cases remain authored. The full goal stays active with its original scope. PR #2 is open for review; it has not been merged.
 
 ### September 10, 2026 — independent code review and continuation handoff
 
