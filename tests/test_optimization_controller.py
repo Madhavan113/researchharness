@@ -36,7 +36,7 @@ def read(path):
 
 
 @pytest.fixture
-def search(tmp_path, monkeypatch, fake_runner):
+def search(tmp_path, monkeypatch, fake_runner, request):
     # Freeze a stable backend for these coordinator-only fixtures while other
     # independent agent modules are edited. Runtime acceptance freezes all code.
     backend = ROOT / "src/research_harness/config.py"
@@ -51,6 +51,13 @@ def search(tmp_path, monkeypatch, fake_runner):
     manifest["cases"] = [
         ref for ref in manifest["cases"] if Path(ref["path"]).stem == "export-notices"
     ]
+    if getattr(request, "param", None) == "zero-quality":
+        reference = manifest["cases"][0]
+        path = package / reference["path"]
+        case = read(path)
+        case["specification"]["requirements"][0]["any_of"][0]["url"] += "/unmatched"
+        write_json(path, case)
+        reference["sha256"] = digest(path.read_bytes())
     write_json(package / "manifest.json", manifest)
     code = bundle(tmp_path)
     config = SearchConfig(
@@ -244,6 +251,26 @@ def test_final_does_not_read_heldout_before_search_and_revocation(search, tmp_pa
             executor=Executor(),
         )
     assert not (tmp_path / "final").exists()
+
+
+@pytest.mark.parametrize("search", ["zero-quality"], indirect=True)
+def test_ineligible_baseline_does_not_start_controller_final(search, tmp_path):
+    executor, proposer = Executor(), Proposer(search)
+    state = search.run(executor=executor, proposer=proposer)
+    assert state["archive"]["selection"]["excluded"]["baseline"] == "zero_quality"
+    before = (search.root / "journal.json").read_bytes()
+    calls = len(executor.calls)
+    with pytest.raises(ValueError, match="baseline.*ineligible"):
+        search.final(
+            heldout_manifest=tmp_path / "must-not-be-read.json",
+            output=tmp_path / "private-final",
+            executor=executor,
+        )
+    assert (search.root / "journal.json").read_bytes() == before
+    assert search.status()["phase"] == "selected"
+    assert search.archive.status()["final"] is None
+    assert len(executor.calls) == calls
+    assert not (tmp_path / "private-final").exists()
 
 
 def test_repeat_selection_preserves_completed_private_final_phase(search, tmp_path):

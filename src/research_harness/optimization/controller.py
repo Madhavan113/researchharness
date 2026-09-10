@@ -718,6 +718,8 @@ class SearchController:
                 raise ValueError("Final evaluation requires permanent proposer revocation")
             if journal["phase"] not in {"selected", "final_started", "finalized"}:
                 raise ValueError("Finish search and freeze selection before final evaluation")
+            if journal["phase"] == "selected":
+                self.archive.validate_final_selection()
             terminal = journal["phase"] == "finalized"
             if not terminal:
                 journal["phase"] = "final_started"

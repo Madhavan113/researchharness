@@ -40,7 +40,7 @@ Fix direction: set or subset semantics for pointer lists with per-field rules do
 
 Acceptance: a probe over the twenty cases shows the answer key strictly beats first-listed on every case; a regression test covers pointer reordering and supersets; docs updated.
 
-### RW-3 · Exclude zero-quality and failed candidates from the final phase · `open` · confirmed
+### RW-3 · Exclude zero-quality and failed candidates from the final phase · `done` · confirmed
 
 Files: `src/research_harness/optimization/archive.py` (frontier loop near lines 941–952), `src/research_harness/optimization/final.py`, `tests/test_optimization_archive.py`.
 
@@ -49,6 +49,8 @@ Problem: strict Pareto dominance keeps any candidate that is cheapest regardless
 Fix direction: exclude `quality == 0` or `failed_cases > 0` from the final set and record them as `excluded` with a reason, or require a minimum quality relative to the baseline. Keep the raw frontier in the journal for inspection.
 
 Acceptance: the reproduction above selects only the baseline; a test asserts the exclusion reason.
+
+Completed September 10 by `/root` on `fix/final-candidate-eligibility`: final selection now requires positive macro quality and no failed cases. The raw frontier and all rankable scores remain available with explicit exclusion reasons. Both the search controller and archive check the selected set and required baseline before beginning private evaluation, including for legacy selections. Rejection leaves the controller journal unchanged and does not read held-out inputs or dispatch work. The full configured suite passes 1,012 tests with zero skips; the focused archive/final/controller group passes 138 tests. See the tracker for commands and the retained local reports.
 
 ### RW-4 · Release reservations for provider error responses and denied admissions · `open` · confirmed
 

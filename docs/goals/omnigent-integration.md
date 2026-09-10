@@ -2,9 +2,9 @@
 
 Goal id: `omnigent-research-harness`
 
-Status: blocked; awaiting independent benchmark review, provider access and the pending spending decision for live evaluation and optimization
+Status: in_progress; implementing September 10 review follow-ups; measured evaluation still requires independent benchmark review, provider access and the pending spending decision
 
-Accepted: September 8, 2026. Last updated: September 9, 2026
+Accepted: September 8, 2026. Last updated: September 10, 2026
 
 Build an interactive research harness using Omnigent for agent execution and the interface, with Research Harness providing verified evidence, pipeline proposals, collection, and durable state. After measuring the working integration, add the Meta-Harness paper's strategy optimization process with independent evaluation.
 
@@ -39,7 +39,7 @@ Use `queued`, `in_progress`, `blocked`, or `done`. Replace an owner only after a
 | M3 | Omnigent research agent bundle and runtime binding | done | `/root/omnigent_spike`, browser verification `/root` | Normal server/runner/MCP and browser chat save validated proposal/pipeline ids; synthetic model HTTP, frozen authored bundle |
 | M4 | Collection jobs, exports, case lookup, recovery | done | `/root` | Detached workers, cancellation, process termination, scoped data, exports, and full server/browser restart verified locally; local Postgres/MinIO tests and detached workflow/restart/export acceptance now verified |
 | M5 | Independent pilot evaluation and baseline comparison | blocked | `/root`, bounded agent work handed off | Twenty authored cases, independent evaluators, frozen controller and bound gateway usage verified through actual runtimes; budgeted dispatch and independent settlement verified through both actual runtimes; awaits human review, provider access and the pending spending decision |
-| M6 | Meta-Harness strategy optimization and isolated final evaluation | blocked | `/root`, budgeted runtime checkpoint | Complete three-by-two search and private final evaluation verified through actual proposer, Docker and Omnigent/MCP with one retained budget ledger; measured search/final awaits reviewed cases, provider access, spending approval and the measured baseline |
+| M6 | Meta-Harness strategy optimization and isolated final evaluation | in_progress | `/root`, review follow-ups | RW-3 final-selection fix verified with 1,012 tests; RW-4 is next. Measured search/final still awaits the remaining review fixes, reviewed cases, provider access, spending approval and the measured baseline |
 
 M0 and M1 can proceed independently against the agreed tool/service boundary. Evaluation case design can also proceed independently. Agree on ownership of shared schemas, CLI wiring, dependencies, migrations, and this tracker before concurrent edits.
 
@@ -77,6 +77,18 @@ For each active task, add a short entry with:
 Retain completed handoffs so another agent can distinguish implemented behavior from planned work. Avoid copying secrets, raw credentials, or held-out task contents into this shared tracker.
 
 ## Activity and handoffs
+
+### September 10, 2026 — RW-3 final selection handoff
+
+Owner: `/root`; done for RW-3 implementation and verification. The resumed goal had new actionable evidence from commit `54c8b56`; the previous blocked handoff is superseded for offline software work. PR #1 is merged at `37b2277`; this follow-up is based on that main-branch commit on `fix/final-candidate-eligibility`. Changed files: `optimization/archive.py`, `optimization/controller.py`, archive/final/controller regression tests, the strategy guide, remaining-work list, README, plan and this tracker. No benchmark or historical evidence archive changed.
+
+Final selection now uses a Pareto frontier restricted to positive macro quality and no failed development cases. It retains `ranked`, the diagnostic `raw_candidate_ids` and explicit exclusion reasons. A partially failed candidate cannot dominate an eligible one. Both the archive and coordinator validate the selected set and required baseline before beginning private evaluation. Ineligible legacy selections are refused without rewriting the selection; completed final retries keep their existing behavior. An ineligible baseline leaves the coordinator journal unchanged, creates no private output and dispatches no provider work.
+
+Eight regression cases cover the cheap all-failed candidate (quality 0 at two tokens versus a quality-1 baseline at 100), zero quality without execution errors, partial failures, both kinds of ineligible baseline, actual final executor call selection, a legacy selection and coordinator rejection state. The final full suite passed **1,012 tests, zero skips, zero failures** in 229.63 seconds. Command: `RH_TEST_STRATEGY_IMAGE=python@sha256:9d2e5553305c7c7b0097999bb17187c69b921ccd6bc9d40e4bb5ebe652c00285 RH_TEST_OMNIGENT_PYTHON=/tmp/researchharness-omnigent-be042b39/.venv/bin/python uv run --extra mcp pytest -ra --basetemp=/tmp/rh-rw3-final-full-20260910 --junitxml=/tmp/rh-rw3-final-full-20260910.xml`. Docker and the pinned Omnigent environment were available. The focused command `uv run --extra mcp pytest -ra tests/test_optimization_archive.py tests/test_optimization_final.py tests/test_optimization_controller.py --basetemp=/tmp/rh-rw3-final-focused-20260910 --junitxml=/tmp/rh-rw3-final-focused-20260910.xml` passed **138 tests** in 21.06 seconds. Both reports remain local; no new runtime archive was generated.
+
+`uv run ruff check src tests` and `uv run ruff format --check src tests` pass across 96 Python files. All 151 local Markdown links in the five changed documents resolve; `git diff --check` passes. These are offline software checks with synthetic responses, not model-quality measurements. No paid calls occurred.
+
+Next: RW-4 reservation/reconciliation fixes, then the remaining prioritized review items. The provider/budget and human-review questions remain pending; all twenty development cases and ten private held-out cases remain authored. The full goal stays active with its original scope. Publish this bounded fix as a follow-up PR to the merged checkpoint.
 
 ### September 10, 2026 — independent code review and continuation handoff
 
