@@ -1,8 +1,10 @@
 # Strategy optimization: implementation status
 
-Isolated strategies, observation/context projection, independent development archival, a bounded coding proposer and the search/private-final controllers are implemented. A complete fixture now verifies three iterations with two candidates each through the actual coding proposer, Docker and normal Omnigent/MCP runtime, followed by isolated final evaluation. Reviewed benchmarks and measured model search/final evaluation remain unfinished; the accepted goal includes those runs.
+Isolated strategies, observation/context projection, independent development archival, a bounded coding proposer and the search/private-final controllers are implemented. A shared ledger now covers research, proposer and private final requests. Complete fixtures verify three iterations with two candidates each through the actual coding proposer, Docker and normal Omnigent/MCP runtime, followed by isolated final evaluation. Reviewed benchmarks and measured model search/final evaluation remain unfinished; the accepted goal includes those runs.
 
-The [combined runtime checkpoint](../examples/evaluation/evidence/combined-strategy-search-2026-09-09/verification.json) records six passing helper tests, 125 synthetic model requests and 157 actual Docker executions. Its [6,380-file archive](../examples/evaluation/evidence/combined-strategy-search-2026-09-09/index.json) preserves complete development feedback, exact proposer input snapshots, closed attempts, interface checks and reproduction source. The one-case final package and execution contents remain private. Production source is unchanged from the preceding orchestration checkpoint.
+The [budgeted runtime checkpoint](../examples/evaluation/evidence/budgeted-strategy-search-2026-09-09/verification.json) records 1,004 passing tests with zero skips. Its accepted runtime run reserved and settled all 125 synthetic requests, with 13,750 synthetic tokens and 157 actual Docker executions. A [fresh-process audit](../examples/evaluation/evidence/budgeted-strategy-search-2026-09-09/independent-audit.json) matched all seventeen gateway archives to the ledger. The [6,479-file archive](../examples/evaluation/evidence/budgeted-strategy-search-2026-09-09/index.json) retains complete development/proposer evidence and fixture accounting witnesses; private final contents remain local.
+
+The earlier [combined runtime checkpoint](../examples/evaluation/evidence/combined-strategy-search-2026-09-09/verification.json) records six passing helper tests, 125 synthetic model requests and 157 actual Docker executions. Its [6,380-file archive](../examples/evaluation/evidence/combined-strategy-search-2026-09-09/index.json) preserves complete development feedback, exact proposer input snapshots, closed attempts, interface checks and reproduction source. The one-case final package and execution contents remain private. That checkpoint's production source was unchanged from the preceding orchestration checkpoint.
 
 The [orchestration checkpoint](../examples/evaluation/evidence/search-orchestration-2026-09-09/verification.json) separately verifies 985 unique tests with zero skips: 982 passed initially, and three runtime tests passed after restoring the missing pinned Omnigent environment. Both reports are retained. Its [227-file archive](../examples/evaluation/evidence/search-orchestration-2026-09-09/index.json) includes 105 source/test/configuration hashes, complete actual coding-proposer artifacts and coordinator fixture metadata. The proposer fixture records eight requests, actual generated-program execution and 880 verified synthetic tokens.
 
@@ -161,8 +163,49 @@ The September 9 [acceptance record](../examples/evaluation/evidence/combined-str
 
 Keep `private-heldout-package/` and `private-final/` outside all future proposer inputs. An interrupted output directory remains evidence and cannot be reused by the example command; inspect its durable controller status and use explicit recovery for uncertain work. The private ten-case benchmark draft described in the shared tracker is separate from this one-case runtime acceptance package and still requires human review.
 
+## Run search with the shared model budget
+
+[BudgetedSearchRun](../src/research_harness/optimization/runner.py) connects the existing search controller, coding proposer and real research executor to one retained ledger. Research and proposer requests use the same explicitly priced model snapshot and default service tier. The [proposed configuration](../examples/evaluation/search-run.proposed.json) carries the existing draft $10 ceiling and September 8 rate card; it grants no spending approval. Review the actual provider terms and configuration before recording the pending spending decision.
+
+Preparation is offline and requires new search/feedback directories. Model-mode preparation requires reviewed development cases. The ledger must be outside those directories, and the same ledger and `.pilots.json` registry must be retained across comparison/search revisions:
+
+~~~sh
+uv run --extra mcp python -m research_harness.optimization.runner prepare \
+  /path/to/reviewed-development/manifest.json \
+  --baseline examples/strategies/research_strategy.json \
+  --instructions agents/comparison/instructions.md \
+  --config examples/evaluation/search-run.proposed.json \
+  --ledger /path/to/shared-model-budget.json \
+  --out /path/to/strategy-search \
+  --feedback /path/to/development-feedback
+
+uv run python -m research_harness.optimization.runner status /path/to/strategy-search
+~~~
+
+The registry retains both pilot and search preparations. Before further execution it checks all registered runs, their original budget witnesses, recorded gateway artifacts and sealed final evidence against the shared ledger. A new directory cannot replenish spent funds. Missing registered state or contradictory spending fails verification. These local witnesses detect loss or rollback against retained evidence; they are not an external accounting authority.
+
+After provider access, the actual external spending authorization and the required review are recorded, `run` executes the measured baseline and the configured search. It retains each proposer attempt's budget witness and reconciliation outside its immutable output and outside proposer feedback. Unknown provider outcomes keep conservative holds. Exhausted or interrupted proposals require explicit recovery and never automatically replay. CLI execution reads `OPENAI_API_KEY`; fixture execution is available only through explicitly supplied offline HTTP handlers.
+
+~~~sh
+uv run --extra mcp python -m research_harness.optimization.runner run \
+  /path/to/strategy-search \
+  --omnigent-python /path/to/pinned-omnigent/.venv/bin/python
+
+uv run --extra mcp python -m research_harness.optimization.runner final \
+  /path/to/strategy-search \
+  --heldout /path/to/private-reviewed-heldout/manifest.json \
+  --private-out /path/to/private-final \
+  --omnigent-python /path/to/pinned-omnigent/.venv/bin/python
+~~~
+
+The final command first requires frozen selection and permanent proposer revocation. It then reads the reviewed held-out package and evaluates the original baseline and selected candidates under the same shared budget. Completed retries return the recorded result without credentials or provider dispatch. Private packages, final artifacts and host budget records must never be added to future search feedback.
+
+After establishing that an interrupted runtime has stopped, use `recover-proposal <search> --iteration <n> --reason '<observation>'`, `recover-case <search> --candidate <id> --case <id> --reason '<observation>'`, or `recover-final <search> --reason '<observation>'` with the same module. Recovery acquires the relevant execution lock and retains surviving evidence; it does not rerun the model or candidate. `reconcile <search>` settles only independently verified sealed archives, preserves unknown holds and writes a separate host receipt without altering sealed proposer/final artifacts. Missing or contradictory evidence stays unresolved.
+
+The [budgeted runtime fixture](../examples/evaluation/budgeted_strategy_search_fixture.py) supplies authored responses while exercising these same APIs. Its provider handler checks that every request already has a matching durable dispatch reservation. It then checks independent settlement, private final isolation and completed retries. The [focused tests](../tests/test_optimization_runner.py) also cover ledger rollback across older pilots/searches, exhaustion, unknown responses, interruption and authorization gates. The accepted runtime run passed all of those checks. Its first attempt completed the search and final execution, then failed because the example verifier treated an event list as a dictionary; after correcting that check, the full example passed in a fresh fixture directory. Both runs made only synthetic requests, and the original diagnostic/source remain retained. These checks do not establish model improvement.
+
 ## Remaining work
 
-Review the twenty development cases and separate ten-case private held-out draft. The draft passed twenty offline service/evaluator checks and remains authored. Complete reusable model-run wiring with the approved shared budget controls, then run the real baseline and search only after provider access and the pending spending decision are recorded. Freeze selection, revoke proposer access and run the isolated final evaluation. Combined fixture acceptance establishes software behavior and provides no measured optimization result.
+Review the twenty development cases and separate ten-case private held-out draft. The draft passed twenty offline service/evaluator checks and remains authored. Run live compatibility and a measured baseline only after provider access and the pending spending decision are recorded. Then run model search, freeze selection, revoke proposer access and run the isolated final evaluation. Budgeted runtime acceptance establishes software behavior and provides no measured optimization result.
 
 The [shared goal](goals/omnigent-integration.md) retains the full completion criteria and current evidence.

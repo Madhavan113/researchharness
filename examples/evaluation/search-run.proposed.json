@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "policy": {
+    "mode": "openai-standard",
+    "upstream_base_url": "https://api.openai.com/v1",
+    "model": "gpt-5.4-mini-2026-03-17",
+    "service_tier": "default"
+  },
+  "authorization": {
+    "status": "draft",
+    "reference": null
+  },
+  "ceiling_usd": "10",
+  "rates": {
+    "model": "gpt-5.4-mini-2026-03-17",
+    "snapshot": "gpt-5.4-mini-2026-03-17",
+    "input_usd_per_million": "0.75",
+    "output_usd_per_million": "4.5",
+    "max_input_tokens_per_request": 400000,
+    "price_source_url": "https://developers.openai.com/api/docs/models/gpt-5.4-mini",
+    "price_as_of": "2026-09-08"
+  },
+  "search": {
+    "schema_version": 1,
+    "run_id": "research-strategy-search-proposed",
+    "arm": "omnigent",
+    "comparison": {
+      "execution": "model",
+      "model": "gpt-5.4-mini-2026-03-17",
+      "settings": {
+        "max_rounds": 16,
+        "max_output_tokens": 6000,
+        "reasoning_effort": "none",
+        "service_tier": "default",
+        "max_searches": 8,
+        "max_inspections": 16,
+        "max_probes": 12,
+        "deadline_seconds": 600
+      },
+      "budget_control": null,
+      "source_mode": "authored-fixtures"
+    },
+    "proposer": {
+      "model": "gpt-5.4-mini-2026-03-17",
+      "settings": {
+        "max_rounds": 16,
+        "max_output_tokens": 6000,
+        "reasoning_effort": "none",
+        "service_tier": "default",
+        "max_searches": 0,
+        "max_inspections": 0,
+        "max_probes": 0,
+        "deadline_seconds": 600
+      },
+      "max_tool_calls": 64,
+      "max_candidate_bytes": 1048576,
+      "max_instructions_bytes": 131072,
+      "max_feedback_files": 100000,
+      "max_feedback_bytes": 1073741824,
+      "budget_control": null
+    },
+    "workspace": {
+      "schema_version": 1,
+      "sandbox": {
+        "schema_version": 1,
+        "image": "python@sha256:9d2e5553305c7c7b0097999bb17187c69b921ccd6bc9d40e4bb5ebe652c00285",
+        "timeout_seconds": 10,
+        "memory_mb": 256,
+        "max_input_bytes": 1048576,
+        "max_output_bytes": 1048576,
+        "max_source_bytes": 1048576
+      },
+      "max_files": 128,
+      "max_file_bytes": 262144,
+      "max_workspace_bytes": 262144,
+      "max_feedback_files": 100000,
+      "max_feedback_bytes": 1073741824,
+      "max_path_chars": 512,
+      "max_calls": 256,
+      "max_tool_output_bytes": 65536,
+      "max_stream_bytes": 16384
+    },
+    "iterations": 3,
+    "candidates_per_iteration": 2
+  }
+}

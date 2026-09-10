@@ -651,7 +651,9 @@ class SearchController:
             self._save(journal)
             return proposal
 
-    def recover_case(self, candidate_id: str, case_id: str, *, reason: str, artifacts=None) -> dict:
+    def recover_case(
+        self, candidate_id: str, case_id: str, *, reason: str, artifacts=None, artifact_loader=None
+    ) -> dict:
         with self.lock:
             _, journal, config, _ = self._load()
             candidate = journal["candidates"][candidate_id]
@@ -661,6 +663,7 @@ class SearchController:
                 case_id,
                 reason=reason,
                 artifacts=artifacts,
+                artifact_loader=artifact_loader,
             )
 
     def recover_candidate(self, candidate_id: str, *, reason: str) -> dict:

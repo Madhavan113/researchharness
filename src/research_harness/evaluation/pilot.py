@@ -225,6 +225,14 @@ def _check_registered_pilots(ledger: BudgetLedger, *, required: Path | None = No
             config = PilotConfig.model_validate(manifest["configuration"])
             plan = json.loads((output / "comparison.json").read_bytes())
             _check_ledger_evidence(output, config, ledger, plan, manifest, current)
+        searches = registry.get("searches", {})
+        if not isinstance(searches, dict):
+            raise ValueError("Invalid shared budget search registry")
+        if searches:
+            from research_harness.optimization.runner import _check_search_ledger_evidence
+
+            for location, expected_hash in searches.items():
+                _check_search_ledger_evidence(Path(location), ledger, expected_hash, current)
         return registry
 
 
@@ -264,11 +272,21 @@ def _check_ledger_evidence(output, config, ledger, plan, manifest, current):
     if digest(witness.read_bytes()) != manifest["initial_ledger_sha256"]:
         raise ValueError("Frozen initial budget witness changed")
     _check_ledger_witness(json.loads(witness.read_bytes()), current)
+    _check_comparison_ledger_evidence(output, config, ledger, plan, current)
+
+
+def _check_comparison_ledger_evidence(output, config, ledger, plan, current):
+    """Share case evidence checks with registered search and private-final runs."""
     benchmark = load_benchmark(output / "benchmark/manifest.json")
     for arm in ARMS:
         journal = json.loads((output / arm / "journal.json").read_bytes())
         for case_id, entry in journal["cases"].items():
             case_root = output / arm / "cases" / case_id
+            for name, expected_hash in entry.get("artifact_hashes", {}).items():
+                if name.startswith("gateway/"):
+                    path = local_path(case_root, name)
+                    if not path.is_file() or digest(path.read_bytes()) != expected_hash:
+                        raise ValueError("Recorded gateway budget evidence changed or is missing")
             for name in ("budget-start.json", "budget-checkpoint.json"):
                 path = case_root / name
                 expected_hash = entry.get("artifact_hashes", {}).get(name)

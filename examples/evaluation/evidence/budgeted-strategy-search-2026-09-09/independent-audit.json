@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "auditor": "root fresh-process verification of completed original run",
+  "verified_gateway_archives": 17,
+  "requests": 125,
+  "synthetic_tokens": 13750,
+  "all_raw_usage_and_settlement_evidence_matched": true,
+  "all_dispatch_observations_match_ledger": true,
+  "settled_operations": 125,
+  "held_nanodollars": 0,
+  "synthetic_settled_nanodollars": 15000000,
+  "actual_docker_executions": {
+    "research": 140,
+    "interfaces": 14,
+    "generated_programs": 3,
+    "total": 157
+  },
+  "source_test_example_hashes_unchanged": 115,
+  "model_measurement": false,
+  "paid_calls": 0
+}
