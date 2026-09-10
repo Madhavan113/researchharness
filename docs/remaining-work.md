@@ -26,7 +26,7 @@ Decision required from the owner, one of:
 
 Acceptance: plan, strategy guide and contract string agree; a test proves each advertised decision type changes host behavior.
 
-### RW-2 · Make the development benchmark discriminate · `open` · confirmed
+### RW-2 · Make the development benchmark discriminate · `in_progress` · confirmed
 
 Files: `src/research_harness/evaluation/discovery.py` (`matches` at lines 23–29, `score` from line 141, requirement loop near lines 285–304), `examples/evaluation/development/build_cases.py` (fixture generation near lines 86–97, unsupported cases near lines 146–170, 226–259, 276–295, 594–617), `examples/evaluation/search_runtime_fixtures.py` (`_source` near line 30), `docs/research-evaluation.md`.
 
@@ -39,6 +39,8 @@ Problem, three parts:
 Fix direction: set or subset semantics for pointer lists with per-field rules documented; a scored "gap reported correctly" signal for unsupported-source cases; distractor results in fixtures; retire or rewrite degenerate cases; state in docs that no search run has used the twenty-case set.
 
 Acceptance: a probe over the twenty cases shows the answer key strictly beats first-listed on every case; a regression test covers pointer reordering and supersets; docs updated.
+
+Investigation checkpoint September 10 by `/root` on `fix/benchmark-discrimination`: the current offline comparison reproduces thirteen strict wins and seven ties across twenty cases (macro quality 0.8583333333333334 versus 0.23333333333333334). No evaluator or fixture fix has landed yet; RW-2 remains in progress. The [tracker handoff](goals/omnigent-integration.md#september-10-2026--rw-2-investigation-checkpoint-and-handoff) records reproduction, artifact hashes, intended scope and the next design step.
 
 ### RW-3 · Exclude zero-quality and failed candidates from the final phase · `done` · confirmed
 
