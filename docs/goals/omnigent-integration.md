@@ -56,6 +56,8 @@ M0 and M1 can proceed independently against the agreed tool/service boundary. Ev
 
 ## Next tasks
 
+The [remaining work](../remaining-work.md) list from the September 10 review records prioritized software follow-ups with acceptance checks; complete its P0 items before any budgeted or measured run. The items below are the external prerequisites.
+
 1. Resolve provider access and the pending spending decision before a live compatibility case. The budgeted dispatcher and pilot runner are implemented and verified with actual runtime fixtures; the checked-in configuration remains draft. Recheck the priced snapshot/endpoint/tier/rates when recording the live configuration, and reuse the shared ledger and registered pilot directories across revisions.
 2. Finish M0's live provider/model checks once access and the pending budget choice are recorded. Validate live nested tool-schema acceptance and freeze the actual provider/model configuration before running a measured baseline.
 3. Review the twenty development cases and separate ten-case private held-out draft, then run controlled direct-versus-Omnigent comparisons. Shared instructions, settings, fixture providers, failure records, and actual runtime executors are implemented. Fixture policies do not establish model performance.
@@ -75,6 +77,16 @@ For each active task, add a short entry with:
 Retain completed handoffs so another agent can distinguish implemented behavior from planned work. Avoid copying secrets, raw credentials, or held-out task contents into this shared tracker.
 
 ## Activity and handoffs
+
+### September 10, 2026 — independent code review and continuation handoff
+
+Owner: Claude Code review session (one lead, eight area reviewers); done for documentation. Changed files: new [checkpoint scope](../checkpoint-scope.md) and [remaining work](../remaining-work.md); README, AGENTS.md and this tracker link to them. No production, test, benchmark or evidence files changed.
+
+The read-only review covered paper fidelity, sandbox isolation, the budget ledger, durable state, the MCP/Omnigent/CLI surface, the evaluation benchmark, test quality with evidence claims, and repository hygiene on HEAD `4f49495`. Storage, sandboxing, accounting and the tool surface held under adversarial reading; all recorded evidence hashes and counts reproduce; no secrets or held-out contents are committed. Six items are recorded as accepted limitations at merge: the searchable strategy surface is narrower than the plan's Milestone 6 wording (RW-1); the twenty-case benchmark cannot rank candidates and has never been used in a search run (RW-2); strict Pareto selection admits zero-quality candidates into the paid final phase (RW-3); provider error responses permanently lock their worst-case reservation (RW-4); archived evidence embeds operator machine paths and a hostname (RW-5); and each checkpoint adds tens of megabytes of archives without a retention policy (RW-6). The remaining-work list holds the full prioritized set with file anchors, fix directions and acceptance checks.
+
+Validation: `uv run ruff check src tests` and `uv run ruff format --check src tests` pass. The full suite in the review environment, without Docker and with `RH_TEST_STRATEGY_IMAGE`/`RH_TEST_OMNIGENT_PYTHON` unset, reports 978 passed, 26 skipped, 0 failed; the recorded 1,004/0 result requires the full configuration. Local Markdown links in the changed documents resolve and `git diff --check` passes. Runtime-gated tests, Postgres and live providers were not exercised.
+
+Next: merge the checkpoint, then work [remaining work](../remaining-work.md) in its suggested order, starting with RW-3 and RW-4. RW-1 needs an owner decision before implementation. Milestone statuses are unchanged.
 
 ### September 9, 2026 — measured evaluation dependency audit
 

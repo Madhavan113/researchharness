@@ -4,6 +4,8 @@
 
 Read the [Omnigent goal and work tracker](docs/goals/omnigent-integration.md) at the start of work in this repository. For integration work, also read the [accepted implementation plan](docs/omnigent-integration-plan.md). The tracker records progress and ownership; the plan records architecture and acceptance criteria.
 
+After the PR #1 checkpoint, also read the [checkpoint scope](docs/checkpoint-scope.md) and take follow-up items from [remaining work](docs/remaining-work.md); update an item's status there when you take or finish it.
+
 Follow the current user's task and constraints. The shared goal supplies context; it does not expand an unrelated request or override later user instructions. Record accepted scope changes in the tracker and update the plan when the design changes.
 
 ## Coordination and handoff
