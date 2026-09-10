@@ -738,7 +738,8 @@ def test_bound_session_identity_fails_before_provider(tmp_path, recording, chang
     assert not (task.output / "research").exists()
 
 
-def test_controlled_strategy_uses_real_docker_and_both_runtime_paths(tmp_path):
+@pytest.mark.parametrize("finalize_on_stop", [False, True])
+def test_controlled_strategy_uses_real_docker_and_both_runtime_paths(tmp_path, finalize_on_stop):
     image = os.environ.get("RH_TEST_STRATEGY_IMAGE")
     python = os.environ.get("RH_TEST_OMNIGENT_PYTHON")
     if not image or not python:
@@ -752,14 +753,14 @@ def test_controlled_strategy_uses_real_docker_and_both_runtime_paths(tmp_path):
     spec = importlib.util.spec_from_file_location("controlled_strategy_fixture", program)
     fixture = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(fixture)
-    code = bundle(tmp_path, context=True)
+    code = bundle(tmp_path, context=True, finalize_on_stop=finalize_on_stop)
     code.source.write_text(
         "def apply(event):\n"
         "    payload = event['payload']\n"
         "    if event['kind'] == 'context':\n"
         "        decision = {'keep_group_ids': [g['id'] for g in payload['groups']]}\n"
         "    else:\n"
-        "        decision = {'order': [i['id'] for i in reversed(payload['items'])]}\n"
+        "        decision = {'order': [i['id'] for i in reversed(payload['items'])], 'stop_recommended': payload['tool'] == 'probe_source'}\n"
         "    return {'decision': decision, 'state': {'calls': event['state'].get('calls', 0) + 1}}\n"
     )
     config = code.config.model_dump(mode="json")
@@ -849,6 +850,21 @@ def test_controlled_strategy_uses_real_docker_and_both_runtime_paths(tmp_path):
         session, requests = captured[arm["name"]]
         assert len(session.status()["events"]) == len(requests) + 3
         assert session.status()["state"]["calls"] == len(requests) + 3
+        if finalize_on_stop:
+            from research_harness.strategies.stopping import FINALIZATION_TOOLS, NOTICE, stop_views
+
+            finalizing = [request for request in requests if stop_views(request, code.sha256)]
+            assert finalizing
+            assert all(NOTICE in request["instructions"] for request in finalizing)
+            assert all(
+                tool["name"] in FINALIZATION_TOOLS
+                for request in finalizing
+                for tool in request["tools"]
+            )
+            assert any(
+                name.endswith("stopping-projection.json")
+                for name in score["gateway_usage"]["files"]
+            )
     assert len({session.session_id for session, _ in captured.values()}) == 2
 
     # Feed the actual execution inventory into the independent archive bridge.

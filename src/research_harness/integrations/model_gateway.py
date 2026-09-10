@@ -25,6 +25,8 @@ import httpx
 
 from research_harness.evaluation.budget import BudgetExceeded
 from research_harness.execution import DiscoverySettings, GatewayBinding
+from research_harness.strategies.stopping import POLICY as STOPPING_POLICY
+from research_harness.strategies.stopping import finalize_request, stop_views, validate_stop_event
 from research_harness.util import canonical_json, digest, timestamp, utcnow, write_json
 
 if TYPE_CHECKING:
@@ -220,8 +222,12 @@ class ResponsesGateway:
         self._dispatch_budget = dispatch_budget
         self._budget_violation: str | None = None
         self._strategy = strategy
-        if strategy is not None and strategy.bundle.config.context and binding is None:
-            raise ValueError("Context projection requires a bound gateway execution")
+        if (
+            strategy is not None
+            and (strategy.bundle.config.context or strategy.bundle.config.finalize_on_stop)
+            and binding is None
+        ):
+            raise ValueError("Strategy request projection requires a bound gateway execution")
         if dispatch_budget is not None:
             policy = dispatch_budget.policy
             if (
@@ -313,6 +319,9 @@ class ResponsesGateway:
                 "supported_request_fields": sorted(SUPPORTED_REQUEST_FIELDS),
                 "shutdown_policy": "seal_interrupted_records_before_returning",
                 "sdk_retry_policy": "reject_automatic_retries_v1",
+                "stopping_policy": STOPPING_POLICY
+                if strategy is not None and strategy.bundle.config.finalize_on_stop
+                else None,
             },
         )
 
@@ -406,8 +415,7 @@ class ResponsesGateway:
                 timer.daemon = True
                 timer.start()
         try:
-            with self._strategy_work():
-                self._strategy.assert_ready()
+            with self._strategy_work(), self._strategy.guard():
                 projected = project_context(self._strategy, incoming, operation_id=operation_id)
                 if context_enabled:
                     proof = self._strategy.event_record(operation_id)
@@ -447,6 +455,8 @@ class ResponsesGateway:
                             ),
                         )
                         self._save_record(record)
+                if self._strategy.bundle.config.finalize_on_stop:
+                    projected = self._finalize_strategy_request(record, incoming, projected)
                 return projected, None
         except Exception as exc:
             with self._lock:
@@ -457,6 +467,42 @@ class ResponsesGateway:
         finally:
             if timer is not None:
                 timer.cancel()
+
+    def _finalize_strategy_request(self, record: dict, incoming: dict, projected: dict) -> dict:
+        """Archive the verified stop decision before any provider reservation/dispatch."""
+        event = self._strategy.stopping_event()
+        files = {}
+        if event is not None:
+            validate_stop_event(incoming, event, self._strategy.bundle.sha256)
+            expected = {**event["files"], "record.json": event["record_sha256"]}
+            files = {name: (Path(event["directory"]) / name).read_bytes() for name in expected}
+            if any(digest(files[name]) != hashed for name, hashed in expected.items()):
+                raise ValueError("Stopping event changed during gateway archival")
+            descriptor = {
+                "schema_version": 1,
+                "policy": STOPPING_POLICY,
+                "binding": self.binding.model_dump(mode="json"),
+                "strategy_sha256": self._strategy.bundle.sha256,
+                "incoming_sha256": record["incoming_sha256"],
+                "event_files": expected,
+            }
+        elif stop_views(incoming, self._strategy.bundle.sha256):
+            raise ValueError("Request claims stopping without a verified session decision")
+        with self._lock:
+            if self._admission_denial(record) is not None:
+                raise RuntimeError("Gateway admission closed before stopping proof was saved")
+            directory = self.output / record["id"]
+            for name, raw in files.items():
+                path = directory / "stopping-event" / name
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_bytes(raw)
+            if event is not None:
+                path = directory / "stopping-projection.json"
+                write_json(path, descriptor)
+                record["stopping_projection_sha256"] = digest(path.read_bytes())
+            record["stopping_checked"] = True
+            self._save_record(record)
+        return finalize_request(projected) if event is not None else projected
 
     def _prepare(
         self, record: dict, incoming: dict, handler: BaseHTTPRequestHandler | None = None
@@ -493,7 +539,7 @@ class ResponsesGateway:
         stripped = []
         if self.allowed_function_names is not None:
             forwarded["tools"] = []
-            for tool in tools:
+            for tool in projected.get("tools", []):
                 if tool.get("name") in self.allowed_function_names:
                     forwarded["tools"].append(tool)
                 else:

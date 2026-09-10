@@ -175,7 +175,13 @@ def _verify_session(
             raise ValueError("Invalid strategy event directory")
         if entry["status"] == "completed":
             proof = verify_event(directory, frozen)
-            if proof["record_sha256"] != entry["record_sha256"] or proof["input"]["state"] != state:
+            if (
+                proof["record_sha256"] != entry["record_sha256"]
+                or proof["input"]["state"] != state
+                or proof["record"]["kind"] != entry["kind"]
+                or proof["input"]["kind"] != entry["kind"]
+                or proof["record"]["operation_id"] != entry["operation_id"]
+            ):
                 raise ValueError("Strategy state chain changed")
             state = proof["result"]["state"]
         elif entry["status"] in {"pending", "failed"}:
@@ -409,6 +415,40 @@ class StrategySession:
             if entry is None or entry["status"] != "completed":
                 raise StrategySessionError("No completed strategy event for this operation")
             return verify_event(self.root / "events" / entry["directory"], self.bundle)
+
+    def stopping_event(self, discovery_id: str | None = None) -> dict | None:
+        """Derive a sticky stop from verified evidence, never candidate-writable state."""
+        with self.guard():
+            if not self.bundle.config.finalize_on_stop:
+                return None
+            journal = self._load()
+            for entry in journal["events"]:
+                if entry["kind"] != "observation":
+                    continue
+                proof = verify_event(self.root / "events" / entry["directory"], self.bundle)
+                if proof["result"]["decision"]["stop_recommended"] and (
+                    discovery_id is None
+                    or proof["input"]["payload"]["observation"]["discovery_id"] == discovery_id
+                ):
+                    return proof
+            return None
+
+    def admit_observation(self, tool: str, discovery_id: str, operation_id: str | None) -> None:
+        """Allow completed receipt replays; refuse new exploration after finalization."""
+        from research_harness.strategies.stopping import ResearchFinalizing
+
+        with self.guard():
+            if self.stopping_event(discovery_id) is None:
+                return
+            expected = f"observation:{discovery_id}:{operation_id}"
+            for entry in self._load()["events"]:
+                if operation_id is not None and entry["operation_id"] == expected:
+                    proof = self.event_record(expected)
+                    if proof["input"]["payload"]["tool"] == ALIASES.get(tool, tool):
+                        return
+            raise ResearchFinalizing(
+                "Research is finalizing; use saved evidence to submit or repair the proposal"
+            )
 
     def project(self, tool: str, result: dict) -> dict:
         tool = ALIASES.get(tool, tool)

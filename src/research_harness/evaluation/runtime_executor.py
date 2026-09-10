@@ -180,6 +180,7 @@ class RuntimeExecutor:
                 settings=task.config.settings,
                 instructions=task.instructions,
                 strategy=strategy,
+                strategy_requests_at_gateway=task.gateway_binding is not None,
             ).run(task.brief)
 
     def _omnigent(

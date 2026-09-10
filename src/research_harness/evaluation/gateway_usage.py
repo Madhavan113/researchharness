@@ -612,6 +612,103 @@ def _verify_context(
     return projected
 
 
+def _verify_stopping(
+    contents: dict[str, bytes],
+    result: dict,
+    record: dict,
+    binding: GatewayBinding,
+    strategy: dict | None,
+    gateway: dict,
+    expected_files: set[str],
+    projected: dict | None,
+) -> dict | None:
+    from research_harness.strategies.stopping import (
+        POLICY,
+        finalize_request,
+        stop_views,
+        validate_stop_event,
+    )
+
+    enabled = strategy is not None and strategy["config"].get("finalize_on_stop", False)
+    fields = {"stopping_checked", "stopping_projection_sha256"}
+    if not enabled:
+        _require(
+            gateway.get("stopping_policy") is None and not (fields & record.keys()),
+            "Unexpected stopping control evidence",
+        )
+        return projected
+    _require(gateway.get("stopping_policy") == POLICY, "Missing or unknown stopping policy")
+    admitted = (
+        record.get("reserved_attempt_number") is not None
+        or record.get("budget_operation_id") is not None
+        or record.get("forwarded_sha256") is not None
+    )
+    if "stopping_checked" not in record:
+        _require(
+            not admitted and not (fields & record.keys()),
+            "Request admitted without a stopping check",
+        )
+        return projected
+    _require(record["stopping_checked"] is True, "Invalid stopping check marker")
+    prefix = record["id"] + "/"
+    incoming = _dict(_json(contents[prefix + "incoming.json"]), "Original stopping request")
+    if "stopping_projection_sha256" not in record:
+        _require(
+            not stop_views(incoming, strategy["strategy_sha256"]),
+            "Stopping tool output lacks independently verified proof",
+        )
+        return projected
+    descriptor_name = prefix + "stopping-projection.json"
+    expected_files.add(descriptor_name)
+    descriptor_raw = contents[descriptor_name]
+    _require(
+        digest(descriptor_raw) == record["stopping_projection_sha256"],
+        "Stopping proof hash mismatch",
+    )
+    descriptor = _dict(_json(descriptor_raw), "Stopping proof")
+    _require(
+        set(descriptor)
+        == {
+            "schema_version",
+            "policy",
+            "binding",
+            "strategy_sha256",
+            "incoming_sha256",
+            "event_files",
+        }
+        and type(descriptor["schema_version"]) is int
+        and descriptor["schema_version"] == 1
+        and descriptor["policy"] == POLICY
+        and _same(descriptor["binding"], binding.model_dump(mode="json"))
+        and descriptor["strategy_sha256"] == strategy["strategy_sha256"]
+        and descriptor["incoming_sha256"] == record["incoming_sha256"],
+        "Stopping proof binding mismatch",
+    )
+    inventory = _dict(descriptor["event_files"], "Stopping event inventory")
+    for name, hashed in inventory.items():
+        path = prefix + "stopping-event/" + name
+        _require(
+            path in contents and digest(contents[path]) == hashed,
+            "Stopping event file hash mismatch",
+        )
+        expected_files.add(path)
+    event_root = Path(result["files"][prefix + "stopping-event/record.json"]["path"]).parent
+    config = StrategyConfig.model_validate(strategy["config"])
+    bundle = StrategyBundle(
+        event_root / "strategy.json",
+        event_root / "execution/input/strategy.py",
+        config,
+        strategy["strategy_sha256"],
+    )
+    event = verify_event(event_root, bundle)
+    _require(
+        _same(inventory, {**event["files"], "record.json": event["record_sha256"]}),
+        "Stopping event inventory differs from isolated evidence",
+    )
+    validate_stop_event(incoming, event, strategy["strategy_sha256"])
+    return finalize_request(projected if projected is not None else incoming)
+
+
 def verify_gateway_usage(
     archive_path: Path,
     expected_binding: GatewayBinding,
@@ -820,6 +917,16 @@ def verify_gateway_usage(
             budget_state = _budget_record(record, budget_policy, budget_operations)
             projected = _verify_context(
                 contents, result, record, observed_binding, strategy, expected_files
+            )
+            projected = _verify_stopping(
+                contents,
+                result,
+                record,
+                observed_binding,
+                strategy,
+                gateway,
+                expected_files,
+                projected,
             )
             if budget_state["budget_operation_id"] is not None:
                 _require(

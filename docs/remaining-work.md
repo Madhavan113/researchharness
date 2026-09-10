@@ -13,18 +13,20 @@ Status legend: `open`, `in_progress`, `done`, `decision`. Confidence: `confirmed
 
 ## P0: before any budgeted or measured run
 
-### RW-1 · Decide and implement the searchable strategy surface · `decision` · confirmed
+### RW-1 · Decide and implement the searchable strategy surface · `done` · confirmed
 
 Files: `src/research_harness/optimization/controller.py` (`_admit`, the `_contract()` string near line 82 and admission near lines 523–539), `src/research_harness/strategies/projection.py` (lines 98–107), `examples/strategies/research_strategy.json`, `docs/omnigent-integration-plan.md` Milestone 6, `docs/strategy-optimization.md`.
 
-Problem: candidates can only edit `instructions.md`, reorder or re-render `search_sources` results, and set `stop_recommended`. A grep over `src/` finds no consumer of `stop_recommended` outside the projection contract, so the flag is advisory text shown to the model. `_admit` copies `seed.config`, so context selection is frozen at whatever the baseline manifest says, and the documented baseline sets `context: false`. The plan promises "ranking, formatting, context-selection and stopping decisions" and the paper searches whole harness programs.
+Problem at review: candidates could only edit `instructions.md`, reorder or re-render `search_sources` results, and set an advisory `stop_recommended` flag. `_admit` copied `seed.config`, freezing context selection at the documented baseline's `context: false`. The plan promised "ranking, formatting, context-selection and stopping decisions" and the paper searches whole harness programs.
 
-Decision required from the owner, one of:
+Alternatives considered by the owner:
 
 - **Widen the surface.** Let candidates enable and configure context selection (ship a baseline manifest with `context: true` or allow the candidate manifest to toggle it), consume stop advice in the direct and gateway loops as a real stopping rule with a fixed-limit fallback, and consider exposing per-turn instruction assembly to the candidate. Each addition needs a projection rule, a test that invalid decisions fail closed, and a docs update.
 - **Re-scope the claim.** Keep the current surface and rewrite plan Milestone 6, README and the PR description to say the search covers instruction text and observation rendering. The plan already says a prompt-only experiment must be reported as prompt search.
 
 Acceptance: plan, strategy guide and contract string agree; a test proves each advertised decision type changes host behavior.
+
+Decision and implementation September 10: `/root` widened the surface on `feat/strategy-control-surface`. The maintained baseline enables context projection and the frozen `finalize_on_stop` control. Verified stop decisions end new source discovery while permitting evidence reads and validated proposal submission within existing limits. Legacy manifests retain their declared observation-only/advisory behavior and canonical hashes. Candidate instructions remain editable; per-turn host instructions remain fixed. Actual Docker, direct SDK and pinned Omnigent/MCP tests verify finalization and context selection changing forwarded requests. All 64 affected checks pass after fixing the sole failure in the initial full-suite run; see the [handoff](goals/omnigent-integration.md#september-10-2026--rw-1-strategy-control-ownership-and-decision) and [strategy guide](strategy-optimization.md#finalization-after-a-verified-stop). These are software fixtures, not measured search results.
 
 ### RW-2 · Make the development benchmark discriminate · `done` · confirmed
 
