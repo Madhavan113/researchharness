@@ -95,7 +95,7 @@ Fix direction: keep `index.json`, `acceptance.json`, `verification.json` and the
 
 Acceptance: a new checkpoint adds under 1 MB to the repository and its README says where the archive lives and how to verify it.
 
-### RW-7 · Make runtime test skips visible and enforceable · `in_progress` · confirmed
+### RW-7 · Make runtime test skips visible and enforceable · `done` · confirmed
 
 Files: `pyproject.toml` (`addopts`), `tests/conftest.py`, ten skip sites (for example `tests/test_strategy_sandbox.py:28`, `tests/test_omnigent_integration.py:138`, `tests/test_comparison_runtime.py:647`), new `.github/workflows/`.
 
@@ -104,6 +104,8 @@ Problem: `addopts = "-q"` plus the documented `uv run pytest` prints no skip sum
 Fix direction: change `addopts` to `-ra`; document both runtime env vars in `conftest.py` alongside the Postgres ones; add an opt-in `RH_TEST_REQUIRE_RUNTIME=1` that turns gated skips into failures; add a CI workflow running the ungated suite on every push and the full configuration where a Docker runner is available.
 
 Acceptance: a plain `uv run pytest` shows the skip reasons; CI is green on the ungated suite.
+
+Completed September 10 by `/root` in [PR #4](https://github.com/Madhavan113/researchharness/pull/4), commits `442ad31` and `b8eb2c3`. Default `-ra` reporting exposes skipped checks; required mode validates configuration/dependency availability and fails on any collection/setup/call/teardown skip. Thirteen subprocess regressions cover that contract. The hosted ordinary job exposed a gateway response-completion race, fixed with connection-close framing and two deterministic JSON/SSE regressions. On the corrected source, [both CI jobs pass](https://github.com/Madhavan113/researchharness/actions/runs/34539869346): ordinary checks report 1,101 passes and 28 explicit runtime skips; required Docker/Omnigent checks report 1,129 passes and zero skips. The local required suite also passes 1,129 tests. Ruff, actionlint and local documentation links pass. [Test configurations](testing.md) documents reproduction and the separate shared-storage/live-provider limits. No paid model calls or new runtime archives were included.
 
 ### RW-8 · Stop ordinary errors from losing a whole proposer attempt · `open` · confirmed
 
