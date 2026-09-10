@@ -657,6 +657,7 @@ def verify_gateway_usage(
         "strategy_sha256": None,
         "strategy_control_verified": False,
         "upstream_transport": None,
+        "sdk_retry_policy": None,
         "budget_settlement_complete": None,
         "cost_usd": None,
         "limitations": [
@@ -687,6 +688,12 @@ def verify_gateway_usage(
             "Unknown gateway upstream transport provenance",
         )
         result["upstream_transport"] = transport
+        retry_policy = gateway.get("sdk_retry_policy")
+        _require(
+            retry_policy is None or retry_policy == "reject_automatic_retries_v1",
+            "Unknown gateway SDK retry policy",
+        )
+        result["sdk_retry_policy"] = retry_policy
         settings = DiscoverySettings.model_validate(gateway.get("discovery_settings"))
         strategy = gateway.get("strategy_control")
         if strategy is not None:
@@ -777,6 +784,32 @@ def verify_gateway_usage(
                 outcome in {"completed", "interrupted", "denied"}, "Nonterminal archived request"
             )
             _require(isinstance(record.get("finished_at"), str), "Request has no finish time")
+            _require(
+                ("sdk_retry_headers" in record) == (retry_policy is not None),
+                "SDK retry evidence differs from gateway policy",
+            )
+            if retry_policy is not None:
+                retry_headers = record["sdk_retry_headers"]
+                _require(
+                    isinstance(retry_headers, list)
+                    and all(isinstance(value, str) for value in retry_headers),
+                    "Invalid SDK retry header evidence",
+                )
+                if retry_headers not in ([], ["0"]):
+                    _require(
+                        outcome == "denied"
+                        and record.get("reason") == "automatic_retry_rejected"
+                        and record.get("reserved_attempt_number") is None
+                        and record.get("budget_operation_id") is None
+                        and not record.get("budget_reservation_pending", False)
+                        and not record.get("dispatch_started"),
+                        "Automatic SDK retry was admitted",
+                    )
+                else:
+                    _require(
+                        record.get("reason") != "automatic_retry_rejected",
+                        "SDK retry denial lacks matching header evidence",
+                    )
             _require(
                 type(record.get("forwarded")) is bool
                 and type(record.get("dispatch_started")) is bool

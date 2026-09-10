@@ -3,12 +3,13 @@
 Rates, token bounds and authorization records are supplied by the caller. This
 module neither verifies user approval nor grants permission to dispatch work.
 Its bounds cover the supplied token rates, not invoices, taxes or other fees.
-The future dispatcher must enforce the reserved input/output token bounds and
+The dispatcher must enforce the reserved input/output token bounds and
 verify usage evidence independently before settling an operation.
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 import os
 from datetime import date
@@ -245,12 +246,14 @@ class BudgetLedger:
         rates: RateCard,
         ceiling_usd: Decimal | str | int,
         authorization: AuthorizationRecord | None = None,
+        create: bool = True,
     ):
         self.path = Path(path).resolve()
         self.rates = RateCard.model_validate(rates)
         self.ceiling_usd = _money(ceiling_usd)
         self.ceiling_nanodollars = _ceiling_nanodollars(self.ceiling_usd)
-        self.path.parent.mkdir(parents=True, exist_ok=True)
+        if create:
+            self.path.parent.mkdir(parents=True, exist_ok=True)
         self.lock = FileLock(str(self.path) + ".lock", timeout=30)
         with self.lock:
             if self.path.exists():
@@ -261,6 +264,10 @@ class BudgetLedger:
                 ):
                     raise ValueError("Authorization metadata changed; record it explicitly")
             else:
+                if not create:
+                    raise ValueError(
+                        "Existing budget ledger is missing; never recreate spent funds"
+                    )
                 self._write(
                     _Journal(
                         rates=self.rates,
@@ -274,6 +281,15 @@ class BudgetLedger:
                         ],
                     )
                 )
+
+    @classmethod
+    def open_existing(cls, path: Path) -> BudgetLedger:
+        """Read retained terms and validate under lock without ever creating a ledger."""
+        path = Path(path).resolve()
+        state = _Journal.model_validate_json(path.read_bytes())
+        # The constructor re-reads and validates under its lock. A file lost or
+        # replaced between these reads cannot become a new spending balance.
+        return cls(path, rates=state.rates, ceiling_usd=state.ceiling_usd, create=False)
 
     def _validate(self, state: _Journal) -> None:
         if (
@@ -511,3 +527,47 @@ class BudgetLedger:
             row.charged_nanodollars = 0
             self._write(state)
             return row.model_dump(mode="json")
+
+
+def main(argv: list[str] | None = None) -> None:
+    parser = argparse.ArgumentParser(
+        description="Manage retained model-budget authorization metadata"
+    )
+    commands = parser.add_subparsers(dest="command", required=True)
+    authorization = commands.add_parser(
+        "record-authorization",
+        help="Record an external decision without granting spending permission",
+    )
+    authorization.add_argument("ledger", type=Path, help="Existing shared budget ledger")
+    authorization.add_argument(
+        "--authorization",
+        type=Path,
+        required=True,
+        help="JSON AuthorizationRecord containing status and an external decision reference",
+    )
+    args = parser.parse_args(argv)
+    try:
+        record = AuthorizationRecord.model_validate_json(args.authorization.read_bytes())
+        ledger = BudgetLedger.open_existing(args.ledger)
+        with ledger.lock:
+            ledger.record_authorization(record)
+            snapshot = ledger.snapshot()
+            print(
+                json.dumps(
+                    {
+                        key: snapshot[key]
+                        for key in (
+                            "authorization",
+                            "authorization_is_dispatch_permission",
+                            "accounting",
+                        )
+                    },
+                    indent=2,
+                )
+            )
+    except (ValueError, OSError) as exc:
+        parser.error(str(exc))
+
+
+if __name__ == "__main__":
+    main()

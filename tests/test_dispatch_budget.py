@@ -7,7 +7,7 @@ from threading import Barrier
 
 import httpx
 import pytest
-from openai import OpenAI
+from openai import BadRequestError, OpenAI
 
 from research_harness.evaluation.budget import (
     AuthorizationRecord,
@@ -85,6 +85,56 @@ def payload(**overrides):
         **SETTINGS.model_settings(),
         **overrides,
     }
+
+
+def test_sdk_retry_after_lost_response_cannot_dispatch_or_reserve_again(tmp_path):
+    budget = make_budget(tmp_path)
+    sent = []
+
+    def upstream(request):
+        sent.append(request)
+        return httpx.Response(200, json=provider_response())
+
+    class LoseFirstResponse(httpx.HTTPTransport):
+        attempts = 0
+
+        def handle_request(self, request):
+            self.attempts += 1
+            response = super().handle_request(request)
+            if self.attempts == 1:
+                response.read()
+                response.close()
+                raise httpx.ReadError("Authored loss after provider completion", request=request)
+            return response
+
+    output = tmp_path / "gateway"
+    with httpx.Client(transport=httpx.MockTransport(upstream)) as client:
+        with ResponsesGateway(
+            output,
+            model=MODEL,
+            settings=SETTINGS,
+            binding=BINDING,
+            upstream_base_url=budget.policy.upstream_base_url,
+            client=client,
+            dispatch_budget=budget,
+        ) as proxy:
+            transport = LoseFirstResponse(retries=0, trust_env=False)
+            with OpenAI(
+                base_url=proxy.base_url,
+                api_key=proxy.api_key,
+                max_retries=2,
+                http_client=httpx.Client(transport=transport),
+            ) as sdk:
+                with pytest.raises(BadRequestError, match="automatic_retry_rejected"):
+                    sdk.responses.create(**payload())
+            assert transport.attempts == 2
+            assert len(sent) == proxy.report()["upstream_requests"] == 1
+    report = budget.reconcile_archive(output / "archive.json")
+    assert report["archive_valid"], report["errors"]
+    assert report["accounting"]["held_nanodollars"] == 0
+    rows = budget.ledger.snapshot()["reservations"]
+    assert len(rows) == 1
+    assert next(iter(rows.values()))["status"] == "settled"
 
 
 def provider_response(*, status="completed", **overrides):
