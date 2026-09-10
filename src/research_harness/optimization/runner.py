@@ -116,19 +116,9 @@ def prepare_search_run(
     if any(ledger_path.is_relative_to(path) for path in (output, feedback)):
         raise ValueError("The shared ledger must stay outside search and feedback directories")
     registry_path = Path(str(ledger_path) + ".pilots.json")
-    if registry_path.exists() != ledger_path.is_file():
-        raise ValueError("Shared ledger and registry must both exist; never reset spent funds")
     ledger = _ledger(ledger_path, config, create=True)
     with ledger.lock:
-        registry = (
-            _check_registered_pilots(ledger)
-            if registry_path.exists()
-            else {"schema_version": 1, "pilots": {}}
-        )
-        if not registry_path.exists():
-            # A failed offline preparation must not strand a new ledger without
-            # its registry or invite recreating the ledger on the next attempt.
-            _save(registry_path, registry)
+        registry = _check_registered_pilots(ledger)
         SearchController.create(
             output,
             feedback,

@@ -765,6 +765,7 @@ def verify_gateway_usage(
         verified_requests = []
         budget_operations = set()
         interrupted = False
+        upstream_request_ids = []
         for index, value in enumerate(records, 1):
             record = _dict(value, "Request record")
             identity = f"request-{index:04d}"
@@ -911,6 +912,7 @@ def verify_gateway_usage(
                 "forwarded_sha256": record.get("forwarded_sha256"),
                 "dispatched": record["dispatch_started"],
                 "usage": None,
+                "provider_error": None,
                 "response_service_tier": None,
                 "status": "unknown" if record["dispatch_started"] else "not_dispatched",
                 "issues": [],
@@ -945,6 +947,11 @@ def verify_gateway_usage(
                 _require(not body, "Undispatched request contains response bytes")
                 verified_requests.append(request_evidence)
                 continue
+            upstream_request_id = record.get("upstream_request_id")
+            if isinstance(upstream_request_id, str) and re.fullmatch(
+                r"[!-~]{1,200}", upstream_request_id
+            ):
+                upstream_request_ids.append(upstream_request_id)
             response, issue = None, "missing_response_headers"
             provider_metadata = {
                 "models": set(),
@@ -1031,7 +1038,39 @@ def verify_gateway_usage(
                     request_evidence["usage"] = observation
                     if not request_evidence["issues"]:
                         request_evidence["status"] = "complete"
+            # This identifies evidence an operator can reconcile against a
+            # provider confirmation. It does not make cost or usage known.
+            if (
+                budget_verified
+                and request_evidence["budget_operation_id"] is not None
+                and request_evidence["budget_dispatch_marked"]
+                and not request_evidence["budget_dispatch_pending"]
+                and not request_evidence["budget_reservation_pending"]
+                and outcome == "completed"
+                and type(record.get("upstream_status")) is int
+                and 400 <= record["upstream_status"] <= 599
+                and isinstance(upstream_request_id, str)
+                and re.fullmatch(r"[!-~]{1,200}", upstream_request_id)
+                and "json" in record.get("response_content_type", "").lower()
+                and isinstance(response, dict)
+                and not ({"id", "status", "usage", "output"} & set(response))
+                and isinstance(response.get("error"), dict)
+                and isinstance(response["error"].get("message"), str)
+                and response["error"]["message"].strip()
+                and "nonterminal_response" in request_evidence["issues"]
+                and set(request_evidence["issues"])
+                <= {"nonterminal_response", "missing_response_service_tier"}
+            ):
+                request_evidence["provider_error"] = {
+                    "http_status": record["upstream_status"],
+                    "provider_request_id": upstream_request_id,
+                }
             verified_requests.append(request_evidence)
+        for request in verified_requests:
+            error = request["provider_error"]
+            if error and upstream_request_ids.count(error["provider_request_id"]) != 1:
+                request["provider_error"] = None
+                request["issues"].append("ambiguous_provider_request_id")
         _require(
             set(contents) == expected_files, "Archive contains unbound or missing request files"
         )
