@@ -3,6 +3,7 @@ from __future__ import annotations
 import base64
 import json
 import os
+import sys
 
 import pytest
 from filelock import FileLock, Timeout
@@ -121,6 +122,164 @@ def test_writes_are_bounded_feedback_readonly_and_errors_retained(tmp_path):
     assert not workspace.call("unknown", {})["ok"]
     assert len(list((workspace.output / "tools").glob("*/error.json"))) == 5
     assert workspace.close()["snapshot_valid"]
+
+
+@pytest.mark.parametrize(
+    "original, alias",
+    [
+        ("Strategy.py", "strategy.py"),
+        ("Folder/a.py", "folder/b.py"),
+        ("caf\u00e9.py", "cafe\u0301.py"),
+        ("file", "file/child.py"),
+        ("folder/child.py", "folder"),
+    ],
+)
+def test_path_collisions_are_rejected_before_mutation_and_remain_repairable(
+    tmp_path, original, alias
+):
+    workspace = setup(tmp_path)
+    write(workspace, "workspace/" + original, "original")
+    before = module._inventory(workspace.workspace, workspace.config)
+    result = workspace.call("write_file", {"path": "workspace/" + alias, "content": "bad"})
+    assert result["ok"] is False
+    assert workspace._state["status"] == "ready"
+    assert module._inventory(workspace.workspace, workspace.config) == before
+    assert (workspace.workspace / original).read_text() == "original"
+    write(workspace, "workspace/repaired.py", "valid")
+    proof = workspace.close()
+    assert proof["snapshot_valid"] and proof["quiescent"]
+    assert workspace.snapshot_files(["workspace/repaired.py"]) == {
+        "workspace/repaired.py": b"valid"
+    }
+
+
+@pytest.mark.parametrize("value", ["\ud800", "\udfff", "\ud800x\udfff"])
+@pytest.mark.parametrize("argument", ["path", "content", "python-arguments"])
+def test_surrogate_arguments_are_recorded_and_repairable(tmp_path, value, argument):
+    workspace = setup(tmp_path)
+    args = {"path": "workspace/code.py", "content": "original"}
+    name = "write_file"
+    if argument == "python-arguments":
+        name, args = "run_python", {"path": "workspace/code.py", "arguments": [value]}
+    else:
+        args[argument] = value
+    result = workspace.call(name, args)
+    assert result["ok"] is False
+    assert result["error_type"] == "ValueError"
+    assert workspace._state["status"] == "ready"
+    artifact = workspace.output / "tools/tool-000001"
+    raw = (artifact / "request.json").read_bytes()
+    assert json.loads(raw) == {"name": name, "arguments": args}
+    assert workspace._state["calls"][0]["request_sha256"] == digest(raw)
+    assert not (artifact / "execution").exists()
+    write(workspace, "workspace/repaired.py", "valid")
+    assert workspace.close()["snapshot_valid"]
+
+
+@pytest.mark.parametrize("character", ["\u200b", "\x85", "\x7f"])
+def test_nonprintable_paths_are_rejected_without_workspace_changes(tmp_path, character):
+    workspace = setup(tmp_path)
+    result = workspace.call(
+        "write_file", {"path": f"workspace/bad{character}.py", "content": "bad"}
+    )
+    assert result["ok"] is False
+    assert not list(workspace.workspace.iterdir())
+    write(workspace, "workspace/repaired.py", "valid")
+    assert workspace.close()["snapshot_valid"]
+
+
+def test_empty_directory_after_failed_write_cannot_be_aliased(tmp_path, monkeypatch):
+    workspace = setup(tmp_path)
+    atomic_write = module.atomic_write
+
+    def no_space(path, raw):
+        if path == workspace.workspace / "Folder/a.py":
+            raise OSError("Authored disk-full failure")
+        return atomic_write(path, raw)
+
+    monkeypatch.setattr(module, "atomic_write", no_space)
+    assert not workspace.call("write_file", {"path": "workspace/Folder/a.py", "content": "valid"})[
+        "ok"
+    ]
+    assert (workspace.workspace / "Folder").is_dir()
+    assert not workspace.call("write_file", {"path": "workspace/folder/b.py", "content": "bad"})[
+        "ok"
+    ]
+    assert workspace._state["status"] == "ready"
+    write(workspace, "workspace/Folder/b.py", "valid")
+    assert workspace.close()["snapshot_valid"]
+
+
+@pytest.mark.parametrize("failure", ["missing-image", "unknown-flag", "proxy-error"])
+def test_create_rejection_preserves_repairability_only_with_definitive_evidence(
+    tmp_path, monkeypatch, failure
+):
+    import research_harness.strategies.sandbox as sandbox_module
+
+    command_log = tmp_path / "docker-commands.jsonl"
+    stub = tmp_path / "docker-stub"
+    message = {
+        "missing-image": f"Error response from daemon: No such image: {IMAGE}\n",
+        "unknown-flag": (
+            "unknown flag: --memory\n\n"
+            "Usage:  docker create [OPTIONS] IMAGE [COMMAND] [ARG...]\n\n"
+            "Run 'docker create --help' for more information\n"
+        ),
+        "proxy-error": "Error response from daemon: upstream request timed out\n",
+    }[failure]
+    # Authored CLI stub, not candidate code. Exercise the real subprocess boundary.
+    stub.write_text(
+        f"#!{sys.executable}\n"
+        "import json, pathlib, sys\n"
+        "args = sys.argv[1:]\n"
+        f"with pathlib.Path({str(command_log)!r}).open('a') as log:\n"
+        "    log.write(json.dumps(args) + '\\n')\n"
+        "if args[0] == 'info':\n"
+        "    print(json.dumps({'OSType': 'linux', 'SecurityOptions': ['name=seccomp']}))\n"
+        "elif args[:2] == ['image', 'inspect']:\n"
+        f"    print(json.dumps([{{'Id': 'sha256:' + 'a' * 64, 'Os': 'linux', 'RepoDigests': [{IMAGE!r}], 'Config': {{}}}}]))\n"
+        "elif args[0] == 'create':\n"
+        f"    sys.stderr.write({message!r})\n"
+        f"    sys.exit({125 if failure == 'unknown-flag' else 1})\n"
+        "elif args[0] == 'inspect':\n"
+        "    sys.stderr.write('Error: No such container\\n')\n"
+        "    sys.exit(1)\n"
+        "else:\n"
+        "    sys.exit('Unexpected docker command')\n"
+    )
+    stub.chmod(0o755)
+    monkeypatch.setattr(sandbox_module.shutil, "which", lambda _: str(stub))
+    workspace = setup(tmp_path)
+    write(workspace, "workspace/program.py", "raise RuntimeError('must never run')\n")
+    if failure == "proxy-error":
+        with pytest.raises(RuntimeError, match="uncertain"):
+            workspace.call("run_python", {"path": "workspace/program.py"})
+        saved = execution(workspace)
+        assert saved["cleanup"] == "absent_at_check_creation_unconfirmed"
+        assert "creation_rejection" not in saved
+        proof = workspace.close()
+        assert not proof["quiescent"] and not proof["snapshot_valid"]
+        workspace._remove_feedback_view()  # The stub never creates an actual container.
+    else:
+        result = workspace.call("run_python", {"path": "workspace/program.py"})
+        assert result["ok"] is False
+        saved = execution(workspace)
+        assert saved["cleanup"] == "not_created"
+        assert saved["creation_acknowledged"] is False
+        assert saved["creation_rejection"]["stderr"] == message
+        assert workspace._state["status"] == "ready"
+        write(workspace, "workspace/repaired.py", "valid")
+        proof = workspace.close()
+        assert proof["snapshot_valid"] and proof["quiescent"]
+        attempt = workspace.output / "tools/tool-000002/execution"
+        runner = sandbox_module.DockerStrategyRunner(workspace.config.sandbox, docker=stub)
+        assert runner.recover(attempt)["cleanup"] == "not_created"
+        assert runner.recover(attempt)["cleanup"] == "not_created"
+    commands = [json.loads(line) for line in command_log.read_text().splitlines()]
+    assert sum(command[0] == "create" for command in commands) == 1
+    assert not any(command[0] == "start" for command in commands)
+    if failure != "proxy-error":
+        assert not any(command[0] in {"inspect", "rm"} for command in commands)
 
 
 @pytest.mark.parametrize("kind", ["symlink", "hardlink", "fifo"])

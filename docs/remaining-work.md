@@ -111,15 +111,17 @@ Acceptance: a plain `uv run pytest` shows the skip reasons; CI is green on the u
 
 Completed September 10 by `/root` in [PR #4](https://github.com/Madhavan113/researchharness/pull/4), commits `442ad31` and `b8eb2c3`. Default `-ra` reporting exposes skipped checks; required mode validates configuration/dependency availability and fails on any collection/setup/call/teardown skip. Thirteen subprocess regressions cover that contract. The hosted ordinary job exposed a gateway response-completion race, fixed with connection-close framing and two deterministic JSON/SSE regressions. On the corrected source, [both CI jobs pass](https://github.com/Madhavan113/researchharness/actions/runs/34539869346): ordinary checks report 1,101 passes and 28 explicit runtime skips; required Docker/Omnigent checks report 1,129 passes and zero skips. The local required suite also passes 1,129 tests. Ruff, actionlint and local documentation links pass. [Test configurations](testing.md) documents reproduction and the separate shared-storage/live-provider limits. No paid model calls or new runtime archives were included.
 
-### RW-8 · Stop ordinary errors from losing a whole proposer attempt · `open` · confirmed
+### RW-8 · Stop ordinary errors from losing a whole proposer attempt · `done` · confirmed
 
 Files: `src/research_harness/optimization/workspace.py` (`write_file` near lines 607–616, argument encoding near lines 500–501, `_relative` near lines 157–170), `src/research_harness/strategies/sandbox.py` (`created = True` before `docker create` at lines 319–320), `src/research_harness/optimization/proposer.py` (attempt abort near lines 521–525).
 
 Problem: `write_file` mutates the workspace before checking the planned inventory, so on a case-insensitive filesystem a second write differing only in case strands the workspace as `uncertain` and the attempt can never submit. A lone surrogate in tool arguments raises `UnicodeEncodeError` out of `call()`. Any `docker create` failure, including a definitive non-zero exit, is recorded as `absent_at_check_creation_unconfirmed`, which never becomes quiescent, so the attempt is permanently lost.
 
-Fix direction: stage-and-swap writes as `_publish` does, or reject case-fold collisions in `_check_planned`; reject non-printable and surrogate code points in `_relative`; distinguish a definitive create failure (non-zero exit with no container id) from a lost acknowledgement.
+Fix direction: stage-and-swap writes as `_publish` does, or reject case-fold collisions in `_check_planned`; reject non-printable and surrogate code points in `_relative`; distinguish proven pre-creation rejection from a lost acknowledgement. A nonzero exit without a container id is not sufficient proof by itself: the CLI also uses nonzero exits for transport/proxy failures.
 
 Acceptance: unit tests for case collision, surrogate arguments and a failing `docker` stub, each ending with a recoverable workspace.
+
+Completed September 10 by `/root`, branch `fix/proposer-workspace-recovery`, based on PR #6. Reproduced both a case-alias write overwriting the original on the local filesystem and an unpaired surrogate escaping the tool handler. Implemented alias/type checks before writes, including empty directories; recorded, repairable Unicode errors; and durable recognition of the CLI's missing-image/unknown-flag rejections. All other unacknowledged create failures retain conservative cleanup. The [strategy guide](strategy-optimization.md#coding-proposer-and-search-controller) records the upstream evidence for that distinction. The full required suite passes 1,238 tests with zero skips, including actual proposer error repair/submission, subprocess failure stubs and actual Docker rejection/recovery; the shared tracker records the exact command and report hash.
 
 ### RW-9 · Close MCP and CLI parity gaps · `open` · confirmed
 

@@ -61,6 +61,27 @@ def test_candidate_is_never_imported_on_host_even_when_docker_fails(tmp_path):
         runner.execute(path, {}, output)
 
 
+def test_actual_cli_create_rejection_stays_quiescent_after_recovery(tmp_path, monkeypatch):
+    runner = actual_runner()
+    create_arguments = runner._create_arguments
+
+    def unsupported_flag(*args):
+        command = create_arguments(*args)
+        return [command[0], "--rh-test-invalid-flag", *command[1:]]
+
+    monkeypatch.setattr(runner, "_create_arguments", unsupported_flag)
+    path = source(tmp_path, "def apply(event): return {'decision': {}, 'state': {}}\n")
+    output = tmp_path / "rejected-create"
+    with pytest.raises(StrategyExecutionError):
+        runner.execute(path, {}, output)
+    saved = report(output)
+    assert saved["cleanup"] == "not_created"
+    assert saved["creation_rejection"]["reason"] == "cli_flag_rejected_before_creation"
+    assert saved["creation_acknowledged"] is False
+    assert runner.recover(output)["cleanup"] == "not_created"
+    assert not (output / "decision.json").exists()
+
+
 def test_source_and_input_limits_are_checked_before_execution(tmp_path):
     runner = DockerStrategyRunner(
         SandboxConfig(image=IMAGE, max_source_bytes=1024), docker=Path("/no/docker")

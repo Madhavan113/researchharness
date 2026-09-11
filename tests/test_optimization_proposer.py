@@ -200,6 +200,7 @@ def test_raw_feedback_error_repair_exact_submission_and_complete_history(tmp_pat
     assert set(result.candidates) == {"one", "two"}
     assert all(value.source.read_text() == CODE for value in result.candidates.values())
     assert len(requests) == 8
+
     assert all(set(tool["name"] for tool in request["tools"]) == TOOL_NAMES for request in requests)
     assert all(tool["strict"] for request in requests for tool in request["tools"])
     outputs = [item for item in requests[-1]["input"] if item.get("type") == "function_call_output"]
@@ -228,6 +229,31 @@ def test_raw_feedback_error_repair_exact_submission_and_complete_history(tmp_pat
     with pytest.raises(FileExistsError):
         proposer.propose(task)
     assert len(requests) == 8
+
+
+@pytest.mark.parametrize("mistake", ["case-alias", "surrogate"])
+def test_bad_workspace_arguments_are_repairable_through_the_actual_proposer(
+    tmp_path, factory, mistake
+):
+    task = task_at(tmp_path)
+    calls = [
+        ("write_file", {"path": "workspace/Original.py", "content": "original"}),
+        (
+            "write_file",
+            {"path": "workspace/original.py", "content": "bad"}
+            if mistake == "case-alias"
+            else json.dumps({"path": "workspace/new.py", "content": "\ud800"}),
+        ),
+        *steps(task),
+    ]
+    proposer, requests = factory(task, calls)
+    result = proposer.propose(task)
+    assert result.closed and result.quiescent
+    assert result.candidates
+    outputs = [item for item in requests[-1]["input"] if item.get("type") == "function_call_output"]
+    assert json.loads(outputs[1]["output"])["ok"] is False
+    assert len(requests) == len(calls)
+    assert_archive(task.output)
 
 
 def test_binding_covers_all_feedback_and_controls_without_absolute_paths(tmp_path):
