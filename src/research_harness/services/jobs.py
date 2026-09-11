@@ -34,6 +34,51 @@ from research_harness.util import (
 )
 
 TERMINAL = {"succeeded", "failed", "cancelled", "interrupted"}
+WORKER_ENVIRONMENT = {
+    "PATH",
+    "HOME",
+    "USERPROFILE",
+    "SYSTEMROOT",
+    "WINDIR",
+    "TMPDIR",
+    "TEMP",
+    "TMP",
+    "LANG",
+    "LC_ALL",
+    "LC_CTYPE",
+    "TZ",
+    "SSL_CERT_FILE",
+    "SSL_CERT_DIR",
+    "HTTP_PROXY",
+    "HTTPS_PROXY",
+    "ALL_PROXY",
+    "NO_PROXY",
+    "http_proxy",
+    "https_proxy",
+    "all_proxy",
+    "no_proxy",
+}
+POSTGRES_WORKER_ENVIRONMENT = {
+    "PGHOST",
+    "PGHOSTADDR",
+    "PGPORT",
+    "PGDATABASE",
+    "PGUSER",
+    "PGPASSWORD",
+    "PGPASSFILE",
+    "PGSERVICE",
+    "PGSERVICEFILE",
+    "PGSYSCONFDIR",
+    "PGSSLMODE",
+    "PGSSLROOTCERT",
+    "PGSSLCERT",
+    "PGSSLKEY",
+    "PGSSLCRL",
+    "PGSSLCRLDIR",
+    "PGCONNECT_TIMEOUT",
+    "PGCHANNELBINDING",
+    "AWS_CA_BUNDLE",
+}
 
 
 def _public(row: dict[str, Any]) -> dict[str, Any]:
@@ -44,9 +89,13 @@ def _public(row: dict[str, Any]) -> dict[str, Any]:
 
 
 def worker_environment(backend: Backend) -> dict[str, str]:
-    """Pass backend credentials through the subprocess environment, never command arguments."""
+    """Pass only runtime/network settings and the selected storage credentials to workers."""
     settings = backend.settings
-    env = dict(os.environ)
+    allowed = WORKER_ENVIRONMENT | (
+        POSTGRES_WORKER_ENVIRONMENT if backend.mode == "postgres" else set()
+    )
+    env = {key: value for key, value in os.environ.items() if key in allowed}
+    env["PYTHONUNBUFFERED"] = "1"
     values = {
         "RH_LOCAL_ROOT": str(settings.local_root.resolve()),
         "RH_DATABASE_URL": settings.database_url,

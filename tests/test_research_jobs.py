@@ -3,6 +3,8 @@ from __future__ import annotations
 import json
 import os
 import signal
+import subprocess
+import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
@@ -14,7 +16,7 @@ import pytest
 
 from research_harness import registry
 from research_harness.backend import Backend, BackendSettings
-from research_harness.services.jobs import TERMINAL, JobService
+from research_harness.services.jobs import TERMINAL, JobService, worker_environment
 from research_harness.services.research import ResearchService
 from research_harness.store import WriterBusy
 from research_harness.util import timestamp
@@ -50,6 +52,55 @@ def prepare(
 
 def dataset(backend, service, spec):
     return backend.pipeline_store(spec, None, question_id=service.get_context()["question_id"])
+
+
+@pytest.mark.parametrize("shared", [False, True])
+def test_worker_environment_excludes_model_keys_and_uses_selected_backend(
+    tmp_path, monkeypatch, shared
+):
+    excluded = (
+        "OPENAI_API_KEY",
+        "ANTHROPIC_API_KEY",
+        "AWS_SECRET_ACCESS_KEY",
+        "RH_TEST_MODEL_KEY",
+        "PYTHONPATH",
+    )
+    for key in excluded:
+        monkeypatch.setenv(key, "unused-provider-fixture-secret")
+    monkeypatch.setenv("PGPASSWORD", "fixture-storage-password")
+    monkeypatch.setenv("RH_DATABASE_URL", "postgresql://wrong-host/ignored")
+    monkeypatch.setenv("RH_BLOB_SECRET_KEY", "ignored-parent-setting")
+    settings = BackendSettings(
+        local_root=tmp_path / "selected",
+        database_url="postgresql://fixture@storage.invalid/fixture" if shared else None,
+        blob_bucket="fixture-bucket" if shared else None,
+        blob_access_key="fixture-access" if shared else None,
+        blob_secret_key="fixture-storage-secret" if shared else None,
+    )
+    env = worker_environment(Backend(settings))
+    assert not set(excluded) & env.keys()
+    assert env["RH_LOCAL_ROOT"] == str(settings.local_root.resolve())
+    if shared:
+        assert env["RH_DATABASE_URL"] == settings.database_url
+        assert env["RH_BLOB_SECRET_KEY"] == settings.blob_secret_key
+        assert env["PGPASSWORD"] == "fixture-storage-password"
+    else:
+        assert not {"RH_DATABASE_URL", "RH_BLOB_SECRET_KEY", "PGPASSWORD"} & env.keys()
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            "import json, os; import research_harness.services.jobs; print(json.dumps(sorted(os.environ)))",
+        ],
+        env=env,
+        capture_output=True,
+        text=True,
+        check=True,
+        timeout=10,
+    )
+    names = set(json.loads(result.stdout))
+    assert not set(excluded) & names
+    assert "RH_LOCAL_ROOT" in names
 
 
 def test_job_restart_retry_and_original_configuration(tmp_path, job_backend, spec, item):

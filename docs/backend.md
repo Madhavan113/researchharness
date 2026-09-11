@@ -29,7 +29,13 @@ A definition is identified by its fingerprint (SHA-256 of the canonical JSON), s
 same definition twice for one question returns the existing entry. Adopting a definition marks the
 question's previously adopted one `superseded`. Registered runs link to definitions through the
 question namespace, pipeline name, and configuration hash. Shared storage can join these directly;
-the research context also reads each local pipeline store to report its latest run.
+the research context, `pipelines list` and `questions show` also read each local pipeline store
+to report its latest run. These lookups retain the question namespace, including when two
+questions use the same pipeline name.
+
+Question and pipeline registration use conflict-targeted inserts. Concurrent callers receive
+the same stored identity and original metadata; only the winning pipeline insert records a
+registration event. Unrelated integrity failures still surface and nested transactions can roll back.
 
 Discovery registers the question and its run before spending any model tokens, records the
 proposal and compiled pipeline on completion, and marks the run failed on error. The ids appear in
@@ -99,16 +105,38 @@ does not expose them. Keep the connection string and S3 key out of the repositor
 
 ## Concurrency and integrity
 
-- Each pipeline has a writer lock: an OS file lock per data directory in local mode, a Postgres
+- Each pipeline has a writer lock: an OS file lock per question-scoped pipeline within each local data directory, a Postgres
   session advisory lock keyed by the question-scoped pipeline name in shared mode. Agents can collect different
   pipelines at the same time; a second writer for the same pipeline fails immediately instead of
   waiting. Acquiring the exclusive lock marks that pipeline's abandoned `running` rows interrupted.
+- Local locks also share the existing `writer.lock` as a compatibility guard, so older exclusive
+  writers still exclude current readers/writers. Reentering the same store's writer does not sweep
+  its own active run. Shared-to-exclusive upgrades require releasing the shared scope first.
 - Probes and inspections take a shared lock, so several discoveries can run concurrently, and
-  they never publish records or advance checkpoints.
-- Publication of a source snapshot is one transaction in both modes.
-- Bodies are content-addressed. Uploads skip bodies already present; reads verify the digest.
+  they never publish records or advance checkpoints. Inspection success/failure uses the same
+  non-publishing source-run completion path as a probe.
+- Publication of a source snapshot is one transaction in both modes. SQLite starts outer write
+  transactions with `BEGIN IMMEDIATE` before reading and uses savepoints when nested. Independent
+  pipelines can fetch concurrently; their short SQLite write transactions still serialize.
+- Bodies are content-addressed. Both reads and upload deduplication verify stored bytes. S3
+  uploads use `If-None-Match: *`; if another uploader wins, its existing body must pass the hash
+  check. Storage errors and corrupt bodies are reported without overwriting the object.
 - Timestamps are stored as UTC ISO-8601 text with microseconds in both databases, so cutoff
   comparisons behave identically.
+
+The project includes [Portalocker's shared-lock support](https://portalocker.readthedocs.io/en/latest/platforms.html),
+including its Windows extra. S3-compatible endpoints must support
+[conditional PutObject](https://docs.aws.amazon.com/AmazonS3/latest/userguide/conditional-writes.html).
+The S3 SDK minimum is Boto3 1.35.2, whose corresponding
+[Botocore model](https://github.com/boto/botocore/blob/1.35.2/botocore/data/s3/2006-03-01/service-2.json)
+includes the required `IfNoneMatch` upload argument.
+Run `rh backend check` against the configured storage before starting collection.
+
+Detached collection/export workers inherit an explicit set of OS, locale, proxy and TLS settings
+and the selected `BackendSettings`. PostgreSQL workers additionally retain libpq connection/TLS
+settings and `AWS_CA_BUNDLE` for storage trust. Provider API keys, unrelated application variables
+and Python path overrides are omitted. Model credentials are not needed for collection or export;
+storage credentials remain in the worker environment rather than command arguments.
 
 ## Testing
 
@@ -130,11 +158,19 @@ RH_TEST_BLOB_SECRET_KEY="$RH_BLOB_SECRET_KEY" uv run pytest
 Schema version 2 adds the registry tables. Version 3 adds discovery contexts, an operation ledger,
 and evidence receipts for the [shared research service](research-service.md). Version 4 adds
 durable collection/export jobs, their preallocated collection run ids, and reconciliation state.
+Version 5 restores the `runs_pipeline` index for historical version-1 databases that lacked it,
+including databases already upgraded through version 4. It preserves existing rows and migration history.
 Numbered migrations
 upgrade existing local databases in place on open; anything newer than the running code is
 refused. Postgres records applied versions in `schema_migrations`. Future changes should add a
 numbered migration rather than editing earlier definitions, and keep the SQLite and Postgres
 shapes identical.
+
+Local storage requires SQLite 3.35 or newer for
+[`RETURNING`](https://www.sqlite.org/releaselog/3_35_0.html), and refuses older runtimes before creating a database.
+The [SQLite transaction documentation](https://www.sqlite.org/lang_transaction.html) explains the
+write reservation used for outer transactions; a busy writer can still exhaust the configured
+five-second database timeout.
 
 Limits that remain: no retention policy and no background scheduler.
 

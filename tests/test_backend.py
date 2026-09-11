@@ -2,18 +2,32 @@ from __future__ import annotations
 
 import io
 import json
+import multiprocessing
+import sqlite3
+from concurrent.futures import ThreadPoolExecutor
+from contextlib import nullcontext
 from pathlib import Path
+from threading import Barrier
 
 import httpx
 import pytest
+from filelock import FileLock, Timeout
 
 from research_harness import registry
 from research_harness.backend import Backend, BackendSettings
-from research_harness.blobs import S3Blobs
+from research_harness.blobs import LocalBlobs, S3Blobs
 from research_harness.cli import main
 from research_harness.config import PipelineSpec
 from research_harness.engine import run_pipeline
-from research_harness.store import TABLES, PostgresDialect, SqliteDialect, Store
+from research_harness.store import (
+    MIGRATIONS,
+    SCHEMA_VERSION,
+    TABLES,
+    PostgresDialect,
+    SqliteDialect,
+    Store,
+    WriterBusy,
+)
 from research_harness.util import digest
 
 
@@ -154,7 +168,9 @@ class FakeS3:
             raise FakeError("404")
         return {}
 
-    def put_object(self, Bucket: str, Key: str, Body: bytes, **_: object) -> None:
+    def put_object(self, Bucket: str, Key: str, Body: bytes, IfNoneMatch=None, **_: object) -> None:
+        if IfNoneMatch == "*" and (Bucket, Key) in self.objects:
+            raise FakeError("PreconditionFailed")
         self.puts += 1
         self.objects[(Bucket, Key)] = Body
 
@@ -189,6 +205,10 @@ def test_s3_blobs_deduplicate_verify_integrity_and_count(tmp_path, clock):
     client.objects[("bucket", blobs.key(hashed))] = b"tampered"
     with pytest.raises(RuntimeError, match="integrity"):
         blobs.get(hashed)
+    with pytest.raises(RuntimeError, match="integrity"):
+        blobs.put(b"body")
+    assert client.puts == 1
+    assert client.objects[("bucket", blobs.key(hashed))] == b"tampered"
     with pytest.raises(FileNotFoundError):
         blobs.get("0" * 64)
     with pytest.raises(ValueError):
@@ -197,6 +217,247 @@ def test_s3_blobs_deduplicate_verify_integrity_and_count(tmp_path, clock):
         stored = store.put_blob(b"through the store")
         assert store.read_blob(stored) == b"through the store"
         assert store.describe()["blobs"] == "bucket bucket/raw"
+
+
+@pytest.mark.parametrize("racing_body", [b"body", b"tampered"])
+def test_s3_deduplication_race_verifies_without_overwriting(racing_body):
+    class RacingS3(FakeS3):
+        def head_object(self, Bucket, Key):
+            self.objects[(Bucket, Key)] = racing_body
+            raise FakeError("404")
+
+    client = RacingS3()
+    blobs = S3Blobs(client, "bucket")
+    if racing_body == b"body":
+        assert blobs.put(b"body") == digest(b"body")
+    else:
+        with pytest.raises(RuntimeError, match="integrity"):
+            blobs.put(b"body")
+    assert client.puts == 0
+    assert client.objects[("bucket", blobs.key(digest(b"body")))] == racing_body
+
+
+@pytest.mark.parametrize("version", [1, 4])
+def test_forward_migration_repairs_historical_missing_index_without_losing_runs(tmp_path, version):
+    dialect = SqliteDialect(tmp_path)
+    with sqlite3.connect(dialect.location) as db:
+        db.executescript((Path(__file__).parent / "fixtures/sqlite-v1-ee2148b.sql").read_text())
+        for number, statements in MIGRATIONS.items():
+            if 1 < number <= version:
+                for statement in statements:
+                    db.execute(dialect.render(statement))
+        db.execute(f"PRAGMA user_version={version}")
+        db.execute(
+            "INSERT INTO runs (id,pipeline,config_hash,config_json,started_at,status) VALUES (?,?,?,?,?,?)",
+            ("preserved", "saved-pipeline", "hash", "{}", "2026-09-01T00:00:00Z", "succeeded"),
+        )
+    for _ in range(2):
+        with Store(tmp_path) as upgraded:
+            assert upgraded.describe()["schema_version"] == SCHEMA_VERSION
+            indexes = {row["name"] for row in upgraded.query("PRAGMA index_list('runs')")}
+            assert "runs_pipeline" in indexes
+            assert (
+                upgraded.query_one("SELECT * FROM runs WHERE id='preserved'")["status"]
+                == "succeeded"
+            )
+
+
+def test_old_sqlite_version_fails_before_creating_storage(tmp_path, monkeypatch):
+    root = tmp_path / "too-old"
+    monkeypatch.setattr(sqlite3, "sqlite_version_info", (3, 34, 0))
+    with pytest.raises(RuntimeError, match="SQLite 3.35"):
+        Store(root)
+    assert not root.exists()
+
+
+def test_blob_deduplication_rejects_corruption_in_the_actual_backend(store, monkeypatch):
+    body = b"original stored fixture"
+    hashed = store.put_blob(body)
+    blobs = store.blobs
+    if isinstance(blobs, LocalBlobs):
+        blobs.path(hashed).write_bytes(b"tampered")
+    else:
+        assert isinstance(blobs, S3Blobs)
+        blobs.client.put_object(Bucket=blobs.bucket, Key=blobs.key(hashed), Body=b"tampered")
+    with pytest.raises(RuntimeError, match="integrity"):
+        store.put_blob(body)
+    if isinstance(blobs, S3Blobs):
+        # Force a stale HEAD result to exercise the endpoint's conditional PUT as well.
+        monkeypatch.setattr(blobs, "exists", lambda _: False)
+        with pytest.raises(RuntimeError, match="integrity"):
+            store.put_blob(body)
+        response = blobs.client.get_object(Bucket=blobs.bucket, Key=blobs.key(hashed))
+        with response["Body"] as stream:
+            assert stream.read() == b"tampered"
+    else:
+        assert blobs.path(hashed).read_bytes() == b"tampered"
+
+
+def test_forward_index_repair_also_applies_to_already_upgraded_shared_stores(store, spec, clock):
+    run_id = store.start_run(spec)
+    store.finish_run(run_id, "succeeded")
+    with store.transaction():
+        store.execute("DROP INDEX runs_pipeline")
+        if store.mode == "sqlite":
+            store.execute("PRAGMA user_version=4")
+        else:
+            store.execute("DELETE FROM schema_migrations WHERE version=5")
+    with Store(store.root, dialect=store.dialect, blobs=store.blobs, clock=clock) as upgraded:
+        assert upgraded.describe()["schema_version"] == SCHEMA_VERSION
+        indexes = (
+            upgraded.query("PRAGMA index_list('runs')")
+            if upgraded.mode == "sqlite"
+            else upgraded.query(
+                "SELECT indexname AS name FROM pg_indexes WHERE schemaname=current_schema() AND tablename='runs'"
+            )
+        )
+        assert "runs_pipeline" in {row["name"] for row in indexes}
+        assert upgraded.run_details(run_id)["status"] == "succeeded"
+
+
+def test_registration_does_not_hide_unrelated_constraints_or_abort_outer_transaction(store, spec):
+    with store.transaction():
+        question = registry.register_question(store, "Constraint recovery")
+        with pytest.raises(Exception, match="(?i)foreign key"):
+            registry.register_pipeline(store, question["id"], spec, proposal_id="missing-proposal")
+        assert store.count("pipeline_versions") == store.count("pipeline_events") == 0
+        pipeline = registry.register_pipeline(store, question["id"], spec)
+    assert pipeline["created"] is True
+    assert len(registry.pipeline_history(store, pipeline["id"])) == 1
+
+
+def test_writer_scopes_readers_and_reentry_preserve_live_runs(store, spec, clock):
+    with Store(store.root, dialect=store.dialect, blobs=store.blobs, clock=clock) as other:
+        with store.writer(spec.name):
+            run_id = store.start_run(spec)
+            for shared in (False, True):
+                with store.writer(spec.name, shared=shared):
+                    assert store.run_details(run_id)["status"] == "running"
+                with pytest.raises(WriterBusy), other.writer(spec.name, shared=shared):
+                    pass
+            with other.writer("another-pipeline"):
+                assert store.run_details(run_id)["status"] == "running"
+            store.finish_run(run_id, "succeeded")
+        with store.writer(spec.name, shared=True):
+            with store.writer(spec.name, shared=True), other.writer(spec.name, shared=True):
+                assert store.run_details(run_id)["status"] == "succeeded"
+            with pytest.raises(WriterBusy), store.writer(spec.name):
+                pass
+            with pytest.raises(WriterBusy), other.writer(spec.name):
+                pass
+        with pytest.raises(RuntimeError, match="fixture error"):
+            with store.writer(spec.name), store.writer(spec.name):
+                raise RuntimeError("fixture error")
+        with other.writer(spec.name):
+            assert other.run_details(run_id)["status"] == "succeeded"
+
+
+def test_new_sqlite_locks_remain_exclusive_against_legacy_writers(tmp_path):
+    with Store(tmp_path) as store:
+        with FileLock(tmp_path / "writer.lock", timeout=0):
+            for shared in (True, False):
+                with pytest.raises(WriterBusy), store.writer("current", shared=shared):
+                    pass
+        for shared in (True, False):
+            with store.writer("current", shared=shared):
+                with pytest.raises(Timeout), FileLock(tmp_path / "writer.lock", timeout=0):
+                    pass
+
+
+def _hold_writer_in_process(root, shared, ready, release):
+    with Store(root) as store, store.writer("held", shared=shared):
+        ready.set()
+        release.wait(20)
+
+
+@pytest.mark.parametrize("shared", [True, False])
+def test_sqlite_scope_locks_work_across_processes_and_release_after_termination(tmp_path, shared):
+    context = multiprocessing.get_context("spawn")
+    ready, release = context.Event(), context.Event()
+    with Store(tmp_path) as store:
+        process = context.Process(
+            target=_hold_writer_in_process, args=(tmp_path, shared, ready, release)
+        )
+        process.start()
+        try:
+            assert ready.wait(10)
+            with store.writer("independent"):
+                pass
+            if shared:
+                with store.writer("held", shared=True):
+                    pass
+            else:
+                with pytest.raises(WriterBusy), store.writer("held", shared=True):
+                    pass
+            with pytest.raises(WriterBusy), store.writer("held"):
+                pass
+        finally:
+            process.terminate()
+            process.join(timeout=5)
+        assert not process.is_alive()
+        with store.writer("held"):
+            pass
+
+
+@pytest.mark.parametrize("nested", [False, True])
+def test_concurrent_registration_returns_one_identity_and_one_event(store, spec, clock, nested):
+    start = Barrier(2)
+
+    def register(number):
+        with Store(store.root, dialect=store.dialect, blobs=store.blobs, clock=clock) as other:
+            start.wait(timeout=5)
+            with other.transaction() if nested else nullcontext():
+                question = registry.register_question(
+                    other, "Concurrent registration", title=f"Owner {number}"
+                )
+                pipeline = registry.register_pipeline(
+                    other, question["id"], spec, notes=f"Owner {number}"
+                )
+            return question, pipeline
+
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        results = list(executor.map(register, range(2)))
+    assert len({question["id"] for question, _ in results}) == 1
+    assert len({pipeline["id"] for _, pipeline in results}) == 1
+    assert sum(question["created"] for question, _ in results) == 1
+    assert sum(pipeline["created"] for _, pipeline in results) == 1
+    assert len({question["title"] for question, _ in results}) == 1
+    assert len({pipeline["notes"] for _, pipeline in results}) == 1
+    assert [event["event"] for event in registry.pipeline_history(store, results[0][1]["id"])] == [
+        "registered"
+    ]
+
+
+def test_cli_lists_latest_run_from_the_correct_local_question(
+    tmp_path, spec, item, clock, monkeypatch, capsys
+):
+    backend = Backend.local(tmp_path / "backend", clock=clock)
+    monkeypatch.setenv("RH_LOCAL_ROOT", str(backend.settings.local_root))
+    monkeypatch.delenv("RH_DATABASE_URL", raising=False)
+    with backend.open_registry() as store:
+        questions = [registry.register_question(store, brief) for brief in ("First", "Second")]
+        pipelines = [
+            registry.register_pipeline(store, question["id"], spec) for question in questions
+        ]
+    runs = []
+    with httpx.Client(
+        transport=httpx.MockTransport(lambda _: httpx.Response(200, json={"items": [item]}))
+    ) as client:
+        for question in questions:
+            with backend.pipeline_store(spec, None, question_id=question["id"]) as data:
+                run_pipeline(spec, data, client=client, public_only=False, clock=clock)
+                runs.append(data.latest_run(spec.name, spec.fingerprint())["id"])
+            clock.advance()
+    assert runs[0] != runs[1]
+    for index, question in enumerate(questions):
+        assert main(["pipelines", "list", "--question", question["id"]]) == 0
+        listed = json.loads(capsys.readouterr().out)
+        assert listed[0]["id"] == pipelines[index]["id"]
+        assert listed[0]["latest_run"]["id"] == runs[index]
+        assert listed[0]["latest_run"]["status"] == "succeeded"
+        assert main(["questions", "show", question["id"]]) == 0
+        overview = json.loads(capsys.readouterr().out)
+        assert overview["pipelines"][0]["latest_run"]["id"] == runs[index]
 
 
 def test_cli_registry_commands_and_registry_ids_resolve(tmp_path, spec, monkeypatch, capsys):

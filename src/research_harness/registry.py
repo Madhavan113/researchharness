@@ -36,9 +36,6 @@ def register_question(store: Store, brief: str, *, title: str | None = None) -> 
     if not brief:
         raise ValueError("The research brief is empty")
     brief_hash = digest(brief)
-    existing = store.query_one("SELECT * FROM questions WHERE brief_hash=?", (brief_hash,))
-    if existing:
-        return {**existing, "created": False}
     row = {
         "id": uuid4().hex,
         "brief": brief,
@@ -47,10 +44,15 @@ def register_question(store: Store, brief: str, *, title: str | None = None) -> 
         "created_at": _now(store),
     }
     with store.transaction():
-        store.execute(
-            "INSERT INTO questions (id, brief, brief_hash, title, created_at) VALUES (?, ?, ?, ?, ?)",
+        inserted = store.execute(
+            "INSERT INTO questions (id, brief, brief_hash, title, created_at) VALUES (?, ?, ?, ?, ?) ON CONFLICT(brief_hash) DO NOTHING RETURNING id",
             (row["id"], row["brief"], row["brief_hash"], row["title"], row["created_at"]),
-        )
+        ).fetchone()
+        if inserted is None:
+            existing = store.query_one("SELECT * FROM questions WHERE brief_hash=?", (brief_hash,))
+            if existing is None:
+                raise RuntimeError("Registered question disappeared after a conflicting insert")
+            return {**existing, "created": False}
     return {**row, "created": True}
 
 
@@ -161,17 +163,11 @@ def register_pipeline(
         raise ValueError(f"Unknown pipeline origin: {origin}")
     question = get_question(store, question_id)
     fingerprint = spec.fingerprint()
-    existing = store.query_one(
-        "SELECT * FROM pipeline_versions WHERE question_id=? AND fingerprint=?",
-        (question["id"], fingerprint),
-    )
-    if existing:
-        return {**_public(existing), "created": False}
     now = _now(store)
     pipeline_id = uuid4().hex
     with store.transaction():
-        store.execute(
-            "INSERT INTO pipeline_versions (id, question_id, proposal_id, name, fingerprint, spec_json, status, origin, label, notes, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, 'proposed', ?, ?, ?, ?, ?)",
+        inserted = store.execute(
+            "INSERT INTO pipeline_versions (id, question_id, proposal_id, name, fingerprint, spec_json, status, origin, label, notes, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, 'proposed', ?, ?, ?, ?, ?) ON CONFLICT(question_id, fingerprint) DO NOTHING RETURNING id",
             (
                 pipeline_id,
                 question["id"],
@@ -185,7 +181,15 @@ def register_pipeline(
                 now,
                 now,
             ),
-        )
+        ).fetchone()
+        if inserted is None:
+            existing = store.query_one(
+                "SELECT * FROM pipeline_versions WHERE question_id=? AND fingerprint=?",
+                (question["id"], fingerprint),
+            )
+            if existing is None:
+                raise RuntimeError("Registered pipeline disappeared after a conflicting insert")
+            return {**_public(existing), "created": False}
         _event(store, pipeline_id, "registered", from_status=None, to_status="proposed", note=notes)
     return {**get_pipeline(store, pipeline_id), "created": True}
 
