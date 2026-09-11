@@ -78,6 +78,18 @@ Retain completed handoffs so another agent can distinguish implemented behavior 
 
 ## Activity and handoffs
 
+### September 10, 2026 — RW-9 MCP/CLI parity ownership
+
+Owner: `/root`; in_progress on `fix/mcp-cli-parity`, based on [PR #7](https://github.com/Madhavan113/researchharness/pull/7), head `1c40f36`. The previous goal turn made progress: RW-8 was implemented, verified with 1,238 required tests and published. At checkpoint preparation, PR #7's run `34554980401` has passed ordinary tests and lint; its required runtime job is still running. The cancelled push run was superseded by this pull-request run.
+
+Scope: validate search arguments before admission, classify writer contention by type, preserve the stored model when a CLI resume omits `--model`, correct annotations for tools that reconcile jobs, and remove full pipeline/context scans from envelope budget reporting. Intended files: MCP server, research/search service boundaries, CLI entry point, focused protocol/service/CLI tests and service/goal documentation. Acceptance includes identical invalid-search budget behavior across both paths, nonretryable source failures even when a URL contains `writer`, real writer-contention handling, saved-model resumption, current lightweight budget reads and correct reconciliation hints. Model access, spending approval, human case review and measured runs remain separate pending gates.
+
+Checkpoint handoff: the user requested committing and publishing all checkpoints. After fetching `origin`, all existing implementation branches match their remote checkpoints and PRs #2–#7 remain open in dependency order. The only outstanding working-tree changes are this tracker and `docs/remaining-work.md`; publish them as a draft PR stacked on #7. This checkpoint records RW-9 ownership and investigation, with no RW-9 production or test changes. The broader goal and RW-9 remain in progress.
+
+Checkpoint validation: `git diff --check` passes; a Python local-file link check resolves all 68 relative file links in the two changed documents. Reviewed the diff and kept RW-9 marked in progress. No runtime tests were rerun for this documentation-only checkpoint; the preceding implementation's local test evidence is recorded under RW-8 below.
+
+Next implementation action: validate `SearchFilters` before operation admission while preserving existing request hashes, use typed service errors for MCP classification, inherit the saved model on resume when no override is supplied, mark job-reconciling tools as mutating, and use fresh lightweight budget reads with explicit backend-error reporting. Add focused service, MCP protocol and CLI resume regressions before claiming completion.
+
 ### September 10, 2026 — RW-8 proposer recovery ownership
 
 Owner: `/root`; RW-8 done on `fix/proposer-workspace-recovery`, based on [PR #6](https://github.com/Madhavan113/researchharness/pull/6), head `ef8b7fe`. The previous goal turn made progress: RW-1's strategy controls were implemented, verified and published, and all checkpoint branches are pushed. [PR #6's hosted CI](https://github.com/Madhavan113/researchharness/actions/runs/34544483696) is now complete: required Docker/Omnigent tests pass 1,214 checks with zero skips in 396.94 seconds; ordinary tests pass 1,184 with 30 explicitly reported runtime skips in 309.14 seconds. Its superseded push run is cancelled, not a test failure.

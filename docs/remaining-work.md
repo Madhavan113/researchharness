@@ -123,7 +123,7 @@ Acceptance: unit tests for case collision, surrogate arguments and a failing `do
 
 Completed September 10 by `/root`, branch `fix/proposer-workspace-recovery`, based on PR #6. Reproduced both a case-alias write overwriting the original on the local filesystem and an unpaired surrogate escaping the tool handler. Implemented alias/type checks before writes, including empty directories; recorded, repairable Unicode errors; and durable recognition of the CLI's missing-image/unknown-flag rejections. All other unacknowledged create failures retain conservative cleanup. The [strategy guide](strategy-optimization.md#coding-proposer-and-search-controller) records the upstream evidence for that distinction. The full required suite passes 1,238 tests with zero skips, including actual proposer error repair/submission, subprocess failure stubs and actual Docker rejection/recovery; the shared tracker records the exact command and report hash.
 
-### RW-9 · Close MCP and CLI parity gaps · `open` · confirmed
+### RW-9 · Close MCP and CLI parity gaps · `in_progress` · confirmed
 
 Files: `src/research_harness/mcp/server.py` (`_failure` at line 63, `search_sources` near lines 274–301, `_remaining` near lines 30–34, read-only annotations near lines 188, 265, 374, 379), `src/research_harness/cli.py` (`rh mcp serve --model` near lines 79–81), `src/research_harness/services/research.py` (`get_context` near lines 199–204).
 
@@ -132,6 +132,10 @@ Problem: MCP validates `SearchFilters` after `_operate` inserts the running row,
 Fix direction: validate filters before `_operate`; classify by exception type (`WriterBusy`); default `--model` to `None` like `--session-id`; fix annotations or make reconciliation explicit; cache `remaining`.
 
 Acceptance: tests for invalid filters not consuming budget, a 404 from a "writer" hostname classified non-retryable, and resume without `--model`.
+
+Owner September 10: `/root`, branch `fix/mcp-cli-parity`, based on PR #7. Include accurate reconciliation annotations and lightweight, current remaining-budget reporting without silently hiding backend failures; preserve frozen model bindings and operation replay rules.
+
+Publication checkpoint: ownership and investigation are documented for the user's requested GitHub checkpoint. No RW-9 implementation or regression tests have landed yet; keep the follow-up PR in draft until the acceptance checks above pass.
 
 ### RW-10 · Preflight strict tool schemas against the live provider · `open` · plausible
 
