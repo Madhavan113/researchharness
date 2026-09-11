@@ -17,22 +17,15 @@ from pydantic import Field
 
 from research_harness.config import SourceSpec
 from research_harness.discovery_models import ProposalDraft
+from research_harness.services.errors import ResearchError
 from research_harness.services.jobs import JobService
 from research_harness.services.research import DEFAULT_LIMITS, ResearchService
+from research_harness.store import WriterBusy
 from research_harness.strategies.session import StrategySession, StrategySessionError
 from research_harness.strategies.stopping import ResearchFinalizing
 from research_harness.util import error_message
 
 OperationId = Annotated[str, Field(min_length=1, max_length=200)]
-
-
-def _remaining(service: ResearchService) -> dict[str, int] | None:
-    if service.discovery_id is None:
-        return None
-    try:
-        return service.get_context()["remaining"]
-    except Exception:
-        return None
 
 
 def _envelope(
@@ -51,38 +44,42 @@ def _envelope(
                 if data.get(key)
             }
         )
+    try:
+        remaining = service.get_remaining()
+    except Exception as exc:
+        remaining = None
+        budget_error = {
+            "code": "budget_state_unavailable",
+            "message": error_message(exc),
+            "retryable": False,
+        }
+        # Keep any completed result and primary failure, without recursively building failures.
+        error = (
+            {**error, "retryable": False, "remaining_error": budget_error}
+            if error
+            else budget_error
+        )
     return {
         "operation_id": (data or {}).get("operation_id") or operation_id or uuid4().hex,
         "status": "error" if error else "ok",
         "data": data,
         "evidence_refs": references,
         "error": error,
-        "remaining": _remaining(service),
+        "remaining": remaining,
     }
 
 
 def _failure(service: ResearchService, exc: Exception, operation_id: str | None) -> dict[str, Any]:
     message = error_message(exc)
-    lower = message.lower()
     code, retryable = "operation_failed", False
     if isinstance(exc, ResearchFinalizing):
         code = "research_finalizing"
     elif isinstance(exc, StrategySessionError):
         code = "strategy_failed"
-    elif "begin or resume" in lower:
-        code = "not_initialized"
-    elif "different arguments" in lower:
-        code = "operation_conflict"
-    elif "budget exhausted" in lower or "deadline exhausted" in lower:
-        code = "budget_exhausted"
-    elif "does not belong" in lower:
-        code = "evidence_not_found"
-    elif "already bound" in lower or "changed brief" in lower:
-        code = "context_conflict"
-    elif "discovery is finished" in lower:
-        code = "discovery_finished"
-    elif "writer" in lower:
+    elif isinstance(exc, WriterBusy):
         code, retryable = "operation_busy", True
+    elif isinstance(exc, ResearchError):
+        code = exc.code
     elif isinstance(exc, (ValueError, ToolError)):
         code = "invalid_argument"
     return _envelope(
@@ -180,15 +177,24 @@ def create_server(
         for key, value in supplied.items():
             if value is not None and recorded.get(key) is not None and value != recorded[key]:
                 raise ValueError(f"Runtime binding conflicts with the resumed discovery: {key}")
+        supplied = {
+            **recorded,
+            **{key: value for key, value in supplied.items() if value is not None},
+        }
     else:
         supplied["host_research_deadline_seconds"] = chosen_deadline
     settings = deepcopy(supplied)
-    model = settings.setdefault("model", "gpt-5.4-mini")
+    if settings.get("model") is None:
+        settings["model"] = "gpt-5.4-mini"
+    model = settings["model"]
     if not isinstance(model, str) or not model.strip():
         raise ValueError("The host runtime model must be a nonempty string")
     server = _ResearchMCP(service)
     jobs = jobs or JobService(service)
     read_only = ToolAnnotations(readOnlyHint=True, destructiveHint=False, openWorldHint=False)
+    reconciliation = ToolAnnotations(
+        readOnlyHint=False, destructiveHint=False, idempotentHint=True, openWorldHint=False
+    )
     mutation = ToolAnnotations(
         readOnlyHint=False, destructiveHint=False, idempotentHint=True, openWorldHint=True
     )
@@ -241,7 +247,10 @@ def create_server(
                 if context["brief"] != brief.strip() or (
                     question_id and question_id != context["question_id"]
                 ):
-                    raise ValueError("This service is already bound to another brief or question")
+                    raise ResearchError(
+                        "context_conflict",
+                        "This service is already bound to another brief or question",
+                    )
             else:
                 service.begin(
                     brief,
@@ -267,9 +276,9 @@ def create_server(
 
         return await invoke(begin)
 
-    @server.tool(annotations=read_only)
+    @server.tool(annotations=reconciliation)
     async def get_research_context() -> dict[str, Any]:
-        """Get the bound case, source/proposal schemas, receipts, pipelines, and remaining limits."""
+        """Get the bound case, schemas, evidence and limits; reconcile stored job status."""
 
         def context():
             return {**service.get_context(), "jobs": jobs.list_jobs()["jobs"]}
@@ -376,14 +385,14 @@ def create_server(
             operation_id,
         )
 
-    @server.tool(annotations=read_only)
+    @server.tool(annotations=reconciliation)
     async def get_job(job_id: str) -> dict[str, Any]:
-        """Recover actual job and collection state; a reconnect never proves completion by itself."""
+        """Reconcile and persist actual job state; reconnecting alone does not prove completion."""
         return await invoke(partial(jobs.get_job, job_id))
 
-    @server.tool(annotations=read_only)
+    @server.tool(annotations=reconciliation)
     async def list_jobs() -> dict[str, Any]:
-        """List collection and export jobs for the bound research question, including earlier discoveries."""
+        """Reconcile stored job status and list jobs across the bound question's discoveries."""
         return await invoke(jobs.list_jobs)
 
     @server.tool(annotations=mutation)

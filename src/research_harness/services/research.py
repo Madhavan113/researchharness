@@ -19,8 +19,9 @@ from research_harness.connectors import CONNECTOR_CATALOG, PageText, load_json
 from research_harness.discovery_models import ProposalDraft
 from research_harness.engine import probe_source
 from research_harness.http import Fetcher
+from research_harness.services.errors import ResearchError
 from research_harness.services.proposals import compile_proposal, render_proposal
-from research_harness.services.search import SearchProvider, SearchProviderError
+from research_harness.services.search import SearchFilters, SearchProvider, SearchProviderError
 from research_harness.store import Store
 from research_harness.util import (
     atomic_write,
@@ -71,7 +72,7 @@ class ResearchService:
         runtime: dict[str, Any] | None = None,
     ) -> dict[str, str]:
         if self.discovery_id is not None:
-            raise ValueError("This service is already bound to a discovery")
+            raise ResearchError("context_conflict", "This service is already bound to a discovery")
         chosen = {**DEFAULT_LIMITS, **(limits or {})}
         if set(chosen) != set(DEFAULT_LIMITS) or any(
             type(value) is not int or value < 0 for value in chosen.values()
@@ -85,8 +86,9 @@ class ResearchService:
                 if question_id:
                     question = registry.get_question(store, question_id)
                     if question["brief"] != brief.strip():
-                        raise ValueError(
-                            "Changed brief: begin a new question to preserve the original"
+                        raise ResearchError(
+                            "context_conflict",
+                            "Changed brief: begin a new question to preserve the original",
                         )
                 else:
                     question = registry.register_question(store, brief)
@@ -94,8 +96,9 @@ class ResearchService:
                     "SELECT id FROM discoveries WHERE output_ref=?", (str(self.output),)
                 )
                 if existing:
-                    raise ValueError(
-                        "This output directory belongs to a discovery; resume it or choose a new directory"
+                    raise ResearchError(
+                        "context_conflict",
+                        "This output directory belongs to a discovery; resume it or choose a new directory",
                     )
                 discovery_id = registry.start_discovery(
                     store, question["id"], model=model, output_ref=str(self.output)
@@ -118,7 +121,9 @@ class ResearchService:
         with self.backend.open_registry() as store:
             row = self._load(store, discovery_id)
         if self.discovery_id and self.discovery_id != discovery_id:
-            raise ValueError("This service is already bound to another discovery")
+            raise ResearchError(
+                "context_conflict", "This service is already bound to another discovery"
+            )
         self.discovery_id = discovery_id
         self.output = Path(row["output_ref"])
         return {"question_id": row["question_id"], "discovery_id": discovery_id}
@@ -126,7 +131,7 @@ class ResearchService:
     def _load(self, store: Store, discovery_id: str | None = None) -> dict[str, Any]:
         bound = discovery_id or self.discovery_id
         if not bound:
-            raise ValueError("Begin or resume a research discovery first")
+            raise ResearchError("not_initialized", "Begin or resume a research discovery first")
         row = store.query_one(
             """SELECT d.*, c.limits_json, c.runtime_json, c.deadline_at
                FROM discoveries d JOIN discovery_contexts c ON c.discovery_id=d.id
@@ -171,17 +176,32 @@ class ResearchService:
                         observed.add(capture["url"])
         return probes, observed
 
+    def _operation_counts(self, store: Store) -> dict[str, int]:
+        return {
+            row["kind"]: int(row["n"])
+            for row in store.query(
+                "SELECT kind, COUNT(*) AS n FROM discovery_operations WHERE discovery_id=? GROUP BY kind",
+                (self.discovery_id,),
+            )
+        }
+
+    def get_remaining(self) -> dict[str, int] | None:
+        """Read current limits/counts without opening pipeline stores or loading evidence."""
+        if self.discovery_id is None:
+            return None
+        with self.backend.open_registry() as store:
+            context = self._load(store)
+            counts = self._operation_counts(store)
+        return {
+            kind: max(0, limit - counts.get(kind, 0))
+            for kind, limit in json.loads(context["limits_json"]).items()
+        }
+
     def get_context(self) -> dict[str, Any]:
         with self.backend.open_registry() as store:
             context = self._load(store)
             receipts = self._receipts(store)
-            counts = {
-                row["kind"]: int(row["n"])
-                for row in store.query(
-                    "SELECT kind, COUNT(*) AS n FROM discovery_operations WHERE discovery_id=? GROUP BY kind",
-                    (self.discovery_id,),
-                )
-            }
+            counts = self._operation_counts(store)
             question = registry.get_question(store, context["question_id"])
             pipelines = registry.list_pipelines(store, question_id=question["id"])
             operations = [
@@ -258,12 +278,18 @@ class ResearchService:
                 )
                 if existing:
                     if existing["request_hash"] != request_hash:
-                        raise ValueError("Operation id was already used with different arguments")
+                        raise ResearchError(
+                            "operation_conflict",
+                            "Operation id was already used with different arguments",
+                        )
                     if existing["status"] == "completed":
                         self._export_evidence(store)
                         return json.loads(existing["result_json"])
                     if existing["result_json"]:
-                        raise ValueError(json.loads(existing["result_json"])["error"])
+                        # Terminal failures cannot retry this id, regardless of error text.
+                        raise ResearchError(
+                            "operation_failed", json.loads(existing["result_json"])["error"]
+                        )
                     # Acquiring the exclusive lock proves that no service owner is still executing.
                     error = (
                         "Previous operation was interrupted; use a new id for a fresh observation"
@@ -278,14 +304,15 @@ class ResearchService:
                                 operation_id,
                             ),
                         )
-                    raise ValueError(error)
+                    raise ResearchError("operation_failed", error)
                 context = self._load(store)
                 if context["status"] != "running":
-                    raise ValueError(
-                        "Discovery is finished; begin a new discovery for further research"
+                    raise ResearchError(
+                        "discovery_finished",
+                        "Discovery is finished; begin a new discovery for further research",
                     )
                 if store.clock() >= parse_timestamp(context["deadline_at"]):
-                    raise ValueError("Discovery deadline exhausted")
+                    raise ResearchError("budget_exhausted", "Discovery deadline exhausted")
                 limits = json.loads(context["limits_json"])
                 count = int(
                     store.scalar(
@@ -294,7 +321,7 @@ class ResearchService:
                     )
                 )
                 if kind in limits and count >= limits[kind]:
-                    raise ValueError(f"{kind.capitalize()} budget exhausted")
+                    raise ResearchError("budget_exhausted", f"{kind.capitalize()} budget exhausted")
                 with store.transaction():
                     store.execute(
                         """INSERT INTO discovery_operations
@@ -388,6 +415,8 @@ class ResearchService:
     ) -> dict[str, Any]:
         if not isinstance(query, str) or not 1 <= len(query.strip()) <= 2000:
             raise ValueError("Search query must contain between 1 and 2000 characters")
+        # Validate before admission, but retain the original shape for receipt replay hashes.
+        SearchFilters.model_validate({} if filters is None else filters)
         request = {"provider": provider.name, "query": query.strip(), "filters": filters or {}}
 
         def execute(_store: Store) -> dict[str, Any]:
@@ -543,7 +572,7 @@ class ResearchService:
             self._load(store)
             receipt = next((r for r in self._receipts(store) if r["id"] == receipt_id), None)
         if receipt is None:
-            raise ValueError("Evidence does not belong to this discovery")
+            raise ResearchError("evidence_not_found", "Evidence does not belong to this discovery")
         payload = receipt["payload"]
         captures = payload.get("captures") or ([payload] if "capture_id" in payload else [])
         capture = (
@@ -552,7 +581,9 @@ class ResearchService:
             else (captures[0] if captures else None)
         )
         if capture_id and capture is None:
-            raise ValueError("Capture does not belong to this evidence receipt")
+            raise ResearchError(
+                "evidence_not_found", "Capture does not belong to this evidence receipt"
+            )
         hashed = capture.get("body_sha256") if capture else None
         if hashed:
             with self.evidence_store() as store:
@@ -656,7 +687,9 @@ class ResearchService:
                 (proposal_id, self.discovery_id),
             )
             if not row:
-                raise ValueError("Proposal does not belong to this discovery")
+                raise ResearchError(
+                    "evidence_not_found", "Proposal does not belong to this discovery"
+                )
             result = json.loads(row["proposal_json"])
             pipeline_id = result["registry"].get("pipeline_version_id")
             pipeline = registry.get_pipeline(store, pipeline_id) if pipeline_id else None
