@@ -177,7 +177,58 @@ def test_invalid_candidate_is_retained_and_does_not_trigger_evaluation(search):
         assert (
             search.root / candidate["attempt"] / "source/strategy.py"
         ).read_text() == "def invalid syntax\n"
+        assert read(search.root / candidate["leakage_audit"])["status"] == "no_match"
     assert len(list(proposer.snapshots[-1].glob("candidate-attempts/*/admission.json"))) == 4
+
+
+def test_development_leak_findings_survive_admission_restart_and_proposer_feedback(search):
+    url = "https://export-office.fixture.example/notices.json"
+
+    class LeakingProposer(Proposer):
+        def propose(self, task):
+            result = super().propose(task)
+            for files in result.candidates.values():
+                files.source.write_text(files.source.read_text() + f"\n# {url}\n")
+                files.instructions.write_text(f"Use the export-notices case at {url}.\n")
+            return result
+
+    executor, proposer = Executor(), LeakingProposer(search)
+    assert search.step(executor=executor)["status"] == "evaluated"
+    assert search.status()["candidates"]["baseline"]["leak_suspect"] is False
+    assert search.step(executor=executor, proposer=proposer)["status"] == "proposed"
+    before = search.status()["candidates"]["candidate-0001-01"]
+    assert before["status"] == "prepared" and before["leak_suspect"]
+    report = read(search.root / before["leakage_audit"])
+    assert any(f["kind"] == "url" and f["term"] == url for f in report["findings"])
+    assert report["file_sha256"]["strategy.py"] == digest(
+        (search.root / before["source"] / "strategy.py").read_bytes()
+    )
+    admission = read(search.root / before["attempt"] / "admission.json")
+    assert (
+        admission["leak_suspect"]
+        and admission["leakage_audit_sha256"] == before["leakage_audit_sha256"]
+    )
+    reopened = SearchController(search.root)
+    assert reopened.status()["candidates"]["candidate-0001-01"] == before
+    result = reopened.run(executor=executor, proposer=proposer)
+    assert len(executor.calls) == 7 and len(proposer.calls) == 3
+    assert all(c["status"] == "evaluated" for c in result["candidates"].values())
+    assert "candidate-0001-01" in result["archive"]["selection"]["candidate_ids"]
+    assert read(proposer.snapshots[1] / before["leakage_audit"]) == report
+    assert (proposer.snapshots[0] / "candidate-audits/baseline.json").is_file()
+    assert not list(proposer.snapshots[-1].rglob("leakage-audit-inputs.json"))
+    assert (search.root / "leakage-audit-inputs.json").is_file()
+
+
+@pytest.mark.parametrize("path", ["leakage-audit-inputs.json", "candidate-audits/baseline.json"])
+def test_reopened_search_refuses_changed_audit_catalog_or_report(search, path):
+    target = search.root / path
+    original = target.read_bytes()
+    target.write_bytes(original + b"\n")
+    with pytest.raises(ValueError, match="audit.*changed"):
+        SearchController(search.root)
+    target.write_bytes(original)
+    assert SearchController(search.root).status()["phase"] == "search"
 
 
 def test_interrupted_proposer_requires_recovery_and_never_replays(search):
@@ -274,16 +325,12 @@ def test_ineligible_baseline_does_not_start_controller_final(search, tmp_path):
 
 
 def test_repeat_selection_preserves_completed_private_final_phase(search, tmp_path):
+    from test_optimization_final import package as make_package
+
     executor, proposer = Executor(), Proposer(search)
     search.run(executor=executor, proposer=proposer)
     package = tmp_path / "heldout"
-    shutil.copytree(ROOT / "examples/evaluation/development", package)
-    manifest = read(package / "manifest.json")
-    manifest["split"] = "heldout"
-    manifest["cases"] = [
-        ref for ref in manifest["cases"] if Path(ref["path"]).stem == "weather-alert-feed"
-    ]
-    write_json(package / "manifest.json", manifest)
+    make_package(package, ["weather-alert-feed"], split="heldout")
     final = search.final(
         heldout_manifest=package / "manifest.json",
         output=tmp_path / "private-final",

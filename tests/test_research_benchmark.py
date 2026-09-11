@@ -20,6 +20,8 @@ from research_harness.evaluation.benchmark import (
     compare_runs,
     gateway_binding_for_case,
     load_benchmark,
+    source_domain,
+    source_host,
     validate_splits,
 )
 from research_harness.evaluation.fixtures import (
@@ -430,9 +432,9 @@ def heldout_manifest(tmp_path, mutate=None):
         brief="An unrelated private test brief.",
     )
     for alternative in case["specification"]["requirements"][0]["any_of"]:
-        alternative["url"] = "https://private-source.fixture.example/data"
+        alternative["url"] = "https://private-source.heldout.example/data"
     for source in case["sources"]:
-        source["url"] = "https://private-source.fixture.example/data"
+        source["url"] = "https://private-source.heldout.example/data"
     fixture = {"synthetic_test_only": "private fixture placeholder"}
     if mutate:
         mutate(case, fixture, original)
@@ -469,7 +471,7 @@ def test_private_split_check_returns_counts_without_exposing_task_contents(tmp_p
 
 
 @pytest.mark.parametrize(
-    "dimension", ["case id", "topic group", "source family", "brief", "source host"]
+    "dimension", ["case id", "topic group", "source family", "brief", "source domain"]
 )
 def test_split_check_rejects_leaking_group_dimensions_without_listing_private_values(
     tmp_path, dimension
@@ -490,6 +492,71 @@ def test_split_check_rejects_leaking_group_dimensions_without_listing_private_va
     with pytest.raises(ValueError, match=dimension) as error:
         validate_splits(load_benchmark(DEVELOPMENT), heldout)
     assert "private-contract" not in str(error.value)
+
+
+@pytest.mark.parametrize(
+    ("url", "expected"),
+    [
+        ("https://data.agency.co.uk/path", "agency.co.uk"),
+        ("https://API.Example.COM.:443/path", "example.com"),
+        ("https://data.bücher.de/path", "xn--bcher-kva.de"),
+        ("https://data.xn--bcher-kva.de/path", "xn--bcher-kva.de"),
+        ("https://a.team.github.io/data", "team.github.io"),
+        ("https://a.other.github.io/data", "other.github.io"),
+        ("https://a.b.ck/data", "a.b.ck"),
+        ("https://a.www.ck/data", "www.ck"),
+        ("https://a.unlisted.example/data", "unlisted.example"),
+        ("https://localhost/data", "localhost"),
+        ("https://192.0.2.1/data", "192.0.2.1"),
+        ("https://192。0。2。1。/data", "192.0.2.1"),
+        ("https://data。agency。co。uk。/data", "agency.co.uk"),
+        ("https://[2001:0db8::1]/data", "2001:db8::1"),
+    ],
+)
+def test_source_domain_uses_offline_psl_idna_and_ip_rules(url, expected, monkeypatch):
+    import requests
+    from tldextract import TLDExtract
+
+    from research_harness.evaluation import benchmark as module
+
+    def no_http(*args, **kwargs):
+        pytest.fail("Split checking must not fetch a suffix list")
+
+    monkeypatch.setattr(requests.Session, "get", no_http)
+    monkeypatch.setattr(
+        module,
+        "_SUFFIXES",
+        TLDExtract(cache_dir=None, suffix_list_urls=(), include_psl_private_domains=True),
+    )
+    assert source_domain(url) == expected
+    assert not source_host(url).endswith(".")
+
+
+@pytest.mark.parametrize("url", ["relative/path", "https://bad..host/path", "https://[bad/path"])
+def test_source_domain_rejects_invalid_hosts_without_private_values(url):
+    with pytest.raises(ValueError, match="^Invalid benchmark source host$") as error:
+        source_domain(url)
+    assert error.value.__suppress_context__
+
+
+@pytest.mark.parametrize("location", ["sources", "gap", "search_results", "responses"])
+def test_split_rejects_sibling_domains_in_all_source_inputs(tmp_path, location):
+    def change(case, fixture, _original):
+        url = "https://sibling.fixture.example/private-data"
+        if location == "sources":
+            case["sources"][0]["url"] = url
+        elif location == "gap":
+            case["specification"]["requirements"][0]["gap_any_of"] = [
+                {"url": url, "status": "needs_access", "status_code": 403}
+            ]
+        else:
+            fixture[location] = [{"url": url}]
+
+    heldout = heldout_manifest(tmp_path, change)
+    with pytest.raises(ValueError, match="^Development/heldout source domain overlap") as error:
+        validate_splits(load_benchmark(DEVELOPMENT), heldout)
+    assert "sibling" not in str(error.value)
+    assert "private" not in str(error.value)
 
 
 def test_case_references_cannot_escape_package_even_through_symlinks(tmp_path):

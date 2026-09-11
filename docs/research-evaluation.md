@@ -171,7 +171,7 @@ report = compare_runs(development_manifest, run_manifests, axis="runtime")
 split_counts = validate_splits(development, load_benchmark(private_heldout_manifest))
 ~~~
 
-The split checker rejects repeated case ids, normalized identical briefs, topic groups, source-family labels, source hosts, and identical fixture content across development and held-out manifests. It reports counts or the conflicting dimension without listing private test cases. Semantic similarity still needs review. Held-out task contents are not shipped in the development package, and the public fixture runner refuses held-out manifests.
+The split checker rejects repeated case ids, normalized identical briefs, topic groups, source-family labels, registrable source domains, and identical fixture content across development and held-out manifests. Domain checks cover source choices, gap alternatives and public fixture URLs using a pinned offline suffix snapshot, IDNA normalization and private-hosting boundaries; sibling subdomains overlap. The [strategy guide](strategy-optimization.md#development-leakage-audit-and-split-checks) records the exact rules and advisory candidate audit. The checker reports counts or the conflicting dimension without listing private test cases. Semantic similarity and shared ownership across different domains still need review. During optimization, run this private check only after permanently revoking the proposer. Held-out task contents are not shipped in the development package, and the public fixture runner refuses held-out manifests.
 
 ## Remaining evaluation workflow
 

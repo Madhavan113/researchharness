@@ -62,7 +62,7 @@ def benchmark(output: Path, *, split: Literal["development", "heldout"]) -> Path
             "Find an official public feed of watershed monitoring bulletins with stable ids "
             "and publication timestamps."
         )
-        source = _source("https://watershed.search-fixture.example/bulletins.json")
+        source = _source("https://watershed.final-fixture.example/bulletins.json")
         item = {
             "id": "watershed-bulletin-091",
             "title": "Authored bulletin of a river monitoring survey",
