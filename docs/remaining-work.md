@@ -135,7 +135,7 @@ Acceptance: tests for invalid filters not consuming budget, a 404 from a "writer
 
 Owner September 10: `/root`, branch `fix/mcp-cli-parity`, based on PR #7. Include accurate reconciliation annotations and lightweight, current remaining-budget reporting without silently hiding backend failures; preserve frozen model bindings and operation replay rules.
 
-Publication checkpoint: ownership and investigation are documented for the user's requested GitHub checkpoint. No RW-9 implementation or regression tests have landed yet; keep the follow-up PR in draft until the acceptance checks above pass.
+Publication checkpoint: [draft PR #8](https://github.com/Madhavan113/researchharness/pull/8) records ownership and investigation for the user's requested GitHub checkpoint. No RW-9 implementation or regression tests have landed yet; keep the follow-up PR in draft until the acceptance checks above pass.
 
 ### RW-10 · Preflight strict tool schemas against the live provider · `open` · plausible
 
