@@ -103,8 +103,10 @@ Acceptance: a new checkpoint adds under 1 MB to the repository and its README sa
 
 The [retention policy](evidence-retention.md) selects GitHub release assets for future archives and full inventories, with small hash-bound indices/summaries in Git. `/root` completed deterministic preparation, streaming verification and a CI size/archive guard in [PR #16](https://github.com/Madhavan113/researchharness/pull/16), branch `feat/evidence-retention`; all 34 added cases and the full **1,412-test required suite pass with zero skips**. The guard verifies all 13 original compressed hashes across 18 historical checkpoints. A separate CLI process verified a prepared package's three unchanged report files; no upload occurred. The [tooling handoff](goals/omnigent-integration.md#september-12-2026--rw-6-artifact-retention-tooling-handoff) records exact commands and hashes. The first actual upload/download round trip remains part of RW-6 acceptance; prepared URLs are not published assets. Existing archives and their hashes remain intact, and RW-5 content cleanup is separate.
 
-The schema-2 follow-up replaces duplicate current-checkout originals with pinned
-Git references, leaving all original bytes in history. CI checks every reference
+The schema-2 follow-up in [PR #18](https://github.com/Madhavan113/researchharness/pull/18)
+replaces duplicate current-checkout originals with pinned Git references, leaving
+all original bytes in history. Its 83 focused checks and the full 1,463-test
+required Docker/Omnigent suite pass with zero skips. CI checks every reference
 and refuses unrecorded legacy deletions or reintroduced copies. Removed original
 bytes cannot be reused as a larger metadata allowance. Both CI jobs fetch full
 history; shallow clones must fetch the baseline before verification/restoration.

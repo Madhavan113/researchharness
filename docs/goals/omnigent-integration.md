@@ -39,7 +39,7 @@ Use `queued`, `in_progress`, `blocked`, or `done`. Replace an owner only after a
 | M3 | Omnigent research agent bundle and runtime binding | done | `/root/omnigent_spike`, browser verification `/root` | Normal server/runner/MCP and browser chat save validated proposal/pipeline ids; synthetic model HTTP, frozen authored bundle |
 | M4 | Collection jobs, exports, case lookup, recovery | done | `/root` | Detached workers, cancellation, process termination, scoped data, exports, and full server/browser restart verified locally; local Postgres/MinIO tests and detached workflow/restart/export acceptance now verified |
 | M5 | Independent pilot evaluation and baseline comparison | blocked | `/root`, bounded agent work handed off | Twenty authored cases now discriminate in the offline policy comparison; independent evaluators, frozen controller and bound gateway usage verified through actual runtimes; budgeted dispatch and independent settlement verified through both actual runtimes; awaits human review, provider access and the pending spending decision |
-| M6 | Meta-Harness strategy optimization and isolated final evaluation | in_progress | `/root`, review follow-ups | RW-1/2/3/4/7/8/9/10/11/12/14 are published in PRs #2–#12, with PR #11 and #12 hosted checks passing. The bounded RW-15 admission/compatibility checkpoint is published in PR #13. Copied-feedback privacy is published in PR #14 with both hosted jobs passing. RW-13 verification efficiency is published in PR #15 and passes 1,378 required local tests with zero skips; both hosted jobs also pass. RW-6 tooling/policy is published in PR #16 with 1,412 required local tests passing; its first reviewed external asset round trip remains open. The bounded RW-5 portable review exporter and failure diagnostics are published in PR #17 with 1,446 required local tests and both hosted jobs passing. The historical-reference follow-up passes 1,463 required local tests with zero skips and removes duplicate originals from the current checkout after exact restoration; complete derived review coverage and historical path cleanup remain open. Exploration limits remain conditional on measured-run evidence. Measured search/final still awaits remaining review work, reviewed cases, provider access, spending approval and the measured baseline |
+| M6 | Meta-Harness strategy optimization and isolated final evaluation | in_progress | `/root`, review follow-ups | RW-1/2/3/4/7/8/9/10/11/12/14 are published in PRs #2–#12, with PR #11 and #12 hosted checks passing. The bounded RW-15 admission/compatibility checkpoint is published in PR #13. Copied-feedback privacy is published in PR #14 with both hosted jobs passing. RW-13 verification efficiency is published in PR #15 and passes 1,378 required local tests with zero skips; both hosted jobs also pass. RW-6 tooling/policy is published in PR #16 with 1,412 required local tests passing; its first reviewed external asset round trip remains open. The bounded RW-5 portable review exporter and failure diagnostics are published in PR #17 with 1,446 required local tests and both hosted jobs passing. The historical-reference follow-up is published in PR #18 and passes 1,463 required local tests with zero skips and removes duplicate originals from the current checkout after exact restoration; complete derived review coverage and historical path cleanup remain open. Exploration limits remain conditional on measured-run evidence. Measured search/final still awaits remaining review work, reviewed cases, provider access, spending approval and the measured baseline |
 
 M0 and M1 can proceed independently against the agreed tool/service boundary. Evaluation case design can also proceed independently. Agree on ownership of shared schemas, CLI wiring, dependencies, migrations, and this tracker before concurrent edits.
 
@@ -81,7 +81,9 @@ Retain completed handoffs so another agent can distinguish implemented behavior 
 
 ### September 12, 2026 — Historical evidence reference migration ownership
 
-Owner: `/root`; `in_progress` on `feat/historical-evidence-references`, based on
+Owner: `/root`; bounded implementation, local verification and publication done
+in [PR #18](https://github.com/Madhavan113/researchharness/pull/18), branch
+`feat/historical-evidence-references`, based on
 PR #17 diagnostic head `d938385d797dd1e07a8827ba91e83a3f0292fdbb`. The preceding
 turn made progress by publishing diagnostics and passing 1,446 required tests.
 Hosted run `34724115100` now passes both jobs at that exact head: 1,446
@@ -157,8 +159,13 @@ and formatting pass for 116 source/test files. The retention guard verifies
 20 checkpoints and all 25 historical references; final documentation links
 and staged changes are checked before publication.
 
-Next: publish this bounded checkpoint in a PR stacked on #17 and inspect its
-hosted checks. The pinned baseline must remain available in retained Git history.
+Publication: commits `fccd48b` (implementation) and `9c4f8ad` (migration/evidence)
+are pushed, and [PR #18](https://github.com/Madhavan113/researchharness/pull/18)
+is open, stacked on #17. The final link check resolves 372 local Markdown targets
+and nine pinned original Git blobs. The new checkpoint is 5,198 bytes; all
+evidence checkpoints total 4,368,280 bytes in the current tree. Hosted checks
+are pending. Next: inspect those checks and retain any failure evidence. The
+pinned baseline must remain available in retained Git history.
 Public release assets remain local pending the existing publication question;
 human benchmark review, provider access, spending approval and measured
 baseline/search/final are still pending. The overall goal remains active.
