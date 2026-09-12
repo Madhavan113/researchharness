@@ -1,0 +1,21 @@
+{
+  "archive": {
+    "bytes": 338519,
+    "name": "artifacts.tar.gz",
+    "sha256": "8d136fbe7f98c83b5fd1aaa0b36496e0cbfae58491d3a4a5bed0ce47be8f4541",
+    "url": "https://github.com/Madhavan113/researchharness/releases/download/evidence-portable-review-2026-09-12/artifacts.tar.gz"
+  },
+  "availability": "prepared",
+  "file_count": 160,
+  "inventory": {
+    "bytes": 7665,
+    "name": "files.json.gz",
+    "sha256": "88a19a5c0bcdfaa38684d7c53121fde135e53b1bb1611f9cca3ce92af4b1b379",
+    "url": "https://github.com/Madhavan113/researchharness/releases/download/evidence-portable-review-2026-09-12/files.json.gz"
+  },
+  "kind": "research-harness-evidence-release-v1",
+  "release_tag": "evidence-portable-review-2026-09-12",
+  "repository": "Madhavan113/researchharness",
+  "source_commit": "cf21dc26c01805001cf1f2687e1f3a3117003613",
+  "uncompressed_bytes": 1991647
+}

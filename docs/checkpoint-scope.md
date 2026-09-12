@@ -2,6 +2,11 @@
 
 Branch `checkpoint/omnigent-research-harness`, commits `ee2148b..4f49495`, reviewed September 10, 2026. This document records what the checkpoint delivers, what it deliberately does not, how its evidence can be reproduced, and which invariants a continuing agent must preserve. The prioritized follow-up list is in [remaining work](remaining-work.md). The shared goal, milestone status and handoff history stay in the [tracker](goals/omnigent-integration.md).
 
+Visibility update, September 12: GitHub reports this repository public. The
+review's earlier private-repository assumption no longer applies; historical
+evidence contains operator paths. The [portable review exporter](portable-evidence.md)
+creates labelled derived copies without modifying original evidence or Git history.
+
 ## What this checkpoint is
 
 A software checkpoint for two things:
@@ -74,7 +79,7 @@ Merging this checkpoint accepts these as open items, tracked in [remaining work]
 - Narrow search surface (RW-1) and a non-discriminating benchmark (RW-2), so a live search today would measure instruction wording against a flat scorer.
 - Zero-quality candidates can reach the paid final phase (RW-3).
 - Provider error responses permanently lock their worst-case reservation (RW-4).
-- Committed evidence contains the operator's home directory path and hostname; the repository is private, so this is a reproducibility and hygiene issue rather than a disclosure, but it must be fixed before any public release (RW-5).
+- Committed evidence contains the operator's home directory path and hostname (RW-5). The September 10 review treated this as a private-repository hygiene issue. GitHub reports the repository public on September 12; the paths in historical originals are now publicly accessible.
 - About 23 MB of compressed archives per checkpoint with no LFS or retention policy (RW-6).
 - Runtime test skips are silent and unenforced (RW-7).
 

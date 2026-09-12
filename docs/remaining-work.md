@@ -79,15 +79,17 @@ Completed September 10 by `/root` in the next PR #3 checkpoint: durable initiali
 
 ## P1: before the next checkpoint
 
-### RW-5 · Strip operator paths and hostnames from archived evidence · `open` · confirmed
+### RW-5 · Strip operator paths and hostnames from archived evidence · `in_progress` · confirmed
 
 Files: the evidence writers used by `examples/evaluation/*_fixture.py` and `examples/omnigent/*.py`; `examples/omnigent/evidence/*/agent/tools/mcp/research.yaml`, `examples/omnigent/evidence/*/metadata.json`, `examples/evaluation/evidence/search-orchestration-2026-09-09/pytest.xml`, and 74 files inside eight `artifacts.tar.gz` archives, including `verification-tools/audit-budgeted-search.py` in the budgeted archive, which hard-codes the repository path.
 
-Problem: `/Users/<user>/...` paths and a JUnit `hostname` attribute are committed. The repository is private, so this is not a disclosure today, but the archived agent bundles and the audit script run only on one machine, and a public release would leak the operator's identity.
+Problem: `/Users/<user>/...` paths and a JUnit `hostname` attribute are committed. The September 10 review assumed the repository was private; GitHub reports it public on September 12, so historical operator paths are publicly accessible. Archived agent bundles and the audit script also depend on one machine's paths.
 
 Fix direction: relativize paths at archive time (the writer knows the repository root and the output root), strip or normalize the JUnit `hostname` attribute, and make the audit script take the repository path as an argument. Do not rewrite history; regenerate archives at the next checkpoint and note the change in the evidence README.
 
 Acceptance: `git grep -l "$HOME"` over the evidence directories and a grep over freshly extracted archives return nothing.
+
+September 12 bounded checkpoint: the [portable review exporter](portable-evidence.md) creates separately labelled copies with named path placeholders, JUnit hostname removal and every original/exported file hash. It preserves authoritative originals and refuses unsupported binary identity rather than corrupting evidence. Source-bound verification of a historical 159-file controlled-runtime archive changes three files and preserves 156 byte-for-byte. This does not complete the acceptance above: historical originals and the old machine-bound audit script remain unchanged in Git. Derived templates cannot replace original runtime proofs or relocate a budgeted run. Release assets remain prepared locally until an actual publication/download receipt exists.
 
 ### RW-6 · Adopt an artifact retention policy · `in_progress` · confirmed
 

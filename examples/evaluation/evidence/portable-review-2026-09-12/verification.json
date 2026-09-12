@@ -1,0 +1,38 @@
+{
+  "asset_verification": {
+    "bytes": 1991647,
+    "file_count": 160,
+    "verified": true
+  },
+  "date": "2026-09-12",
+  "hosted_ci": "Pending for the new checkpoint; inspect the PR checks",
+  "index_sha256": "220c7e480f14dfdd27b2a66ac82a222ea56c47e9b71147000a4d684c7191cab5",
+  "limitations": "Local verification only; original historical files remain authoritative for runtime audits",
+  "local_reports": {
+    "focused_tools": {
+      "errors": 0,
+      "failures": 0,
+      "report": "rh-rw5-tools-final-20260912.xml",
+      "sha256": "ed40c0307ad275e3ac95076c35147281aff8c81ab6afdb7e4a9ee902d9e935b7",
+      "skipped": 0,
+      "tests": 66
+    },
+    "required_runtime": {
+      "errors": 0,
+      "failures": 0,
+      "report": "rh-rw5-required-20260912.xml",
+      "sha256": "7884112f8fe93e06089f6e5c94edf649edf3a15878ef9e2c7e2fcab7061e7121",
+      "skipped": 0,
+      "tests": 1444
+    }
+  },
+  "remote_asset_download_verified": false,
+  "source_bound_review_verification": {
+    "changed_files": 3,
+    "files": 159,
+    "role": "derived_review_only",
+    "source_and_transforms_verified": true,
+    "verified": true
+  },
+  "tool_source_commit": "cf21dc26c01805001cf1f2687e1f3a3117003613"
+}

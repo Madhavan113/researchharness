@@ -103,6 +103,10 @@ uv run ruff format --check src tests
 
 Pytest lists skip reasons by default. Follow the [test configurations](docs/testing.md) to include MCP, Docker and the pinned Omnigent runtime; `RH_TEST_REQUIRE_RUNTIME=1` makes missing configuration and skipped checks fail. The [CI workflow](.github/workflows/tests.yml) runs ordinary checks and the required runtime configuration on pushes and pull requests. New checkpoint archives follow the [evidence retention policy](docs/evidence-retention.md), with small hash-bound summaries in Git and complete archives in release assets.
 
+The [portable evidence guide](docs/portable-evidence.md) explains derived review
+copies with path placeholders and original/exported hashes. Historical originals
+remain unchanged; prepared release assets are not yet published.
+
 ## Product research
 
 The earlier company-analysis and prediction-market proposals provide context for the data layer:

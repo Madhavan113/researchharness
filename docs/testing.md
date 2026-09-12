@@ -87,6 +87,19 @@ registered runs. Their eligibility clock is advanced to avoid sleeps; real
 filesystem metadata and domain validators still run. Wall-clock speed is not a
 test assertion. Required Docker/Omnigent checks remain separate from this fixture.
 
+## Evidence export and retention checks
+
+The [portable evidence tests](../tests/test_portable_evidence.py) exercise exact
+original/exported hashes, source-bound transformation verification, configured
+identity in binary files, JUnit hostname removal, escaped JSON/XML rendering,
+links, nested archives, source changes and incomplete outputs. Rendering creates
+inspection templates only. The [asset tests](../tests/test_evidence_assets.py)
+verify deterministic packaging, every archived member and the Git byte policy.
+Both use authored fixtures without provider access. The
+[159-file historical archive check](../examples/evaluation/evidence/portable-review-2026-09-12/README.md)
+separately verifies the tools against retained runtime evidence; it does not
+establish a new model result or remote asset availability.
+
 ## Hosted CI
 
 The [Tests workflow](../.github/workflows/tests.yml) runs on pushes and pull requests and supports manual dispatch. Both jobs use Ubuntu 24.04, Python 3.13.12, uv 0.11.8 and the locked MCP extra:
