@@ -89,7 +89,7 @@ Fix direction: relativize paths at archive time (the writer knows the repository
 
 Acceptance: `git grep -l "$HOME"` over the evidence directories and a grep over freshly extracted archives return nothing.
 
-### RW-6 · Adopt an artifact retention policy · `open` · confirmed
+### RW-6 · Adopt an artifact retention policy · `in_progress` · confirmed
 
 Files: `examples/evaluation/evidence/*/artifacts.tar.gz`, `examples/omnigent/evidence/*/model-requests.json.gz`, `.gitattributes`, evidence READMEs.
 
@@ -98,6 +98,8 @@ Problem: this checkpoint adds about 23 MB of compressed files; branch blobs tota
 Fix direction: keep `index.json`, `acceptance.json`, `verification.json` and the README in git (hash-anchored, sufficient for independent verification); move `artifacts.tar.gz` to GitHub release assets or LFS; document the download step and the recorded SHA-256 in each evidence README; drop `checkpoint-source/` from archives once the commit hash is recorded.
 
 Acceptance: a new checkpoint adds under 1 MB to the repository and its README says where the archive lives and how to verify it.
+
+The [retention policy](evidence-retention.md) selects GitHub release assets for future archives and full inventories, with small hash-bound indices/summaries in Git. `/root` completed deterministic preparation, streaming verification and a CI size/archive guard on `feat/evidence-retention`; all 34 added cases and the full **1,412-test required suite pass with zero skips**. The guard verifies all 13 original compressed hashes across 18 historical checkpoints. A separate CLI process verified a prepared package's three unchanged report files; no upload occurred. The [tooling handoff](goals/omnigent-integration.md#september-12-2026--rw-6-artifact-retention-tooling-handoff) records exact commands and hashes. The first actual upload/download round trip remains part of RW-6 acceptance; prepared URLs are not published assets. Existing archives and their hashes remain intact, and RW-5 content cleanup is separate.
 
 ### RW-7 · Make runtime test skips visible and enforceable · `done` · confirmed
 
@@ -209,7 +211,7 @@ Unchanged from the tracker: provider access, the spending decision, human review
 
 ## Suggested order for a continuing agent
 
-1. Check PR #15 hosted CI. PR #14 ordinary tests/lint and required runtime CI both passed; RW-13 is published in PR #15 and passes the full required local suite.
-2. RW-5 and RW-6: agree on artifact retention and path/hostname handling before the next evidence regeneration or public release.
+1. Publish the completed RW-6 tooling checkpoint and check its hosted CI. PR #15 ordinary tests/lint and required runtime CI both passed.
+2. RW-5 and RW-6: complete reviewed export path/hostname cleanup, then publish the first appropriate external archive and verify its download using the adopted retention policy.
 3. RW-15: consider exploration tools/limits only after measured runs provide evidence.
 4. Resolve the external decisions above, then perform live compatibility and the measured baseline before model-mode search. RW-10's offline acceptance does not replace that live compatibility gate.

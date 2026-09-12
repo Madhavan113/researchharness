@@ -28,6 +28,8 @@ jobs:
       - run: uv sync --locked --extra mcp
       - run: uv run --locked --extra mcp ruff check src tests
       - run: uv run --locked --extra mcp ruff format --check src tests
+      - name: Check evidence retention and legacy archive hashes
+        run: uv run --locked --extra mcp python -m research_harness.evaluation.evidence_assets check-policy --repo . --policy examples/evaluation/evidence-policy.json
       - name: Test with visible optional-runtime skips
         run: uv run --locked --extra mcp pytest --tb=short --junitxml="${RUNNER_TEMP}/ordinary-tests.xml"
 
