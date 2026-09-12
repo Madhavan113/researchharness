@@ -68,7 +68,13 @@ def package(path, cases, *, split, reviewed=False):
 
 
 def build(
-    tmp_path, *, execution="fixture", heldout_reviewed=False, code=False, changed_limits=False
+    tmp_path,
+    *,
+    execution="fixture",
+    heldout_reviewed=False,
+    code=False,
+    changed_limits=False,
+    candidate_failure=False,
 ):
     development = package(
         tmp_path / "development",
@@ -130,7 +136,12 @@ def build(
             "backend": ROOT / "src/research_harness/config.py",
         },
     )
-    for candidate, quality, tokens in (("baseline", 0.5, 20), ("candidate", 1.0, 10)):
+    outcomes = (
+        (("baseline", 1.0, 100), ("candidate", 0.0, 2))
+        if candidate_failure
+        else (("baseline", 0.5, 20), ("candidate", 1.0, 10))
+    )
+    for candidate, quality, tokens in outcomes:
         source = sources[candidate]
         archive.register_candidate(
             candidate,
@@ -142,15 +153,18 @@ def build(
         artifacts = tmp_path / f"development-{candidate}"
         write_json(artifacts / "fixture.json", {"scope": "synthetic evaluator lifecycle evidence"})
 
-        def evaluate(context, quality=quality, tokens=tokens):
+        failed = candidate_failure and candidate == "candidate"
+
+        def evaluate(context, quality=quality, tokens=tokens, failed=failed):
             return context.evidence(
                 cases=[
                     CaseEvidence(
                         case_id=case_id,
-                        status="ok",
+                        status="execution_failed" if failed else "ok",
                         quality=quality,
                         total_tokens=tokens,
                         evidence_files=["fixture.json"],
+                        errors=["development worker failed"] if failed else [],
                     )
                     for case_id in context.case_ids
                 ],
@@ -162,7 +176,9 @@ def build(
         archive.record_development(
             candidate, artifacts, evaluator=evaluate, operation_id=f"evaluate-{candidate}"
         )
-    assert archive.select(operation_id="select")["candidate_ids"] == ["candidate"]
+    assert archive.select(operation_id="select")["candidate_ids"] == [
+        "baseline" if candidate_failure else "candidate"
+    ]
     return archive, config, heldout
 
 
@@ -251,6 +267,37 @@ def test_private_final_compares_original_baseline_and_frozen_selection(
         == report
     )
     assert archive.status()["selection"]["candidate_ids"] == ["candidate"]
+
+
+def test_final_never_executes_failed_development_candidate(tmp_path):
+    archive, config, heldout = build(tmp_path, candidate_failure=True)
+    calls = []
+    report = run(archive, config, heldout, tmp_path / "private-final", synthetic_executor(calls))
+    assert report["candidate_ids"] == ["baseline"]
+    assert len(calls) == 2
+    assert {task.instructions for task in calls} == {"baseline frozen instructions"}
+    assert archive.status()["selection"]["excluded"] == {"candidate": "failed_development_cases"}
+
+
+def test_old_selection_cannot_dispatch_an_ineligible_candidate(tmp_path):
+    archive, config, heldout = build(tmp_path, candidate_failure=True)
+    # Reproduce a pre-policy selection. The recorded development evidence stays
+    # unchanged, while the old Pareto rule includes the cheap failed candidate.
+    journal = read(archive.root / "journal.json")
+    selection = journal["selection"]
+    selection["candidate_ids"] = ["baseline", "candidate"]
+    selection["excluded"] = {}
+    selection.pop("raw_candidate_ids", None)
+    selection.pop("eligibility_policy", None)
+    journal["operations"]["select"]["result"] = selection
+    write_json(archive.root / "journal.json", journal)
+    heldout.unlink()  # The guard must run before private benchmark loading.
+    output = tmp_path / "private-final"
+    with pytest.raises(ValueError, match="candidate.*ineligible.*failed_development_cases"):
+        run(archive, config, heldout, output, lambda _: pytest.fail("Provider dispatched"))
+    assert not output.exists()
+    assert archive.status()["phase"] == "selected"
+    assert archive.status()["final"] is None
 
 
 def test_failed_and_unknown_cases_remain_in_final_denominator(prepared, tmp_path):

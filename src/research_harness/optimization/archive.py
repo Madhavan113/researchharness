@@ -703,6 +703,56 @@ class OptimizationArchive:
             return False
         return config.execution == "fixture" or baseline["execution_verified"] is True
 
+    @staticmethod
+    def _final_exclusion(candidate: dict, config: ArchiveConfig) -> str | None:
+        if candidate["status"] != "evaluated":
+            return candidate["status"]
+        if config.execution == "model" and candidate.get("execution_verified") is not True:
+            return "unverified_model_execution"
+        summary = candidate["summary"]
+        if summary["quality"] is None or summary["total_tokens"] is None:
+            return "unknown_objective"
+        if summary["failed_cases"] > 0:
+            return "failed_development_cases"
+        if summary["quality"] == 0:
+            return "zero_quality"
+        return None
+
+    @classmethod
+    def _validate_final_selection(cls, journal: dict, config: ArchiveConfig) -> None:
+        if journal["phase"] != "selected":
+            raise ValueError("Freeze development selection before final evaluation")
+        # Older frozen selections need the same check. The original baseline is
+        # a required control, even if it is dominated on the eligible frontier.
+        for candidate_id in dict.fromkeys(
+            [config.baseline_candidate_id, *journal["selection"]["candidate_ids"]]
+        ):
+            reason = cls._final_exclusion(journal["candidates"][candidate_id], config)
+            if reason is not None:
+                raise ValueError(f"Final candidate {candidate_id!r} is ineligible: {reason}")
+
+    def validate_final_selection(self) -> None:
+        """Check final eligibility without changing state or reading held-out inputs."""
+        with self.lock:
+            _, journal, config = self._load()
+            self._validate_final_selection(journal, config)
+
+    @staticmethod
+    def _pareto_frontier(ranked: dict[str, dict]) -> list[str]:
+        return sorted(
+            candidate_id
+            for candidate_id, score in ranked.items()
+            if not any(
+                other["quality"] >= score["quality"]
+                and other["total_tokens"] <= score["total_tokens"]
+                and (
+                    other["quality"] > score["quality"]
+                    or other["total_tokens"] < score["total_tokens"]
+                )
+                for other in ranked.values()
+            )
+        )
+
     def record_development(
         self,
         candidate_id: str,
@@ -897,10 +947,12 @@ class OptimizationArchive:
             return Path(plan["feedback_dir"])
 
     def select(self, *, operation_id: str) -> dict:
-        """Freeze the measured quality/token Pareto frontier and close search.
+        """Freeze the eligible quality/token Pareto frontier and close search.
 
         Equal points remain on the frontier. Missing quality or cost is reported
         as unrankable, never silently converted to zero or used to dominate peers.
+        Failed or zero-quality candidates retain their raw ranks and frontier,
+        but cannot dominate eligible candidates or proceed to final evaluation.
         """
         with self.lock:
             _, journal, config = self._load()
@@ -938,24 +990,19 @@ class OptimizationArchive:
                     excluded[candidate_id] = "unknown_objective"
                 else:
                     ranked[candidate_id] = candidate["summary"]
-            frontier = []
-            for candidate_id, score in ranked.items():
-                if not any(
-                    other["quality"] >= score["quality"]
-                    and other["total_tokens"] <= score["total_tokens"]
-                    and (
-                        other["quality"] > score["quality"]
-                        or other["total_tokens"] < score["total_tokens"]
-                    )
-                    for other in ranked.values()
-                ):
-                    frontier.append(candidate_id)
+            for candidate_id in ranked:
+                reason = self._final_exclusion(journal["candidates"][candidate_id], config)
+                if reason is not None:
+                    excluded[candidate_id] = reason
+            eligible = {key: score for key, score in ranked.items() if key not in excluded}
             result = {
                 "schema_version": 1,
                 "split": "development",
                 "execution": config.execution,
                 "objectives": ["maximize_macro_quality", "minimize_total_tokens"],
-                "candidate_ids": sorted(frontier),
+                "candidate_ids": self._pareto_frontier(eligible),
+                "raw_candidate_ids": self._pareto_frontier(ranked),
+                "eligibility_policy": "positive_quality_no_failed_cases_v1",
                 "excluded": excluded,
                 "ranked": ranked,
                 "evidence": {
@@ -966,6 +1013,7 @@ class OptimizationArchive:
                 "limitations": [
                     "Fixture selection is lifecycle testing, not measured model optimization.",
                     "Only supplied independent development evidence determines this frontier.",
+                    "Final candidates require positive quality and no failed development cases.",
                 ],
             }
             journal.update(phase="selecting", selection=result)
@@ -976,7 +1024,7 @@ class OptimizationArchive:
     def begin_final(self, private_dir: Path, *, operation_id: str) -> dict:
         """Reserve one private final attempt before mkdir; never launch or replay it."""
         with self.lock:
-            plan, journal, _ = self._load()
+            plan, journal, config = self._load()
             private = _absolute(private_dir)
             _disjoint(private, self.root)
             _disjoint(private, Path(plan["feedback_dir"]))
@@ -988,8 +1036,7 @@ class OptimizationArchive:
                 if journal["operations"][operation_id]["status"] == "pending":
                     return self._complete(journal, operation_id, final)
                 return final
-            if journal["phase"] != "selected":
-                raise ValueError("Freeze development selection before final evaluation")
+            self._validate_final_selection(journal, config)
             if private.exists():
                 raise ValueError("Final evaluation needs a new separate private directory")
             if operation_id in journal["operations"]:

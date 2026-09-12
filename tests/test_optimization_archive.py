@@ -422,6 +422,7 @@ def test_failed_and_unknown_candidates_remain_visible_on_selection(tmp_path):
     assert selection["excluded"] == {
         "unknown-cost": "unknown_objective",
         "bad-evaluator": "evaluation_failed",
+        "failed": "failed_development_cases",
     }
     assert selection["ranked"]["failed"]["quality"] == 0.0
     assert selection["ranked"]["failed"]["failed_cases"] == 2
@@ -429,6 +430,58 @@ def test_failed_and_unknown_candidates_remain_visible_on_selection(tmp_path):
     assert archive.select(operation_id="freeze-selection") == selection
     with pytest.raises(ValueError, match="permanently closed"):
         archive.feedback_path()
+
+
+@pytest.mark.parametrize(
+    ("failed", "reason"), [(True, "failed_development_cases"), (False, "zero_quality")]
+)
+def test_cheap_useless_candidate_is_diagnostic_only(tmp_path, failed, reason):
+    archive, _, _ = prepare(tmp_path)
+    evaluated(archive, tmp_path, tokens=50)
+    evaluated(archive, tmp_path, "cheap", correct=0, failed=failed, tokens=1)
+
+    selection = archive.select(operation_id="select")
+    assert selection["candidate_ids"] == ["baseline"]
+    assert selection["raw_candidate_ids"] == ["baseline", "cheap"]
+    assert selection["excluded"] == {"cheap": reason}
+    assert selection["ranked"]["cheap"]["quality"] == 0.0
+    assert selection["ranked"]["cheap"]["total_tokens"] == 2
+    assert OptimizationArchive(archive.root).select(operation_id="select") == selection
+
+
+def test_partially_failed_candidate_cannot_dominate_eligible_candidates(tmp_path):
+    archive, _, _ = prepare(tmp_path)
+    evaluated(archive, tmp_path, correct=1, tokens=50)
+    evaluated(archive, tmp_path, "eligible", correct=1, tokens=20)
+
+    def partial_failure(context):
+        result = fixture_evaluator(context)
+        cases = list(result.cases)
+        cases[1] = cases[1].model_copy(
+            update={"status": "execution_failed", "quality": 0.0, "errors": ["worker failed"]}
+        )
+        return result.model_copy(update={"cases": cases})
+
+    evaluated(archive, tmp_path, "partial", correct=1, tokens=1, evaluator=partial_failure)
+    selection = archive.select(operation_id="select")
+    assert selection["raw_candidate_ids"] == ["partial"]
+    assert selection["candidate_ids"] == ["eligible"]
+    assert selection["excluded"] == {"partial": "failed_development_cases"}
+    assert selection["ranked"]["partial"]["quality"] == 0.5
+
+
+@pytest.mark.parametrize("failed", [True, False])
+def test_ineligible_baseline_prevents_private_final_preparation(tmp_path, failed):
+    archive, _, _ = prepare(tmp_path)
+    evaluated(archive, tmp_path, correct=0, failed=failed)
+    evaluated(archive, tmp_path, "eligible")
+    archive.select(operation_id="select")
+    private = tmp_path / "private-final"
+    with pytest.raises(ValueError, match="baseline.*ineligible"):
+        archive.begin_final(private, operation_id="final")
+    assert not private.exists()
+    assert archive.status()["phase"] == "selected"
+    assert archive.status()["final"] is None
 
 
 def test_unresolved_evaluator_is_not_replayed_and_can_be_explicitly_archived(tmp_path):
