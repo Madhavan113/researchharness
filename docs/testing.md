@@ -105,6 +105,9 @@ identity in binary files, JUnit hostname removal, escaped JSON/XML rendering,
 links, nested archives, source changes and incomplete outputs. Rendering creates
 inspection templates only. The [asset tests](../tests/test_evidence_assets.py)
 verify deterministic packaging, every archived member and the Git byte policy.
+They also exercise pinned historical Git restoration, corrupt/missing blobs,
+shallow clones, exact bytes, private nonexecutable outputs, staged deletions and
+the prohibition on reclaiming removed original bytes as metadata allowance.
 Both use authored fixtures without provider access. The
 [159-file historical archive check](../examples/evaluation/evidence/portable-review-2026-09-12/README.md)
 separately verifies the tools against retained runtime evidence; it does not
@@ -118,5 +121,10 @@ The [Tests workflow](../.github/workflows/tests.yml) runs on pushes and pull req
 - **Required Docker and Omnigent runtime tests** installs the frozen separate Omnigent environment, pulls the digest-pinned image and runs the whole suite with skips forbidden.
 
 Checkout/setup actions are pinned to commit hashes, and the workflow uses read-only repository permissions without model secrets. A setup failure fails the runtime job; it cannot downgrade to an ordinary run. GitHub retains the command output with each run. JUnit reports are written to the runner's temporary directory and are not committed or published as runtime archives. CI results and exact local verification counts are recorded in the tracker when a checkpoint is completed.
+
+Both jobs fetch full Git history so the historical evidence reference catalog can
+be verified. In a shallow local clone, explicitly fetch the recorded baseline
+before running the retention check or
+[restoration command](evidence-retention.md#restore-exact-historical-originals).
 
 Postgres/MinIO verification remains separately configured through `RH_TEST_DATABASE_URL` and `RH_TEST_BLOB_*`, as documented in [backend acceptance](backend.md#local-shared-storage-acceptance). The required runtime job exercises local SQLite/file storage; it does not claim shared-storage or real-provider acceptance.

@@ -1,5 +1,107 @@
 {
   "baseline_commit": "b58bf44a84407d1069039499411e53aaaede5968",
+  "historical_git_files": {
+    "examples/evaluation/evidence/budgeted-runtime-2026-09-08/artifacts.tar.gz": {
+      "bytes": 407640,
+      "sha256": "371f506478dd19ed1e0a37a607b2ce6b6ced0ea413e9ef2bebd13d041f0e6f82"
+    },
+    "examples/evaluation/evidence/budgeted-strategy-search-2026-09-09/artifacts.tar.gz": {
+      "bytes": 9688901,
+      "sha256": "7af0293e450f0279139c56ff0dd4f35a0996dfd5bafe1d5f0dbe3514713a90f3"
+    },
+    "examples/evaluation/evidence/budgeted-strategy-search-2026-09-09/focused-tests.xml": {
+      "bytes": 7681,
+      "sha256": "378fc5e15fa439f90951cf4d06e80b9f8271180ff4d3e03c49cdda67c36d677f"
+    },
+    "examples/evaluation/evidence/budgeted-strategy-search-2026-09-09/pytest.xml": {
+      "bytes": 146266,
+      "sha256": "ff4880cedba523e8f22c886b3213ee6183fcd4612eec8fe6da190af4a632a6b0"
+    },
+    "examples/evaluation/evidence/checkpoint-2026-09-09/pytest.xml": {
+      "bytes": 114507,
+      "sha256": "9f190f12afc5c45817b181d2ae11b8e7593bbcd7ea4901e18b3eb3b9f8ae86ee"
+    },
+    "examples/evaluation/evidence/combined-strategy-search-2026-09-09/artifacts.tar.gz": {
+      "bytes": 9349237,
+      "sha256": "8a878106a8be6db524654dddc6fa023eaf48d6ff2ffca212b46f82893f25b661"
+    },
+    "examples/evaluation/evidence/combined-strategy-search-2026-09-09/fixture-tests.xml": {
+      "bytes": 1254,
+      "sha256": "4cda4331e9515550ef49de97970c1b67fd2f4221da1dcd3da4ac7aa5e1b196a7"
+    },
+    "examples/evaluation/evidence/controlled-provider-usage-2026-09-08/artifacts.tar.gz": {
+      "bytes": 350303,
+      "sha256": "d31c5efd3586c40a3a8d35b08da449ebf074a24545e20f86f2228e453dd377ba"
+    },
+    "examples/evaluation/evidence/controlled-runtime-2026-09-08/artifacts.tar.gz": {
+      "bytes": 338686,
+      "sha256": "30049e5f7b3cb3b902ae3ffd9fb6fc94c1b0e20575a8766e35e22df62652e153"
+    },
+    "examples/evaluation/evidence/native-strategy-hooks-2026-09-08/artifacts.tar.gz": {
+      "bytes": 57821,
+      "sha256": "91ec05b5770f2b02a6ff0dfd7330c552d298d6c22bc8c9dddd19b7ba3c24c5f6"
+    },
+    "examples/evaluation/evidence/search-orchestration-2026-09-09/artifacts.tar.gz": {
+      "bytes": 462466,
+      "sha256": "59c867821b5ff5ef447ca8300bd015508e68d3496416c5990923576882834c5f"
+    },
+    "examples/evaluation/evidence/search-orchestration-2026-09-09/pytest.xml": {
+      "bytes": 167630,
+      "sha256": "71fd8db70d87dbf88b808d9b9ef3b81e5067a4cf6c968e1a53e1d1f7d8db9316"
+    },
+    "examples/evaluation/evidence/search-orchestration-2026-09-09/runtime-retry.xml": {
+      "bytes": 695,
+      "sha256": "6d3ac97de226fbb1e77ebee2b828885924c8d2b93a38f6733970e047518dba97"
+    },
+    "examples/evaluation/evidence/shared-storage-2026-09-08/artifacts.tar.gz": {
+      "bytes": 18132,
+      "sha256": "344894a6c5d90571f44b7a97ce1ade859864c9b8fe756c6fec125834a29df44b"
+    },
+    "examples/evaluation/evidence/strategy-context-evaluation-2026-09-09/artifacts.tar.gz": {
+      "bytes": 1015519,
+      "sha256": "fd8ee82667a7fc65a92f754d2a41380ecee569f341e118bab1ba8327866e3cad"
+    },
+    "examples/evaluation/evidence/strategy-context-evaluation-2026-09-09/pytest.xml": {
+      "bytes": 127603,
+      "sha256": "ad3f9817e9b7227c9149417fe0e0a9da4b1b16079a91336b495f3f7212ecd2a2"
+    },
+    "examples/evaluation/evidence/strategy-foundation-2026-09-08/pytest.xml": {
+      "bytes": 107792,
+      "sha256": "92559e0cc8b30e6ed2cb2a3c58f5d91d0761169ed4e3de5a317b0f9ea165a332"
+    },
+    "examples/evaluation/evidence/strategy-isolation-2026-09-08/artifacts.tar.gz": {
+      "bytes": 18980,
+      "sha256": "c3d61b2a66c173503b69fad13a477f181366c4b01f430b79f8b33788eba41d6b"
+    },
+    "examples/evaluation/evidence/strategy-observation-2026-09-09/artifacts.tar.gz": {
+      "bytes": 160811,
+      "sha256": "2bc96e5afc24856a5a1e7dfe9efb20d6e2f2bfa251961244e6afe46c08b538aa"
+    },
+    "examples/omnigent/evidence/budget-runtime-2026-09-08/agent/tools/mcp/research.yaml": {
+      "bytes": 462,
+      "sha256": "49b92f396c6cbdad9dcdc61e9cb9926c590516c2a2e45108fe6f1cb71d84a509"
+    },
+    "examples/omnigent/evidence/budget-runtime-2026-09-08/metadata.json": {
+      "bytes": 1142,
+      "sha256": "d65ae9fc8ed4aa8a37fdcf198b7ec44e7148336cd9aa514d19147f8a850072b9"
+    },
+    "examples/omnigent/evidence/budget-runtime-2026-09-08/model-requests.json.gz": {
+      "bytes": 79532,
+      "sha256": "770378f7c9464efbc19c37b8442a809f903b5ca7afa0c899bb030bc7bda824f3"
+    },
+    "examples/omnigent/evidence/normal-runtime-2026-09-08/agent/tools/mcp/research.yaml": {
+      "bytes": 468,
+      "sha256": "556506e583e38874ca2dcd4c2bbfd618641d1efc9b7beba9c5a4ccba5e59ac69"
+    },
+    "examples/omnigent/evidence/normal-runtime-2026-09-08/metadata.json": {
+      "bytes": 1123,
+      "sha256": "0c91dbf8c4013bb785493e1e3663ea1aabfbf917f5627dd1755546f9eb18b159"
+    },
+    "examples/omnigent/evidence/normal-runtime-2026-09-08/model-requests.json.gz": {
+      "bytes": 248039,
+      "sha256": "1e0b4dda0954d48d6edb7d64f659182bbb1b18b6f2eaf8881cae55a9a0fba2ec"
+    }
+  },
   "legacy_archives": {
     "examples/evaluation/evidence/budgeted-runtime-2026-09-08/artifacts.tar.gz": "371f506478dd19ed1e0a37a607b2ce6b6ced0ea413e9ef2bebd13d041f0e6f82",
     "examples/evaluation/evidence/budgeted-strategy-search-2026-09-09/artifacts.tar.gz": "7af0293e450f0279139c56ff0dd4f35a0996dfd5bafe1d5f0dbe3514713a90f3",
@@ -35,5 +137,5 @@
     "examples/omnigent/evidence/budget-runtime-2026-09-08": 225645,
     "examples/omnigent/evidence/normal-runtime-2026-09-08": 724809
   },
-  "schema_version": 1
+  "schema_version": 2
 }

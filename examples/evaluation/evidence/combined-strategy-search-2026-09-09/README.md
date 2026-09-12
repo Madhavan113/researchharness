@@ -17,3 +17,22 @@ The [archive index](index.json) gives the SHA-256 of every payload in `artifacts
 Private final packages and execution contents are retained only in the local run directory. The separate ten-case private benchmark draft and native runtime credentials are excluded. Only the original development feedback snapshots are valid proposer inputs; reproduction source and host metadata are for reviewers.
 
 All seven development candidates tied at quality 1.0 and 770 synthetic tokens, leaving all seven on the development frontier. Selection and permanent proposer revocation preceded final package creation. Repeating completed final/controller operations executed no further requests. Independent human review and measured model runs remain outstanding.
+
+## Historical original files
+
+The following originals are retained unchanged at Git commit
+`b58bf44a84407d1069039499411e53aaaede5968` and referenced by
+the [hash and byte-length catalog](../../../../examples/evaluation/evidence-policy.json):
+
+- `artifacts.tar.gz`
+- `fixture-tests.xml`
+
+Use the [verified restoration command](../../../../docs/evidence-retention.md#restore-exact-historical-originals)
+from the repository root to retrieve all catalogued originals into a new private
+directory, or select these files with `--file` and their full repository paths.
+This checkpoint's restored files appear under
+`examples/evaluation/evidence/combined-strategy-search-2026-09-09/` below that output directory.
+Current summaries and original hash indices remain in this checkout.
+Restoration verifies exact historical bytes and never executes them. Originals
+retain any recorded machine paths; they are not portable review copies or proof
+that an archived run can be resumed. Git history has not been rewritten.

@@ -98,6 +98,13 @@ or resume an original budgeted run or reset its ledger.
 
 ### Verify a historical archive on another machine
 
+Historical compressed files now live at their pinned Git revision. First
+[restore the exact originals](evidence-retention.md#restore-exact-historical-originals)
+into a fresh private directory. Use the archive below its original repository
+relative path there, and the unchanged `index.json` in the current checkout.
+The reference catalog preserves the original compressed hashes; it does not
+regenerate or sanitize the archives.
+
 Historical checkpoints use a flat `index.json` with an `archive_sha256` and
 per-file `files` mapping. The command below verifies the original compressed
 bytes and every regular member without extracting files, importing archived
@@ -172,7 +179,9 @@ asset index describes intended destinations; only an actual verified download
 establishes availability.
 
 GitHub reported this repository public on September 12, 2026. Historical
-originals still contain operator paths in the current tree and Git history.
-This derived export does not remove that exposure or complete RW-5's original
-repository-wide acceptance check. No history or original runtime bytes are
-rewritten by these tools.
+originals still contain operator paths in Git history and restored copies.
+The retention migration removes 25 originals from the current checkout while
+keeping their exact hashes and a verified restoration path. It does not erase
+their public history. RW-5 remains open: only the representative derived archive
+has been checked, and extracting unsanitized historical originals still exposes
+their original paths. No history or original runtime bytes are rewritten.

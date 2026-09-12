@@ -105,7 +105,10 @@ Pytest lists skip reasons by default. Follow the [test configurations](docs/test
 
 The [portable evidence guide](docs/portable-evidence.md) explains derived review
 copies with path placeholders and original/exported hashes. Historical originals
-remain unchanged; prepared release assets are not yet published.
+remain unchanged in their pinned Git revision; the
+[restoration command](docs/evidence-retention.md#restore-exact-historical-originals)
+retrieves them into a private directory with exact hash checks. Prepared release
+assets are not yet published.
 
 ## Product research
 

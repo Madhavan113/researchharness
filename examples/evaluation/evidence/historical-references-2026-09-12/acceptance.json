@@ -1,0 +1,15 @@
+{
+  "bytes": 22872690,
+  "compared": [
+    "original Git blobs",
+    "current checkout files",
+    "restored files",
+    "recorded SHA-256 and byte lengths"
+  ],
+  "executed": false,
+  "files": 25,
+  "private_modes_verified": true,
+  "sanitized": false,
+  "source_commit": "b58bf44a84407d1069039499411e53aaaede5968",
+  "verified": true
+}

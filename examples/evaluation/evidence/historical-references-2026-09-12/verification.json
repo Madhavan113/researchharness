@@ -1,0 +1,75 @@
+{
+  "date": "2026-09-12",
+  "executed_originals": false,
+  "git_history_rewritten": false,
+  "implementation_commit": "fccd48bb5e8ea5b384fcaf5e4e932351d421b25e",
+  "kind": "historical-reference-verification-v1",
+  "limits": [
+    "Original Git history and restored files retain historical operator identities",
+    "Retain the baseline commit; a hash catalog cannot replace missing Git objects",
+    "Only the representative derived controlled-runtime archive has been reviewed",
+    "Provider access, spending decision and independent benchmark review remain pending"
+  ],
+  "lint": {
+    "files_formatted": 116,
+    "ruff_check": "passed",
+    "ruff_format_check": "passed"
+  },
+  "migration_check": {
+    "current_evidence_files_checked": 144,
+    "current_operator_binding_matches": 0,
+    "general_secret_detection": false,
+    "nonempty_junit_hostname_files": 0,
+    "restored_originals_rechecked": 25,
+    "scope": "current tracked and visible evidence files; historical originals retain original identities; snapshot taken before adding this verification file",
+    "selected_deletions_match_references": true,
+    "unchanged_original_policy_fields": [
+      "baseline_commit",
+      "legacy_archives",
+      "legacy_checkpoint_bytes"
+    ]
+  },
+  "new_measured_research_run": false,
+  "original_bytes": 22872690,
+  "original_commit": "b58bf44a84407d1069039499411e53aaaede5968",
+  "original_files": 25,
+  "policy_sha256": "0c54c0e74cc54f99aff956d031008a325f00a6e93dddd2c3c3509a5e2875c78f",
+  "private_directory_mode": "0700",
+  "release_uploaded": false,
+  "representative_review_verification": {
+    "changed_files": 3,
+    "files": 159,
+    "role": "derived_review_only",
+    "source_and_transforms_verified": true
+  },
+  "restoration_comparison": "Git blobs, pre-migration checkout files, restored files, and catalogued SHA-256/byte lengths all match",
+  "restored_file_mode": "0600",
+  "sanitized_originals": false,
+  "source_tests_changed_during_required_suite": false,
+  "tested_source_sha256": {
+    "src/research_harness/evaluation/evidence_assets.py": "2176b8a9c452852d394d46bc696837d0c72c8000176a968d224936aa9d915dc8",
+    "tests/test_evidence_assets.py": "3c86cd531ab95b6dd41fb7ea89a974f41693fbcfd1f582b041a0579ab51dcfb1"
+  },
+  "tests": {
+    "focused_tools": {
+      "command": "uv run --locked --extra mcp pytest tests/test_evidence_assets.py tests/test_portable_evidence.py --tb=short --junitxml=/tmp/rh-historical-references-tools-final-20260912.xml",
+      "errors": 0,
+      "failures": 0,
+      "junit_seconds": 4.193,
+      "report_sha256": "c47ac2aba939a0da741120cb269890aba2c3f32ed9b993fec4ba489e5ab33c49",
+      "skipped": 0,
+      "status": "passed",
+      "tests": 83
+    },
+    "required_runtime": {
+      "command": "RH_TEST_REQUIRE_RUNTIME=1 RH_TEST_STRATEGY_IMAGE=python@sha256:9d2e5553305c7c7b0097999bb17187c69b921ccd6bc9d40e4bb5ebe652c00285 RH_TEST_OMNIGENT_PYTHON=/tmp/researchharness-omnigent-be042b39/.venv/bin/python uv run --locked --extra mcp pytest --tb=short --basetemp=/tmp/rh-historical-references-required-20260912 --junitxml=/tmp/rh-historical-references-required-20260912.xml",
+      "errors": 0,
+      "failures": 0,
+      "junit_seconds": 304.207,
+      "report_sha256": "e1766515f6d4f17612d0c66baaaf31a3336e1e2e460e2dc66922bb74298b2f35",
+      "skipped": 0,
+      "status": "passed",
+      "tests": 1463
+    }
+  }
+}
