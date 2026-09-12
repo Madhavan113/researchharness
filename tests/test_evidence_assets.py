@@ -306,6 +306,217 @@ def test_legacy_archive_allowance_is_bound_to_exact_bytes(tmp_path):
         assets.check_policy(tmp_path, paths(tmp_path), policy)
 
 
+def test_staged_legacy_deletion_requires_a_verified_reference(tmp_path):
+    folder = checkpoint(tmp_path)
+    name = (folder / "artifacts.tar.gz").relative_to(tmp_path).as_posix()
+    policy = {**EMPTY_POLICY, "legacy_archives": {name: hashlib.sha256(b"old").hexdigest()}}
+    with pytest.raises(ValueError, match="missing without"):
+        assets.check_policy(tmp_path, paths(tmp_path), policy)
+
+
+@pytest.fixture
+def historical(tmp_path):
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    folder = checkpoint(repo)
+    originals = {
+        PREFIX + "/artifacts.tar.gz": gzip.compress(b"Original binary evidence\0", mtime=0),
+        PREFIX + "/pytest.xml": b'<testsuite hostname="historical-host"/>',
+        PREFIX + "/audit.py": b"raise RuntimeError('must not execute original code')\n",
+    }
+    for name, raw in originals.items():
+        (repo / name).write_bytes(raw)
+    (folder / "audit.py").chmod(0o755)
+
+    def git(*args):
+        return subprocess.check_output(
+            ["git", "-c", "user.name=Fixture", "-c", "user.email=fixture@example.invalid", *args],
+            cwd=repo,
+            stderr=subprocess.STDOUT,
+        )
+
+    git("init", "-q")
+    git("add", "-f", ".")
+    git("commit", "-qm", "Original evidence")
+    commit = git("rev-parse", "HEAD").decode().strip()
+    records = {
+        name: {"sha256": hashlib.sha256(raw).hexdigest(), "bytes": len(raw)}
+        for name, raw in originals.items()
+    }
+    policy = {
+        "schema_version": 2,
+        "baseline_commit": commit,
+        "legacy_checkpoint_bytes": {PREFIX: 10000},
+        "legacy_archives": {
+            PREFIX + "/artifacts.tar.gz": records[PREFIX + "/artifacts.tar.gz"]["sha256"]
+        },
+        "historical_git_files": records,
+    }
+    git("rm", "--", *originals)
+    git("commit", "-qm", "Reference original evidence")
+    return repo, policy, originals, git
+
+
+def test_historical_restore_preserves_all_bytes_and_never_executes(historical, tmp_path):
+    repo, policy, originals, _ = historical
+    result = assets.check_policy(repo, paths(repo), policy)
+    assert result["historical_git_files"] == 3
+    output = tmp_path / "restored"
+    restored = assets.restore_historical(repo, output, policy)
+    assert restored["verified"] and not restored["executed"] and not restored["sanitized"]
+    assert restored["bytes"] == sum(map(len, originals.values()))
+    assert output.stat().st_mode & 0o777 == 0o700
+    for name, raw in originals.items():
+        assert (output / name).read_bytes() == raw
+        assert (output / name).stat().st_mode & 0o777 == 0o600
+        assert not (repo / name).exists()
+    manifest = json.loads((output / "restoration.json").read_text())
+    assert manifest["files"] == policy["historical_git_files"]
+    assert manifest["source_commit"] == policy["baseline_commit"]
+
+
+def test_historical_reference_cannot_hide_dropped_or_reintroduced_originals(historical):
+    repo, policy, originals, _ = historical
+    name = PREFIX + "/artifacts.tar.gz"
+    record = policy["historical_git_files"].pop(name)
+    with pytest.raises(ValueError, match="missing without"):
+        assets.check_policy(repo, paths(repo), policy)
+    policy["historical_git_files"][name] = record
+    (repo / name).write_bytes(originals[name])
+    with pytest.raises(ValueError, match="outside the checkout"):
+        assets.check_policy(repo, paths(repo), policy)
+
+
+@pytest.mark.parametrize("changed", ["commit", "noncommit", "hash", "size", "blob"])
+def test_historical_missing_or_corrupt_data_never_completes(historical, tmp_path, changed):
+    repo, policy, _, git = historical
+    name = PREFIX + "/pytest.xml"
+    record = policy["historical_git_files"][name]
+    if changed == "commit":
+        policy["baseline_commit"] = "f" * 40
+    elif changed == "noncommit":
+        policy["baseline_commit"] = (
+            git("rev-parse", policy["baseline_commit"] + ":" + name).decode().strip()
+        )
+    elif changed == "hash":
+        record["sha256"] = "0" * 64
+    elif changed == "size":
+        record["bytes"] -= 1
+    else:
+        oid = git("rev-parse", policy["baseline_commit"] + ":" + name).decode().strip()
+        blob = repo / ".git/objects" / oid[:2] / oid[2:]
+        blob.chmod(0o600)
+        blob.write_bytes(b"corrupt object")
+    with pytest.raises(ValueError, match="Historical original"):
+        assets.check_policy(repo, paths(repo), policy)
+    output = tmp_path / "failed"
+    with pytest.raises(ValueError, match="Historical original"):
+        assets.restore_historical(repo, output, policy, [name])
+    assert not (output / "restoration.json").exists()
+
+
+def test_historical_links_are_not_restored(historical, tmp_path):
+    repo, policy, _, git = historical
+    name = PREFIX + "/link.txt"
+    (repo / name).symlink_to("pytest.xml")
+    git("add", "-f", name)
+    git("commit", "-qm", "Unacceptable linked evidence")
+    policy["baseline_commit"] = git("rev-parse", "HEAD").decode().strip()
+    policy["historical_git_files"][name] = {
+        "sha256": hashlib.sha256(b"pytest.xml").hexdigest(),
+        "bytes": len(b"pytest.xml"),
+    }
+    with pytest.raises(ValueError, match="regular Git file"):
+        assets.restore_historical(repo, tmp_path / "linked", policy, [name])
+
+
+def test_historical_restore_refuses_existing_checkout_or_unknown_destinations(historical, tmp_path):
+    repo, policy, _, _ = historical
+    output = tmp_path / "existing"
+    output.mkdir()
+    (output / "sentinel").write_text("unchanged")
+    with pytest.raises(FileExistsError):
+        assets.restore_historical(repo, output, policy)
+    assert (output / "sentinel").read_text() == "unchanged"
+    with pytest.raises(ValueError, match="outside the repository"):
+        assets.restore_historical(repo, repo / "restore", policy)
+    with pytest.raises(ValueError, match="Select recorded"):
+        assets.restore_historical(repo, tmp_path / "unknown", policy, ["../escape"])
+    assert not (tmp_path / "unknown").exists()
+
+
+def test_historical_migration_does_not_reclaim_the_old_git_byte_allowance(historical):
+    repo, policy, _, _ = historical
+    current = assets.check_policy(repo, paths(repo), policy)
+    migrated = current["historical_git_bytes"]
+    padding = policy["legacy_checkpoint_bytes"][PREFIX] - migrated
+    padding += assets.GIT_CHECKPOINT_LIMIT - current["git_bytes"]
+    (repo / PREFIX / "padding.txt").write_bytes(b"x" * padding)
+    with pytest.raises(ValueError, match="byte allowance"):
+        assets.check_policy(repo, paths(repo), policy)
+
+
+@pytest.mark.parametrize("invalid", ["commit_type", "path", "size", "archive_hash"])
+def test_historical_reference_declarations_fail_before_restoring(historical, tmp_path, invalid):
+    repo, policy, _, _ = historical
+    name = PREFIX + "/artifacts.tar.gz"
+    if invalid == "commit_type":
+        policy["baseline_commit"] = 1
+    elif invalid == "path":
+        policy["historical_git_files"]["../escape"] = policy["historical_git_files"].pop(name)
+    elif invalid == "size":
+        policy["historical_git_files"][name]["bytes"] = True
+    else:
+        policy["historical_git_files"][name]["sha256"] = "0" * 64
+    output = tmp_path / "invalid"
+    with pytest.raises(ValueError):
+        assets.restore_historical(repo, output, policy)
+    assert not output.exists()
+
+
+def test_shallow_checkout_requires_explicit_history_fetch(historical, tmp_path):
+    repo, policy, _, _ = historical
+    shallow = tmp_path / "shallow"
+    subprocess.run(["git", "clone", "-q", "--depth", "1", repo.as_uri(), str(shallow)], check=True)
+    with pytest.raises(ValueError, match="fetch the recorded"):
+        assets.check_policy(shallow, paths(shallow), policy)
+    subprocess.run(
+        ["git", "fetch", "-q", "origin", policy["baseline_commit"]], cwd=shallow, check=True
+    )
+    assert assets.check_policy(shallow, paths(shallow), policy)["historical_git_files"] == 3
+
+
+def test_historical_cli_restores_only_selected_original(historical, tmp_path):
+    repo, policy, originals, _ = historical
+    policy_path = tmp_path / "policy.json"
+    policy_path.write_text(json.dumps(policy))
+    name = PREFIX + "/pytest.xml"
+    output = tmp_path / "cli-restored"
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "research_harness.evaluation.evidence_assets",
+            "restore-legacy",
+            "--repo",
+            str(repo),
+            "--policy",
+            str(policy_path),
+            "--out",
+            str(output),
+            "--file",
+            name,
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert json.loads(result.stdout)["files"] == 1
+    assert (output / name).read_bytes() == originals[name]
+    assert not (output / PREFIX / "audit.py").exists()
+
+
 def test_missing_readme_and_root_level_archive_cannot_bypass_policy(tmp_path):
     folder = checkpoint(tmp_path)
     (folder / "README.md").unlink()
