@@ -96,6 +96,67 @@ or resume an original budgeted run or reset its ledger.
 
 ## Checkpoint and publication status
 
+### Verify a historical archive on another machine
+
+Historical checkpoints use a flat `index.json` with an `archive_sha256` and
+per-file `files` mapping. The command below verifies the original compressed
+bytes and every regular member without extracting files, importing archived
+code, changing paths or opening a live run. Use the committed index from the
+same checkpoint as the archive; a rewritten index is not an independent trust
+anchor. The newer release format uses the retention verifier instead.
+
+~~~sh
+uv run --locked python - /path/to/index.json /path/to/artifacts.tar.gz <<'PY'
+import hashlib
+import json
+import sys
+import tarfile
+from pathlib import Path, PurePosixPath
+
+index = json.loads(Path(sys.argv[1]).read_bytes())
+archive = Path(sys.argv[2])
+with archive.open("rb") as stream:
+    archive_sha256 = hashlib.file_digest(stream, "sha256").hexdigest()
+if archive_sha256 != index["archive_sha256"]:
+    raise ValueError("Original compressed archive hash differs")
+seen = set()
+total_bytes = 0
+with tarfile.open(archive, "r|gz") as members:
+    for member in members:
+        if member.isdir():
+            continue
+        name = member.name
+        path = PurePosixPath(name)
+        if (not member.isfile() or path.is_absolute() or ".." in path.parts
+                or "\\" in name or name in seen or name not in index["files"]):
+            raise ValueError("Unexpected, unsafe or duplicate archive member")
+        total_bytes += member.size
+        if total_bytes > 16 * 1024**3 or len(seen) >= 100000:
+            raise ValueError("Historical verification limit exceeded")
+        with members.extractfile(member) as stream:
+            actual = hashlib.file_digest(stream, "sha256").hexdigest()
+        if actual != index["files"][name]:
+            raise ValueError("Original member hash differs: " + name)
+        seen.add(name)
+if seen != set(index["files"]):
+    raise ValueError("Original archive membership differs")
+print(json.dumps({"archive_sha256": archive_sha256, "files_verified": len(seen),
+                  "original_bytes": total_bytes, "extracted": False}, indent=2))
+PY
+~~~
+
+This establishes integrity of the published subset only. The budgeted-search
+archive's `verification-tools/audit-budgeted-search.py` was a check of the
+**original local run**: it requires private final executions, the retained
+ledger/registry and the executed source version, and writes its report inside
+that run. Those private inputs are intentionally absent from the public
+archive. Editing its hard-coded paths cannot reconstruct them, and a current
+checkout cannot substitute for its frozen source. Do not run that script against
+a derived review copy or present member-integrity verification as a reproduction
+of the full original audit. The historical script and its hashes stay unchanged.
+
+### Derived review checkpoint
+
 The September 12 representative check uses the complete 159-file historical
 controlled-runtime archive, first verified against its committed archive and
 member hashes. Three path-bearing files change; 156 remain byte-identical.

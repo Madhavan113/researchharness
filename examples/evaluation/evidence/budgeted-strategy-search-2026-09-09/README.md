@@ -16,3 +16,12 @@ The [archive index](index.json) lists all 6,479 payload hashes in `artifacts.tar
 The first runtime attempt completed all search/final executions and settlements, then failed in the example's event-list verification. After correcting that check, the entire example passed in a fresh fixture directory. Production/test bytes remain those covered by the full suite. A formatting-only change after the accepted run preserves the same Python AST; both byte versions are retained. The complete initial run remains local at `/tmp/rh-budgeted-strategy-search-20260909/`.
 
 Private final packages/executions and the separate representative held-out draft are excluded. Native runtime credentials are excluded. Only the original development snapshots are valid proposer inputs; source, host metadata and accounting artifacts are for reviewers. All benchmark cases remain authored pending independent human review, and measured model evaluation remains outstanding.
+
+For a portable, read-only check of the published bytes, use the
+[historical archive verification command](../../../../docs/portable-evidence.md#verify-a-historical-archive-on-another-machine).
+It verifies the original archive hash and all 6,479 member hashes without
+extracting or executing anything. The archived `audit-budgeted-search.py` checked
+the original local run, including private final execution inputs omitted here;
+it is not a standalone verifier of this public subset. Changing its hard-coded
+paths does not supply those missing inputs or the matching executed source.
+Historical original bytes and the original audit result remain unchanged.

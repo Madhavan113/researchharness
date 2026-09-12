@@ -79,6 +79,37 @@ Retain completed handoffs so another agent can distinguish implemented behavior 
 
 ## Activity and handoffs
 
+### September 12, 2026 — Historical audit portability follow-up
+
+Owner: `/root`; bounded documentation/evidence check completed, continuing
+PR #17. The preceding turn made progress by publishing the portable exporter,
+its verified checkpoint and PR. Current-head PR #17 run `34723007267` and PR #16
+run `34722233873` attempt 2 are confirmed live; no restart is requested.
+
+The archived budgeted-search audit depends on more than a hard-coded repository
+path: it opens the original private final executions and retained ledger, checks
+the executed source version, and writes into the original run. Replacing two
+paths would not make it a valid audit of the published subset. Scope: document
+that boundary and provide/test a portable, read-only member-integrity command
+against the complete historical public archive. Keep originals unchanged; do
+not claim that member hashes reproduce the private-final or runtime audit.
+Files: portable evidence guide, historical checkpoint README and shared tracker.
+Publication of the prepared derived release is awaiting a separate user answer;
+provider/budget and benchmark-review decisions remain pending.
+
+The documented command was executed verbatim from the guide in a separate
+Python process against the original budgeted-search index/archive. It verifies
+all **6,479 files / 49,698,731 expanded bytes** without extraction. The compressed
+SHA-256 remains `7af0293e450f0279139c56ff0dd4f35a0996dfd5bafe1d5f0dbe3514713a90f3`.
+The local result `/tmp/rh-historical-member-verification-20260912.json` records
+the original index hash and exact documented script hash; its SHA-256 is
+`9c9d5b32a3b6bbd3186f98204dfd70ed0de0e1c24d5396a483f365968a5c9def`.
+All 84 local Markdown targets in the changed files resolve, the diff check
+passes, and the retention guard still verifies all 13 original compressed
+hashes across 19 checkpoints. This is a documentation and integrity check;
+production code/tests are unchanged and no runtime suite was rerun. The full
+private-final/runtime audit has not been rerun or claimed reproduced.
+
 ### September 12, 2026 — RW-5 portable review export ownership
 
 Owner: `/root`; bounded RW-5 export work `in_progress` on `feat/portable-evidence-export`, based on PR #16 head `e03c498930906b6efa48812168e02780a78a78da`. The preceding goal turn made progress: it implemented retention tools/CI, passed 1,412 required tests and published PR #16. Its hosted run `34722228062` is confirmed queued at this task's initial poll and is not restarted.
