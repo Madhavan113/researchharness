@@ -1,0 +1,99 @@
+{
+  "author_review_scope": "same-project separate byte comparison, configured-identifier transforms and complete membership checks; no external third-party or benchmark review",
+  "baseline_commit": "b58bf44a84407d1069039499411e53aaaede5968",
+  "commands": [
+    "uv run --locked python examples/evaluation/evidence/historical-review-all-2026-09-12/prepare_originals.py --repo . --out /tmp/rh-rw5-all-originals-recursive-20260912",
+    "uv run --locked --extra mcp python -m research_harness.evaluation.portable_evidence export /tmp/rh-rw5-all-originals-recursive-20260912 /tmp/rh-rw5-all-review-recursive-20260912 --bindings /tmp/rh-rw5-private-bindings-20260912.json",
+    "uv run --locked --extra mcp python -m research_harness.evaluation.portable_evidence verify /tmp/rh-rw5-all-review-recursive-20260912 --source /tmp/rh-rw5-all-originals-recursive-20260912 --bindings /tmp/rh-rw5-private-bindings-20260912.json",
+    "uv run --locked --extra mcp python -m research_harness.evaluation.evidence_assets prepare /tmp/rh-rw5-all-review-recursive-20260912 /tmp/rh-rw5-all-package-20260912 --repository Madhavan113/researchharness --source-repository . --source-commit c5efe824742bd6f9550b4e07d021d2831a005656 --tag evidence-historical-review-all-2026-09-12",
+    "uv run --locked --extra mcp python -m research_harness.evaluation.evidence_assets verify /tmp/rh-rw5-all-package-20260912/index.json /tmp/rh-rw5-all-package-20260912/artifacts.tar.gz /tmp/rh-rw5-all-package-20260912/files.json.gz"
+  ],
+  "date": "2026-09-12",
+  "export": {
+    "changed_files": 124,
+    "files": 15396,
+    "role": "derived_review_only",
+    "source_inventory_sha256": "524da7090e3fe057694a2827fc1161935456545f810cd842a8e9f49bb8e4ea0f"
+  },
+  "export_tools_commit": "c5efe824742bd6f9550b4e07d021d2831a005656",
+  "fresh_extraction": {
+    "all_member_hashes_verified": true,
+    "all_tar_host_metadata_normalized": true,
+    "bytes": 140767556,
+    "configured_identity_matches": 0,
+    "downloaded": false,
+    "executed": false,
+    "fresh_private_extraction": true,
+    "general_secret_detection": false,
+    "junit_files": 9,
+    "members": 15397,
+    "nonempty_junit_hostnames": 0,
+    "verified": true
+  },
+  "initial_attempt": "The first input tree decoded only the 13 top-level containers. Export correctly refused 544 nested gzip snapshots. That private partial output was retained; the final recipe decodes every nested container into a separate fresh tree.",
+  "kind": "complete-historical-review-verification-v1",
+  "new_model_run": false,
+  "original_byte_comparison": {
+    "executed": false,
+    "git_files": 150,
+    "input_files_with_provenance": 15396,
+    "leaf_files": 15395,
+    "nested_containers": 544,
+    "payload_bytes": 121453218,
+    "private_modes_verified": true,
+    "provenance_sha256": "1e4d3d884f712b1ae2b8ea1740c029ba727749bd8a579c020db4a79750b321e8",
+    "sanitized": false,
+    "top_tar_members": 14576,
+    "verified": true
+  },
+  "originals_rewritten": false,
+  "package_verification": {
+    "bytes": 140767556,
+    "file_count": 15397,
+    "verified": true
+  },
+  "prepared_originals": {
+    "containers": 13,
+    "executed": false,
+    "nested_containers": 544,
+    "original_files": 150,
+    "payload_bytes": 121453218,
+    "payload_files": 15395
+  },
+  "private_final_inputs_added": false,
+  "recipe_sha256": "174dd83dc7c038cf2f260d5401b4cb08eb0f7d3379610dc598e527578e0589d0",
+  "release_uploaded": false,
+  "report_sha256": {
+    "export": "d6f71d8ed10dccfabef907732b5a024ef340ff4843a21b68004a28525ac07b23",
+    "fresh_extraction": "84ee200ee9205d0aecbc69dfa1ac172190349dd97b1bdfb1709a69a2d2775c4c",
+    "original_byte_comparison": "a41817c83e697bc2d912182d0228fa6552a642c87221b7c166c778dd5f50f246",
+    "package_verification": "ba57073d9b7ea6d1f34baf934adf90973dce8117fea797be77e15ef0ca378fdb",
+    "prepared_originals": "a5405e77f8b1f8fa12dfbfcd03fba611d684d2f8dcc799eb4f4dad374909eee0",
+    "review_scan": "511aa50d97a6318e8ece67fafd69718bc7cecbca4212b957acf198f404d10ddd",
+    "source_bound_review": "6bbd7af6d75fa5c156f0c054631b7649fd8aeb9b2d5908f8e83bde2ba6cfe017"
+  },
+  "review_scan": {
+    "binary_files_preserved": 40,
+    "configured_identity_matches": 0,
+    "files": 15396,
+    "general_secret_detection": false,
+    "junit_files": 9,
+    "manifest_sha256": "fd9946eb4819ccd5f200ce9b42a0097feb900b5b771579d6e3f2a8b5bb2a3255",
+    "methods": {
+      "json-placeholders": 113,
+      "junit-hostname-and-placeholders": 9,
+      "text-placeholders": 2,
+      "unchanged": 15272
+    },
+    "nested_compressed_files": 0,
+    "nonempty_junit_hostnames": 0
+  },
+  "role": "derived_review_only",
+  "source_bound_review": {
+    "changed_files": 124,
+    "files": 15396,
+    "role": "derived_review_only",
+    "source_and_transforms_verified": true,
+    "verified": true
+  }
+}

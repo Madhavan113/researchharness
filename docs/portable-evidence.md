@@ -172,6 +172,18 @@ records the source, exact hashes and verification results. This is a current
 tooling check on historical synthetic runtime evidence, not a new research run.
 JUnit hostname removal is separately covered by regression tests.
 
+The subsequent [complete baseline review](../examples/evaluation/evidence/historical-review-all-2026-09-12/README.md)
+covers all 150 Git files under both evidence roots at the historical baseline.
+Its preparation recipe verifies eleven top-level tar archives and two gzip JSON
+captures, then decodes 544 nested Omnigent snapshot archives while retaining
+container/member provenance. All 15,395 leaf files plus provenance enter the
+review. Source-bound verification changes 124 files and preserves 15,272 exactly.
+The prepared 15,397-member release package includes the review manifest; a fresh
+extraction passes every member hash and finds no configured identity matches or
+nonempty JUnit hostname attributes. All forty binary files remain intact.
+These checks cover the complete baseline, including repeated snapshots; they do
+not establish general secret detection or authorize publication.
+
 Package the complete review directory using the
 [retention tools](evidence-retention.md). Retain the original archive hash and
 source reference separately from the revision of the export tools. A prepared
@@ -182,6 +194,7 @@ GitHub reported this repository public on September 12, 2026. Historical
 originals still contain operator paths in Git history and restored copies.
 The retention migration removes 25 originals from the current checkout while
 keeping their exact hashes and a verified restoration path. It does not erase
-their public history. RW-5 remains open: only the representative derived archive
-has been checked, and extracting unsanitized historical originals still exposes
-their original paths. No history or original runtime bytes are rewritten.
+their public history. Local content checks now cover the complete baseline review;
+RW-5/RW-6 delivery remains open until the reviewed replacement assets are published
+and a download is verified. Extracting unsanitized historical originals still
+exposes their original paths. No history or original runtime bytes are rewritten.

@@ -53,11 +53,37 @@ retained in provenance.
 
 ## Publication and limits
 
+The [index](index.json) binds the complete 15,397-member release package:
+140,767,556 expanded bytes, a 24,371,182-byte archive and a 603,906-byte member
+inventory. The [acceptance](acceptance.json) and [verification](verification.json)
+record all counts, original/derived provenance, exact commands and report hashes.
+A fresh private extraction checked every member hash, all normalized tar host
+metadata, zero configured identity matches and all nine JUnit reports.
+
+| Prepared asset | SHA-256 |
+| --- | --- |
+| `artifacts.tar.gz` | `68f005af1e2107dbcc1ee3a7666cf01262ed82451c7dd29be8970617fee040f0` |
+| `files.json.gz` | `1a541a21ee8d86bc6d55229410850ea9342ca7e34cb57675590af99ea6011c3a` |
+
 The complete archive and member inventory are prepared outside Git. Publication
 to this public repository still requires the pending user decision; there is no
 upload or download receipt. Only the recipe, small index and verification
 summaries belong in this checkpoint under the
 [retention policy](../../../../docs/evidence-retention.md).
+
+The intended tag is `evidence-historical-review-all-2026-09-12`; the index remains
+`availability: prepared`. After an approved upload, retrieve those exact assets
+and verify the downloaded bytes, without substituting a newer release:
+
+~~~sh
+gh release download evidence-historical-review-all-2026-09-12 \
+  --repo Madhavan113/researchharness \
+  --pattern artifacts.tar.gz --pattern files.json.gz --dir /path/to/new-download
+
+uv run --locked --extra mcp python -m research_harness.evaluation.evidence_assets verify \
+  examples/evaluation/evidence/historical-review-all-2026-09-12/index.json \
+  /path/to/new-download/artifacts.tar.gz /path/to/new-download/files.json.gz
+~~~
 
 Derived files retain original embedded proof hashes, which can no longer validate
 changed configurations. Use exact originals for runtime audits and accounting;

@@ -39,13 +39,13 @@ Use `queued`, `in_progress`, `blocked`, or `done`. Replace an owner only after a
 | M3 | Omnigent research agent bundle and runtime binding | done | `/root/omnigent_spike`, browser verification `/root` | Normal server/runner/MCP and browser chat save validated proposal/pipeline ids; synthetic model HTTP, frozen authored bundle |
 | M4 | Collection jobs, exports, case lookup, recovery | done | `/root` | Detached workers, cancellation, process termination, scoped data, exports, and full server/browser restart verified locally; local Postgres/MinIO tests and detached workflow/restart/export acceptance now verified |
 | M5 | Independent pilot evaluation and baseline comparison | blocked | `/root`, bounded agent work handed off | Twenty authored cases now discriminate in the offline policy comparison; independent evaluators, frozen controller and bound gateway usage verified through actual runtimes; budgeted dispatch and independent settlement verified through both actual runtimes; awaits human review, provider access and the pending spending decision |
-| M6 | Meta-Harness strategy optimization and isolated final evaluation | in_progress | `/root`, review follow-ups | RW-1/2/3/4/7/8/9/10/11/12/14 are published in PRs #2–#12, with PR #11 and #12 hosted checks passing. The bounded RW-15 admission/compatibility checkpoint is published in PR #13. Copied-feedback privacy is published in PR #14 with both hosted jobs passing. RW-13 verification efficiency is published in PR #15 and passes 1,378 required local tests with zero skips; both hosted jobs also pass. RW-6 tooling/policy is published in PR #16 with 1,412 required local tests passing; its first reviewed external asset round trip remains open. The bounded RW-5 portable review exporter and failure diagnostics are published in PR #17 with 1,446 required local tests and both hosted jobs passing. The historical-reference follow-up is published in PR #18 and passes 1,463 required local tests with zero skips and removes duplicate originals from the current checkout after exact restoration; complete derived review coverage and historical path cleanup remain open. Exploration limits remain conditional on measured-run evidence. Measured search/final still awaits remaining review work, reviewed cases, provider access, spending approval and the measured baseline |
+| M6 | Meta-Harness strategy optimization and isolated final evaluation | in_progress | `/root`, review follow-ups | RW-1/2/3/4/7/8/9/10/11/12/14 are published in PRs #2–#12, with PR #11 and #12 hosted checks passing. The bounded RW-15 admission/compatibility checkpoint is published in PR #13. Copied-feedback privacy is published in PR #14 with both hosted jobs passing. RW-13 verification efficiency is published in PR #15 and passes 1,378 required local tests with zero skips; both hosted jobs also pass. RW-6 tooling/policy is published in PR #16 with 1,412 required local tests passing; its first reviewed external asset round trip remains open. The bounded RW-5 portable review exporter and failure diagnostics are published in PR #17 with 1,446 required local tests and both hosted jobs passing. The historical-reference follow-up is published in PR #18 and passes 1,463 required local tests with zero skips and removes duplicate originals from the current checkout after exact restoration; a complete historical baseline review is now prepared and verified, including all 544 nested snapshots. Release publication/download remains pending. Exploration limits remain conditional on measured-run evidence. Measured search/final still awaits remaining review work, reviewed cases, provider access, spending approval and the measured baseline |
 
 M0 and M1 can proceed independently against the agreed tool/service boundary. Evaluation case design can also proceed independently. Agree on ownership of shared schemas, CLI wiring, dependencies, migrations, and this tracker before concurrent edits.
 
 ## Current evidence and limits
 
-- GitHub reports the repository public as of September 12. Twenty-five original files are now referenced at their pinned Git revision and restored outside the checkout with exact hash checks. Historical originals and Git history still contain operator paths. The portable exporter creates labelled derived review copies; its prepared release package is not published, and complete derived review coverage remains unfinished.
+- GitHub reports the repository public as of September 12. Twenty-five original files are now referenced at their pinned Git revision and restored outside the checkout with exact hash checks. Historical originals and Git history still contain operator paths. The portable exporter creates labelled derived review copies; its prepared release package is not published, and complete baseline review coverage is now verified locally; release publication/download remains pending.
 - The repository already contains the direct discovery CLI, connector probes, proposal compilation, collection/export/replay, and local/shared backend work. Inspect and preserve the existing working-tree changes before building on them.
 - The tested Omnigent source pin is `be042b390e293a8d586cbb7e403a2ce0ce38fc62`, installed in a separate environment. Normal server, runner, MCP, browser, restart, and spending-policy fixtures have run. The current turn can exceed the configured budget threshold; the next turn is blocked. This is not an exact provider billing cap.
 - The independent evaluator is maintained in this package under `evaluation/`, with twenty authored development cases and verified Omnigent usage-file support. It derives source usefulness from independent requirements. Authored cases are not human-reviewed cases, and fixtures do not establish model performance.
@@ -85,8 +85,11 @@ Owner: `/root`; `in_progress` on `docs/complete-historical-reviews`, based on
 PR #18 head `8fab9199eeb0b9e03fd99643e896f8b93f14ad8a`. The previous goal turn
 made progress: all 25 original files restored exactly, the 1,463-test required
 suite passed, and three checkpoint commits plus PR #18 were published.
-Current PR #18 run `34725093128` is pending while the older required job in
-`34725081916` is still active; do not restart either from an observation timeout.
+PR #18 run `34725093128` now passes both jobs at exact head `8fab919`: 1,463
+required tests with zero skips in 420.07 seconds, and 1,431 ordinary tests with
+32 expected optional-runtime skips in 295.66 seconds. The older run is cancelled.
+The successful runtime log is `/tmp/rh-pr18-runtime-ci-20260912.log`, SHA-256
+`e69c76e49536a5ea6fb624629578193eda76944ff5859c1a1aa4a9b94cb4a640`.
 
 RW-5 still covers only one representative derived archive. The baseline contains
 11 regular-member tar archives and two gzip JSON request captures. The largest
@@ -107,6 +110,58 @@ new review files, archive member verification and a fresh extraction scan, with
 all limitations recorded. A derived copy cannot reproduce an audit that requires
 omitted private inputs or resume an original budgeted run.
 
+
+Local handoff: [recipe commit `c5efe82`](https://github.com/Madhavan113/researchharness/commit/c5efe824742bd6f9550b4e07d021d2831a005656)
+prepares all **150 Git files / 27,209,764 original bytes** from baseline `b58bf44`.
+The first export correctly refused 544 nested gzip snapshots; that private
+partial output remains at `/tmp/rh-rw5-all-review-20260912`. The completed recipe
+uses a fresh tree, decodes all 31 distinct nested payloads at each of their 544
+recorded locations, and retains directory metadata and original container/member
+hashes. No archive is executed, omitted or rewritten. A separate byte comparison
+checks every Git original, all 14,576 outer tar members, all nested containers
+and all 15,395 resulting leaf files against the private prepared tree.
+
+The [complete review checkpoint](../../examples/evaluation/evidence/historical-review-all-2026-09-12/README.md)
+records exact commands, file counts and report hashes. Private inputs are at
+`/tmp/rh-rw5-all-originals-recursive-20260912`; the complete derived review is at
+`/tmp/rh-rw5-all-review-recursive-20260912`. Source-bound verification passes
+15,396 files including provenance: **124 changed, 15,272 byte-identical**.
+All forty binary files remain intact. The review manifest SHA-256 is
+`fd9946eb4819ccd5f200ce9b42a0097feb900b5b771579d6e3f2a8b5bb2a3255`;
+the original-input provenance SHA-256 is
+`1e4d3d884f712b1ae2b8ea1740c029ba727749bd8a579c020db4a79750b321e8`.
+
+The complete package at `/tmp/rh-rw5-all-package-20260912` has **15,397 members /
+140,767,556 expanded bytes**. Archive: 24,371,182 bytes, SHA-256
+`68f005af1e2107dbcc1ee3a7666cf01262ed82451c7dd29be8970617fee040f0`.
+Inventory: 603,906 bytes, SHA-256
+`1a541a21ee8d86bc6d55229410850ea9342ca7e34cb57675590af99ea6011c3a`.
+A separate CLI verification passes every member. A fresh private extraction at
+`/tmp/rh-rw5-all-extracted-review-20260912` rechecks every file hash, normalized
+tar host metadata, zero configured identity matches and all nine JUnit reports
+with no hostname. This covers the full historical baseline; it is not a general
+secrets detector, third-party review, a relocated ledger or a new model result.
+
+The reproducible input recipe and small index/acceptance/verification summaries
+are committed; complete payloads remain outside Git. The intended release tag is
+`evidence-historical-review-all-2026-09-12`, still `availability: prepared`.
+RW-5 local content checks are complete; RW-5/RW-6 delivery remains open pending
+public release approval and a verified download. Next: publish the small metadata
+PR, inspect its checks, and await the publication decision. Do not infer consent
+from elapsed time or the prior authorization to commit/open PRs.
+
+Provider prerequisites were rechecked: no configured `OPENAI_API_KEY` or project
+`.env`, budget authorization still `draft` with no reference, and all twenty
+development cases remain `authored`. Private held-out packages were not opened or edited.
+The broader goal remains active; reviewed cases, provider access, spending
+approval, live compatibility and measured baseline/search/final are unfinished.
+
+Final local checks: Ruff lint/format pass for 117 files including the recipe;
+381 local Markdown targets resolve, current evidence has zero operator-home
+matches, and `git diff --check` passes. Retention validates 21 checkpoints and
+all 25 historical references. The new checkpoint totals 21,463 bytes. Production
+source, tests and dependency pins are unchanged from PR #18; no additional
+local runtime suite is claimed for this evidence-preparation checkpoint.
 
 ### September 12, 2026 — Historical evidence reference migration ownership
 

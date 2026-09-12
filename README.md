@@ -109,6 +109,9 @@ remain unchanged in their pinned Git revision; the
 [restoration command](docs/evidence-retention.md#restore-exact-historical-originals)
 retrieves them into a private directory with exact hash checks. Prepared release
 assets are not yet published.
+The [complete historical review checkpoint](examples/evaluation/evidence/historical-review-all-2026-09-12/README.md)
+verifies all baseline evidence, including nested Omnigent snapshots, and provides
+a reproducible recipe and a hash-bound index for its prepared assets.
 
 ## Product research
 

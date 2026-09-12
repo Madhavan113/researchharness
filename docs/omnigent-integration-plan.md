@@ -12,8 +12,9 @@ Historical archives and identity-bearing files are referenced at their original
 Git revision and can be restored with exact byte/hash verification. This keeps
 original runtime proofs intact; it does not erase public history or establish
 release availability. The [portable review exporter](portable-evidence.md)
-creates separately labelled derived copies. Repository-wide review exports and
-the first external asset upload/download remain unfinished.
+creates separately labelled derived copies. A complete historical-baseline review
+is now prepared and verified, including nested Omnigent snapshots. The first
+external asset upload/download remains unfinished.
 
 The first deliverable is one complete workflow: a user supplies a research brief, the agent discovers and tests sources, the backend produces a validated pipeline proposal, and the user can request collection, inspect the evidence, and return to the case later.
 
