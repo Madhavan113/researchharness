@@ -7,7 +7,7 @@ from threading import Barrier
 
 import httpx
 import pytest
-from openai import OpenAI
+from openai import BadRequestError, OpenAI
 
 from research_harness.evaluation.budget import (
     AuthorizationRecord,
@@ -87,6 +87,56 @@ def payload(**overrides):
     }
 
 
+def test_sdk_retry_after_lost_response_cannot_dispatch_or_reserve_again(tmp_path):
+    budget = make_budget(tmp_path)
+    sent = []
+
+    def upstream(request):
+        sent.append(request)
+        return httpx.Response(200, json=provider_response())
+
+    class LoseFirstResponse(httpx.HTTPTransport):
+        attempts = 0
+
+        def handle_request(self, request):
+            self.attempts += 1
+            response = super().handle_request(request)
+            if self.attempts == 1:
+                response.read()
+                response.close()
+                raise httpx.ReadError("Authored loss after provider completion", request=request)
+            return response
+
+    output = tmp_path / "gateway"
+    with httpx.Client(transport=httpx.MockTransport(upstream)) as client:
+        with ResponsesGateway(
+            output,
+            model=MODEL,
+            settings=SETTINGS,
+            binding=BINDING,
+            upstream_base_url=budget.policy.upstream_base_url,
+            client=client,
+            dispatch_budget=budget,
+        ) as proxy:
+            transport = LoseFirstResponse(retries=0, trust_env=False)
+            with OpenAI(
+                base_url=proxy.base_url,
+                api_key=proxy.api_key,
+                max_retries=2,
+                http_client=httpx.Client(transport=transport),
+            ) as sdk:
+                with pytest.raises(BadRequestError, match="automatic_retry_rejected"):
+                    sdk.responses.create(**payload())
+            assert transport.attempts == 2
+            assert len(sent) == proxy.report()["upstream_requests"] == 1
+    report = budget.reconcile_archive(output / "archive.json")
+    assert report["archive_valid"], report["errors"]
+    assert report["accounting"]["held_nanodollars"] == 0
+    rows = budget.ledger.snapshot()["reservations"]
+    assert len(rows) == 1
+    assert next(iter(rows.values()))["status"] == "settled"
+
+
 def provider_response(*, status="completed", **overrides):
     return {
         "id": "response-fixture-1",
@@ -105,7 +155,17 @@ def provider_response(*, status="completed", **overrides):
     }
 
 
-def make_archive(path, budget, *, response=None, failure=None, before_build=None, request_count=1):
+def make_archive(
+    path,
+    budget,
+    *,
+    response=None,
+    failure=None,
+    before_build=None,
+    request_count=1,
+    clock=None,
+    on_gateway=None,
+):
     dispatched = []
 
     def upstream(request):
@@ -130,7 +190,10 @@ def make_archive(path, budget, *, response=None, failure=None, before_build=None
             upstream_base_url=budget.policy.upstream_base_url,
             client=client,
             dispatch_budget=budget,
+            **({"clock": clock} if clock is not None else {}),
         ) as proxy:
+            if on_gateway is not None:
+                on_gateway(proxy)
             for _ in range(request_count):
                 result = httpx.post(
                     proxy.base_url + "/responses",
@@ -481,6 +544,45 @@ def test_verified_failure_before_dispatch_can_release_without_replay(tmp_path):
         budget.mark_dispatched(row["operation_id"])
 
 
+@pytest.mark.parametrize("denial", ["deadline", "closing", "policy"])
+def test_acknowledged_reservation_survives_later_admission_denial(tmp_path, monkeypatch, denial):
+    budget = make_budget(tmp_path)
+    now, gateways = [0.0], []
+    reserve = budget.reserve
+
+    def deny_after_reserve(request_id, request_sha256):
+        row = reserve(request_id, request_sha256)
+        if denial == "deadline":
+            now[0] = budget.settings.deadline_seconds + 1
+        elif denial == "closing":
+            gateways[0]._closing.set()
+        else:
+            gateways[0]._budget_violation = "fixture policy rejection"
+        return row
+
+    monkeypatch.setattr(budget, "reserve", deny_after_reserve)
+    archive, response, sent = make_archive(
+        tmp_path / "gateway", budget, clock=lambda: now[0], on_gateway=gateways.append
+    )
+    assert response.status_code >= 400 and not sent
+    before = archive.read_bytes()
+    record = json.loads((archive.parent / "request-0001/record.json").read_bytes())
+    assert record["budget_operation_id"] == f"{BINDING.execution_id}/request-0001"
+    assert record["budget_reservation_pending"] is False
+    report = budget.reconcile_archive(archive)
+    if denial == "policy":
+        # A gateway-wide policy violation invalidates the archive. Keep the
+        # acknowledged binding for recovery, but do not free funds from it.
+        assert not report["archive_valid"]
+        assert report["accounting"]["held_nanodollars"] == 120_000
+        return
+    assert report["archive_valid"], report["errors"]
+    assert report["operations"] == {f"{BINDING.execution_id}/request-0001": "released"}
+    assert report["accounting"]["held_nanodollars"] == 0
+    assert archive.read_bytes() == before
+    assert budget.reconcile_archive(archive) == report
+
+
 def test_pending_dispatch_marker_holds_even_when_no_http_dispatch_was_observed(
     tmp_path, monkeypatch
 ):
@@ -701,6 +803,7 @@ def test_terminal_operation_without_archived_reservation_is_inconsistent(tmp_pat
     budget = make_budget(tmp_path)
     archive, _, _ = make_archive(tmp_path / "gateway", budget)
     extra = budget.reserve("request-0002", digest("unarchived request"))
+    budget.ledger.mark_dispatched(extra["operation_id"])
     budget.ledger.settle(
         extra["operation_id"],
         input_tokens=1,

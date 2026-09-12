@@ -13,6 +13,7 @@ from urllib.parse import urlsplit
 
 import httpx
 import pytest
+from openai import APIStatusError, OpenAI
 
 from research_harness.execution import DiscoverySettings, GatewayBinding
 from research_harness.integrations.model_gateway import ResponsesGateway
@@ -60,6 +61,46 @@ def gateway(tmp_path, handler, **kwargs):
         client=client,
         **kwargs,
     )
+
+
+@pytest.mark.parametrize("failure", [429, 500, "transport"])
+def test_sdk_does_not_retry_gateway_or_provider_errors(tmp_path, failure):
+    received = []
+
+    def upstream(request):
+        received.append(request)
+        if failure == "transport":
+            raise httpx.ReadError("Authored upstream connection failure")
+        return httpx.Response(
+            failure,
+            json={"error": {"message": "Authored provider error", "type": "fixture_error"}},
+            headers={"x-should-retry": "true"},
+        )
+
+    with gateway(tmp_path, upstream) as proxy:
+        with OpenAI(base_url=proxy.base_url, api_key=proxy.api_key, max_retries=2) as sdk:
+            with pytest.raises(APIStatusError) as raised:
+                sdk.responses.create(model=MODEL, input="Research")
+        assert raised.value.status_code == (502 if failure == "transport" else failure)
+        assert raised.value.response.headers["x-should-retry"] == "false"
+        assert len(received) == proxy.report()["upstream_requests"] == 1
+        assert len(proxy.report()["requests"]) == 1
+
+
+@pytest.mark.parametrize("retry_headers", [["1"], ["7"], ["-1"], [""], ["0, 1"], ["0", "0"]])
+def test_sdk_retry_headers_are_rejected_before_admission(tmp_path, retry_headers):
+    with gateway(tmp_path, lambda request: pytest.fail("Retry reached provider")) as proxy:
+        result = httpx.post(
+            proxy.base_url + "/responses",
+            json={"model": MODEL, "input": "Research"},
+            headers=[("Authorization", "Bearer " + proxy.api_key)]
+            + [("x-stainless-retry-count", value) for value in retry_headers],
+        )
+        assert result.status_code == 400
+        assert result.json()["error"]["code"] == "automatic_retry_rejected"
+        report = proxy.report()
+        assert report["upstream_requests"] == report["reserved_attempts"] == 0
+        assert report["requests"][0]["sdk_retry_headers"] == retry_headers
 
 
 def test_exact_forwarding_controls_and_function_allowlist_are_recorded(tmp_path):

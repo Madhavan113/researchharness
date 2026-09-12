@@ -8,6 +8,8 @@ window; it does not infer token counts from characters or encrypted reasoning.
 
 from __future__ import annotations
 
+import argparse
+import json
 import re
 from copy import deepcopy
 from decimal import Decimal
@@ -17,7 +19,13 @@ from typing import Any, Literal
 from pydantic import ConfigDict, Field, model_validator
 
 from research_harness.config import StrictModel
-from research_harness.evaluation.budget import AuthorizationRecord, BudgetLedger, CancellationProof
+from research_harness.evaluation.budget import (
+    AuthorizationRecord,
+    BudgetLedger,
+    CancellationProof,
+    ProviderAccountingConfirmation,
+    ProviderAccountingSettlement,
+)
 from research_harness.execution import DiscoverySettings, GatewayBinding
 from research_harness.util import canonical_json
 
@@ -415,6 +423,68 @@ class DispatchBudget:
             expected_budget_control=self.metadata(),
         )
 
+    def _accounting_proof(
+        self, request: dict, confirmation: ProviderAccountingConfirmation
+    ) -> ProviderAccountingSettlement:
+        error = request.get("provider_error")
+        if (
+            not error
+            or request.get("status") != "unknown"
+            or request.get("usage") is not None
+            or request.get("dispatched") is not True
+            or request.get("budget_dispatch_marked") is not True
+            or request.get("budget_dispatch_pending") is not False
+            or request.get("budget_reservation_pending") is not False
+            or error["provider_request_id"] != confirmation.provider_request_id
+        ):
+            raise ValueError("Accounting confirmation lacks a matching sealed provider error")
+        operation_id = self._operation_id(request["request_id"])
+        if request.get("budget_operation_id") != operation_id:
+            raise ValueError("Accounting error has no acknowledged operation binding")
+        return ProviderAccountingSettlement(
+            kind="operator_reviewed_provider_accounting_v1",
+            operation_id=operation_id,
+            request_sha256=request["request_sha256"],
+            evidence_sha256=request["evidence_sha256"],
+            http_status=error["http_status"],
+            confirmation=confirmation,
+        )
+
+    def record_provider_accounting(
+        self, archive_path: Path, request_id: str, *, confirmation: ProviderAccountingConfirmation
+    ) -> dict[str, Any]:
+        """Record operator-reviewed external cost for a verified, sealed error.
+
+        No provider work is replayed and unknown usage is never manufactured.
+        The host operator must authenticate and review the retained source.
+        """
+        confirmation = ProviderAccountingConfirmation.model_validate(confirmation)
+        verified = self._verify_archive(archive_path)
+        with self.ledger.lock:
+            consistency = self._archive_consistency(verified, self.ledger.snapshot())
+            if consistency["status"] != "consistent":
+                raise ValueError("Provider accounting requires consistent sealed budget evidence")
+            request = next(
+                (
+                    item
+                    for item in verified["verified_requests"]
+                    if item["request_id"] == request_id
+                ),
+                None,
+            )
+            if request is None:
+                raise ValueError("No matching archived request for provider accounting")
+            proof = self._accounting_proof(request, confirmation)
+            row = self.ledger.record_provider_accounting(proof.operation_id, proof=proof)
+            return {
+                "status": "accounted",
+                "operation": row,
+                "accounting": self.ledger.snapshot()["accounting"],
+                "token_usage_known": False,
+                "evidence_origin": "operator_reviewed_provider_confirmation",
+                "provider_authenticity_verified_by_software": False,
+            }
+
     def _archive_consistency(self, verified: dict, snapshot: dict) -> dict[str, Any]:
         errors = list(verified["errors"])
         required = []
@@ -478,6 +548,23 @@ class DispatchBudget:
                 errors.append(f"{operation_id}: ledger lost its archived dispatch marker")
 
             if row.get("status") == "settled":
+                existing = row.get("settlement") or {}
+                if existing.get("kind") == "operator_reviewed_provider_accounting_v1":
+                    try:
+                        confirmation = ProviderAccountingConfirmation.model_validate(
+                            existing["confirmation"]
+                        )
+                        proof = self._accounting_proof(request, confirmation)
+                        if (
+                            existing != proof.model_dump(mode="json")
+                            or row.get("charged_nanodollars") != confirmation.cost_nanodollars()
+                        ):
+                            raise ValueError("Accounting binding or charge differs")
+                    except (ValueError, KeyError, TypeError) as exc:
+                        errors.append(
+                            f"{operation_id}: provider accounting differs from sealed evidence: {exc}"
+                        )
+                    continue
                 usage = request.get("usage")
                 if request["status"] != "complete" or not usage:
                     errors.append(
@@ -639,3 +726,54 @@ class DispatchBudget:
             "operations": outcomes,
             "accounting": self.ledger.snapshot()["accounting"],
         }
+
+
+def main(argv: list[str] | None = None) -> None:
+    parser = argparse.ArgumentParser(
+        description="Record reviewed external accounting for a sealed provider error; never replay work"
+    )
+    commands = parser.add_subparsers(dest="command", required=True)
+    record = commands.add_parser("record-provider-accounting")
+    record.add_argument("ledger", type=Path, help="Existing shared budget ledger")
+    record.add_argument("archive", type=Path, help="Sealed gateway directory or archive.json")
+    record.add_argument("request_id", help="Gateway request-NNNN to reconcile")
+    record.add_argument(
+        "--confirmation",
+        type=Path,
+        required=True,
+        help="Operator-reviewed ProviderAccountingConfirmation JSON",
+    )
+    args = parser.parse_args(argv)
+    try:
+        confirmation = ProviderAccountingConfirmation.model_validate_json(
+            args.confirmation.read_bytes()
+        )
+        ledger = BudgetLedger.open_existing(args.ledger)
+        root = args.archive if args.archive.is_dir() else args.archive.parent
+        metadata = json.loads((root / "gateway.json").read_bytes())
+        control = metadata["budget_control"]
+        adapter = DispatchBudget(
+            ledger,
+            policy=DispatchPolicy.model_validate(control["policy"]),
+            binding=GatewayBinding.model_validate(metadata["binding"]),
+            settings=DiscoverySettings.model_validate(metadata["discovery_settings"]),
+            authorization=AuthorizationRecord.model_validate(control["authorization"]),
+        )
+        if adapter.metadata() != control:
+            raise ValueError("Recorded gateway controls differ from the retained ledger")
+        print(
+            json.dumps(
+                adapter.record_provider_accounting(
+                    args.archive,
+                    args.request_id,
+                    confirmation=confirmation,
+                ),
+                indent=2,
+            )
+        )
+    except (ValueError, OSError, KeyError, TypeError) as exc:
+        parser.error(str(exc))
+
+
+if __name__ == "__main__":
+    main()

@@ -70,6 +70,34 @@ def prepare(tmp_path, setup, *, name="search", config=None):
     return BudgetedSearchRun(tmp_path / name)
 
 
+def test_search_resumes_failed_first_registry_write_without_replacing_ledger(
+    tmp_path, setup, monkeypatch
+):
+    from research_harness import util
+
+    atomic_write = util.atomic_write
+
+    def fail_registry(path, *args, **kwargs):
+        if str(path).endswith(".pilots.json"):
+            raise OSError("Authored initial registry write failure")
+        return atomic_write(path, *args, **kwargs)
+
+    with monkeypatch.context() as patch:
+        patch.setattr(util, "atomic_write", fail_registry)
+        with pytest.raises(OSError, match="registry write failure"):
+            prepare(tmp_path, setup)
+    ledger_path = tmp_path / "shared-budget.json"
+    before = ledger_path.read_bytes()
+    run = prepare(tmp_path, setup, name="recovered-search")
+    assert ledger_path.read_bytes() == before
+    assert (
+        str(tmp_path / "recovered-search")
+        in read(Path(str(ledger_path) + ".pilots.json"))["searches"]
+    )
+    assert run.ledger.snapshot()["accounting"]["held_nanodollars"] == 0
+    assert not Path(str(ledger_path) + ".initializing.json").exists()
+
+
 def install_runtime(monkeypatch, *, interrupt=False):
     class RuntimeFixture:
         def __init__(self, **options):
@@ -289,6 +317,55 @@ def test_unknown_response_retains_hold_and_does_not_replay(tmp_path, setup, monk
     assert run.status()["budget"]["held_nanodollars"] == 327000000 and len(seen) == 1
 
 
+def test_search_accepts_reviewed_error_accounting_without_replaying_or_leaking_it(
+    tmp_path, setup, monkeypatch
+):
+    from test_provider_accounting import accounting_cli, confirmation, retained_files
+
+    install_runtime(monkeypatch)
+    run = prepare(tmp_path, setup)
+    sent = []
+
+    def provider_error(task, request):
+        sent.append(request)
+        return httpx.Response(
+            429,
+            json={"error": {"message": "Authored provider error"}},
+            headers={"x-request-id": "req_search_error"},
+        )
+
+    with pytest.raises(ValueError, match="baseline"):
+        run.run(
+            omnigent_python=Path("unit-fixture"),
+            research_handler=provider_error,
+            proposer_handler=provider_error,
+        )
+    assert run.status()["budget"]["held_nanodollars"] == 327000000
+    comparison = run.root / "comparisons/baseline"
+    case_id = read(comparison / "comparison.json")["case_ids"][0]
+    archive = comparison / "direct/cases" / case_id / "gateway/archive.json"
+    saved = retained_files(archive.parent)
+    feedback = retained_files(tmp_path / "search-feedback")
+    proof = tmp_path / "confirmation.json"
+    write_json(proof, confirmation("req_search_error", "0.000003").model_dump(mode="json"))
+    result = accounting_cli(run.ledger.path, archive, proof)
+    assert result.returncode == 0, result.stderr
+    reopened = BudgetedSearchRun(run.root)
+    reopened.reconcile()
+    assert reopened.status()["budget"]["held_nanodollars"] == 0
+    assert reopened.status()["budget"]["settled_nanodollars"] == 3000
+    with pytest.raises(ValueError, match="baseline"):
+        reopened.run(
+            omnigent_python=Path("unit-fixture"),
+            research_handler=provider_error,
+            proposer_handler=provider_error,
+        )
+    assert len(sent) == 1
+    assert retained_files(archive.parent) == saved
+    assert retained_files(tmp_path / "search-feedback") == feedback
+    assert not any(b"fixture-support-case-1" in value for value in feedback.values())
+
+
 def test_recovery_attaches_surviving_gateway_under_controller_lock(tmp_path, setup, monkeypatch):
     install_runtime(monkeypatch, interrupt=True)
     run = prepare(tmp_path, setup)
@@ -331,7 +408,7 @@ def test_registry_and_ledger_are_required_on_reopen(tmp_path, setup):
     run.ledger.path.unlink()
     with pytest.raises(ValueError, match="missing"):
         BudgetedSearchRun(run.root)
-    with pytest.raises(ValueError, match="both exist"):
+    with pytest.raises(ValueError, match="Registered shared ledger is missing"):
         prepare(tmp_path, setup, name="another")
 
 

@@ -3,12 +3,13 @@
 Rates, token bounds and authorization records are supplied by the caller. This
 module neither verifies user approval nor grants permission to dispatch work.
 Its bounds cover the supplied token rates, not invoices, taxes or other fees.
-The future dispatcher must enforce the reserved input/output token bounds and
+The dispatcher must enforce the reserved input/output token bounds and
 verify usage evidence independently before settling an operation.
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 import os
 from datetime import date
@@ -159,6 +160,58 @@ class _Settlement(StrictModel):
         return self
 
 
+class ProviderAccountingConfirmation(StrictModel):
+    """An operator's reviewed transcription of retained external evidence.
+
+    This validates consistency, not the provider's authenticity or the identity
+    of the reviewer. Never derive it from absent usage or an agent assertion.
+    """
+
+    model_config = ConfigDict(extra="forbid", frozen=True, revalidate_instances="always")
+    provider_request_id: str = Field(pattern=r"^[!-~]{1,200}$")
+    confirmed_cost_usd: Decimal
+    currency: Literal["usd"]
+    final_charge_confirmed: StrictBool
+    reference: str = Field(min_length=1, max_length=2000)
+    reviewed_by: str = Field(min_length=1, max_length=200)
+    provider_evidence: str = Field(min_length=1, max_length=65536)
+    provider_evidence_sha256: str = Field(pattern=SHA256)
+
+    @field_validator("confirmed_cost_usd", mode="before")
+    @classmethod
+    def exact_cost(cls, value):
+        return _money(value)
+
+    @model_validator(mode="after")
+    def reviewed_confirmation(self):
+        if (
+            not self.final_charge_confirmed
+            or not self.reference.strip()
+            or not self.reviewed_by.strip()
+            or not self.provider_evidence.strip()
+            or self.provider_request_id not in self.provider_evidence
+            or digest(self.provider_evidence.encode("utf-8")) != self.provider_evidence_sha256
+        ):
+            raise ValueError("Accounting requires a reviewed, retained final-charge confirmation")
+        return self
+
+    def cost_nanodollars(self) -> int:
+        value = Fraction(self.confirmed_cost_usd) * NANODOLLARS
+        return (value.numerator + value.denominator - 1) // value.denominator
+
+
+class ProviderAccountingSettlement(StrictModel):
+    """Separate accounting evidence; it deliberately has no token counters."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True, revalidate_instances="always")
+    kind: Literal["operator_reviewed_provider_accounting_v1"]
+    operation_id: str = Field(min_length=1, max_length=200)
+    request_sha256: str = Field(pattern=SHA256)
+    evidence_sha256: str = Field(pattern=SHA256)
+    http_status: StrictInt = Field(ge=400, le=599)
+    confirmation: ProviderAccountingConfirmation
+
+
 class _Reservation(StrictModel):
     operation_id: str = Field(min_length=1, max_length=200)
     request_sha256: str = Field(pattern=SHA256)
@@ -170,7 +223,7 @@ class _Reservation(StrictModel):
     dispatched_at: str | None = None
     finished_at: str | None = None
     hold_reasons: list[str] = Field(default_factory=list)
-    settlement: _Settlement | None = None
+    settlement: _Settlement | ProviderAccountingSettlement | None = None
     cancellation: CancellationProof | None = None
 
 
@@ -192,6 +245,27 @@ class _Journal(StrictModel):
     @classmethod
     def exact_ceiling(cls, value):
         return _money(value)
+
+
+class _Initialization(StrictModel):
+    schema_version: Literal[1]
+    ledger_path: str
+    ledger_sha256: str = Field(pattern=SHA256)
+    ledger: _Journal
+
+
+def _sync_directory(path: Path) -> None:
+    descriptor = os.open(path, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0))
+    try:
+        os.fsync(descriptor)
+    finally:
+        os.close(descriptor)
+
+
+def _persist(path: Path, data: Any) -> None:
+    write_json(path, data)
+    # atomic_write fsyncs the file; persist the renamed directory entry too.
+    _sync_directory(path.parent)
 
 
 def model_budget_plan(
@@ -245,35 +319,142 @@ class BudgetLedger:
         rates: RateCard,
         ceiling_usd: Decimal | str | int,
         authorization: AuthorizationRecord | None = None,
+        create: bool = True,
     ):
+        self._configure(path, rates, ceiling_usd)
+        if create:
+            self.path.parent.mkdir(parents=True, exist_ok=True)
+        with self.lock:
+            if self.path.exists():
+                self._check_authorization(self._load(), authorization)
+            else:
+                if not create:
+                    raise ValueError(
+                        "Existing budget ledger is missing; never recreate spent funds"
+                    )
+                self._write(self._initial_state(authorization))
+
+    def _configure(self, path: Path, rates: RateCard, ceiling_usd: Decimal | str | int) -> None:
         self.path = Path(path).resolve()
         self.rates = RateCard.model_validate(rates)
         self.ceiling_usd = _money(ceiling_usd)
         self.ceiling_nanodollars = _ceiling_nanodollars(self.ceiling_usd)
-        self.path.parent.mkdir(parents=True, exist_ok=True)
         self.lock = FileLock(str(self.path) + ".lock", timeout=30)
-        with self.lock:
-            if self.path.exists():
-                state = self._load()
-                if (
-                    authorization is not None
-                    and authorization != state.authorization_history[-1].record
-                ):
-                    raise ValueError("Authorization metadata changed; record it explicitly")
-            else:
-                self._write(
-                    _Journal(
-                        rates=self.rates,
-                        rates_sha256=self.rates.fingerprint(),
-                        ceiling_usd=self.ceiling_usd,
-                        ceiling_nanodollars=self.ceiling_nanodollars,
-                        authorization_history=[
-                            _AuthorizationEvent(
-                                at=timestamp(), record=authorization or AuthorizationRecord()
-                            )
-                        ],
-                    )
+
+    def _initial_state(self, authorization: AuthorizationRecord | None) -> _Journal:
+        return _Journal(
+            rates=self.rates,
+            rates_sha256=self.rates.fingerprint(),
+            ceiling_usd=self.ceiling_usd,
+            ceiling_nanodollars=self.ceiling_nanodollars,
+            authorization_history=[
+                _AuthorizationEvent(at=timestamp(), record=authorization or AuthorizationRecord())
+            ],
+        )
+
+    @staticmethod
+    def _check_authorization(state: _Journal, authorization: AuthorizationRecord | None) -> None:
+        if authorization is not None and authorization != state.authorization_history[-1].record:
+            raise ValueError("Authorization metadata changed; record it explicitly")
+
+    @classmethod
+    def prepare_registered(
+        cls,
+        path: Path,
+        *,
+        rates: RateCard,
+        ceiling_usd: Decimal | str | int,
+        authorization: AuthorizationRecord | None = None,
+    ) -> BudgetLedger:
+        """Complete a recorded initial ledger/registry pair before preparing any run.
+
+        The intent contains the exact empty ledger, never a replacement for an
+        established balance. Callers still verify all registered run evidence.
+        """
+        book = cls.__new__(cls)
+        book._configure(path, rates, ceiling_usd)
+        book.path.parent.mkdir(parents=True, exist_ok=True)
+        registry = Path(str(book.path) + ".pilots.json")
+        intent_path = Path(str(book.path) + ".initializing.json")
+        empty_registry = {"schema_version": 1, "pilots": {}}
+        with book.lock:
+            if registry.is_symlink() or intent_path.is_symlink():
+                raise ValueError("Budget registry and initialization intent cannot be symlinks")
+            if not intent_path.exists():
+                if book.path.exists() or registry.exists():
+                    if not book.path.is_file():
+                        raise ValueError(
+                            "Registered shared ledger is missing; never recreate spent funds"
+                        )
+                    if not registry.is_file():
+                        raise ValueError(
+                            "Existing shared budget ledger has no pilot registry; do not reset it"
+                        )
+                    book._check_authorization(book._load(), authorization)
+                    # A prior cleanup may have removed the intent and then
+                    # failed its directory fsync. Make the surviving pair
+                    # durable before admitting preparation on this path.
+                    _sync_directory(book.path.parent)
+                    return book
+                initial = book._initial_state(authorization)
+                _persist(
+                    intent_path,
+                    _Initialization(
+                        schema_version=1,
+                        ledger_path=str(book.path),
+                        ledger=initial,
+                        ledger_sha256=digest(canonical_json(initial.model_dump(mode="json"))),
+                    ).model_dump(mode="json"),
                 )
+            raw_intent = json.loads(intent_path.read_bytes())
+            if (
+                not isinstance(raw_intent, dict)
+                or type(raw_intent.get("schema_version")) is not int
+            ):
+                raise ValueError("Invalid initialization schema version")
+            intent = _Initialization.model_validate(raw_intent)
+            initial = intent.ledger
+            book._validate(initial)
+            book._check_authorization(initial, authorization)
+            if (
+                intent.ledger_path != str(book.path)
+                or initial.reservations
+                or len(initial.authorization_history) != 1
+                or digest(canonical_json(raw_intent["ledger"])) != intent.ledger_sha256
+                or digest(canonical_json(initial.model_dump(mode="json"))) != intent.ledger_sha256
+            ):
+                raise ValueError("Invalid empty-ledger initialization evidence")
+            # Validate both surviving files before creating either missing file.
+            # Changed authorization, any spending or registered run ends the
+            # right to recover from this empty-state intent.
+            if (
+                book.path.exists()
+                and digest(canonical_json(json.loads(book.path.read_bytes())))
+                != intent.ledger_sha256
+            ):
+                raise ValueError("Ledger changed since initialization; preserve its existing state")
+            if registry.exists() and canonical_json(
+                json.loads(registry.read_bytes())
+            ) != canonical_json(empty_registry):
+                raise ValueError(
+                    "Registry changed since initialization; preserve its existing state"
+                )
+            if not book.path.exists():
+                book._write(initial)
+            if not registry.exists():
+                _persist(registry, empty_registry)
+            intent_path.unlink()
+            _sync_directory(book.path.parent)
+        return book
+
+    @classmethod
+    def open_existing(cls, path: Path) -> BudgetLedger:
+        """Read retained terms and validate under lock without ever creating a ledger."""
+        path = Path(path).resolve()
+        state = _Journal.model_validate_json(path.read_bytes())
+        # The constructor re-reads and validates under its lock. A file lost or
+        # replaced between these reads cannot become a new spending balance.
+        return cls(path, rates=state.rates, ceiling_usd=state.ceiling_usd, create=False)
 
     def _validate(self, state: _Journal) -> None:
         if (
@@ -283,6 +464,7 @@ class BudgetLedger:
             or state.ceiling_nanodollars != self.ceiling_nanodollars
         ):
             raise ValueError("Budget ceiling or immutable rate card differs from the journal")
+        accounted_provider_ids = set()
         for key, row in state.reservations.items():
             expected = self.rates.cost_nanodollars(
                 self.rates.max_input_tokens_per_request, row.max_output_tokens
@@ -291,14 +473,25 @@ class BudgetLedger:
                 raise ValueError("Invalid reservation identity or reserved amount")
             if row.status == "settled":
                 usage = row.settlement
-                if (
-                    usage is None
-                    or row.cancellation is not None
-                    or usage.input_tokens > self.rates.max_input_tokens_per_request
-                    or usage.output_tokens > row.max_output_tokens
-                ):
+                if usage is None or row.dispatched_at is None or row.cancellation is not None:
                     raise ValueError("Invalid settled usage or token bound")
-                charge = self.rates.cost_nanodollars(usage.input_tokens, usage.output_tokens)
+                if isinstance(usage, ProviderAccountingSettlement):
+                    provider_id = usage.confirmation.provider_request_id
+                    if (
+                        usage.operation_id != row.operation_id
+                        or usage.request_sha256 != row.request_sha256
+                        or provider_id in accounted_provider_ids
+                    ):
+                        raise ValueError("Invalid or duplicate provider accounting binding")
+                    accounted_provider_ids.add(provider_id)
+                    charge = usage.confirmation.cost_nanodollars()
+                else:
+                    if (
+                        usage.input_tokens > self.rates.max_input_tokens_per_request
+                        or usage.output_tokens > row.max_output_tokens
+                    ):
+                        raise ValueError("Invalid settled usage or token bound")
+                    charge = self.rates.cost_nanodollars(usage.input_tokens, usage.output_tokens)
             elif row.status == "released":
                 if (
                     row.cancellation is None
@@ -329,14 +522,7 @@ class BudgetLedger:
 
     def _write(self, state: _Journal) -> None:
         self._validate(state)
-        write_json(self.path, state.model_dump(mode="json"))
-        # atomic_write fsyncs the new file; persist the renamed directory entry
-        # too, so a successful reservation is durable before dispatch proceeds.
-        descriptor = os.open(self.path.parent, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0))
-        try:
-            os.fsync(descriptor)
-        finally:
-            os.close(descriptor)
+        _persist(self.path, state.model_dump(mode="json"))
 
     @staticmethod
     def _row(state: _Journal, operation_id: str) -> _Reservation:
@@ -473,6 +659,8 @@ class BudgetLedger:
                 return row.model_dump(mode="json")
             if row.status == "released":
                 raise ValueError("A released operation cannot be settled")
+            if row.dispatched_at is None:
+                raise ValueError("Settlement requires a durable dispatch marker")
             if (
                 input_tokens > self.rates.max_input_tokens_per_request
                 or output_tokens > row.max_output_tokens
@@ -482,6 +670,35 @@ class BudgetLedger:
                 )
             row.settlement = usage
             row.charged_nanodollars = self.rates.cost_nanodollars(input_tokens, output_tokens)
+            row.status, row.finished_at = "settled", timestamp()
+            self._write(state)
+            return row.model_dump(mode="json")
+
+    def record_provider_accounting(
+        self, operation_id: str, *, proof: ProviderAccountingSettlement
+    ) -> dict[str, Any]:
+        """Retain a host-verified binding and operator-reviewed external charge.
+
+        DispatchBudget must independently check the sealed error request first.
+        This primitive, like settle(), does not authenticate provider evidence.
+        """
+        proof = ProviderAccountingSettlement.model_validate(proof)
+        with self.lock:
+            state = self._load()
+            row = self._row(state, operation_id)
+            if row.status == "settled":
+                if row.settlement != proof:
+                    raise ValueError("Operation already settled with different accounting evidence")
+                return row.model_dump(mode="json")
+            if row.status == "released" or row.dispatched_at is None:
+                raise ValueError("Provider accounting requires an existing durable dispatch")
+            if proof.operation_id != operation_id or proof.request_sha256 != row.request_sha256:
+                raise ValueError("Provider accounting belongs to another operation or request")
+            charge = proof.confirmation.cost_nanodollars()
+            if charge > row.reserved_nanodollars:
+                raise ValueError("Confirmed charge exceeds the reservation; retain the hold")
+            row.settlement = proof
+            row.charged_nanodollars = charge
             row.status, row.finished_at = "settled", timestamp()
             self._write(state)
             return row.model_dump(mode="json")
@@ -508,3 +725,47 @@ class BudgetLedger:
             row.charged_nanodollars = 0
             self._write(state)
             return row.model_dump(mode="json")
+
+
+def main(argv: list[str] | None = None) -> None:
+    parser = argparse.ArgumentParser(
+        description="Manage retained model-budget authorization metadata"
+    )
+    commands = parser.add_subparsers(dest="command", required=True)
+    authorization = commands.add_parser(
+        "record-authorization",
+        help="Record an external decision without granting spending permission",
+    )
+    authorization.add_argument("ledger", type=Path, help="Existing shared budget ledger")
+    authorization.add_argument(
+        "--authorization",
+        type=Path,
+        required=True,
+        help="JSON AuthorizationRecord containing status and an external decision reference",
+    )
+    args = parser.parse_args(argv)
+    try:
+        record = AuthorizationRecord.model_validate_json(args.authorization.read_bytes())
+        ledger = BudgetLedger.open_existing(args.ledger)
+        with ledger.lock:
+            ledger.record_authorization(record)
+            snapshot = ledger.snapshot()
+            print(
+                json.dumps(
+                    {
+                        key: snapshot[key]
+                        for key in (
+                            "authorization",
+                            "authorization_is_dispatch_permission",
+                            "accounting",
+                        )
+                    },
+                    indent=2,
+                )
+            )
+    except (ValueError, OSError) as exc:
+        parser.error(str(exc))
+
+
+if __name__ == "__main__":
+    main()

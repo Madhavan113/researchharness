@@ -391,7 +391,7 @@ def _budget_record(record: dict, policy: dict | None, seen_operations: set[str])
     reserved = record.get("reserved_attempt_number") is not None
     if policy is None:
         _require(not (names & set(record)), "Unbudgeted request has budget state")
-    elif reserved:
+    elif reserved or operation is not None:
         _require(
             record.get("budget_reservation_pending") is False,
             "Reserved request has uncertain budget reservation",
@@ -657,6 +657,7 @@ def verify_gateway_usage(
         "strategy_sha256": None,
         "strategy_control_verified": False,
         "upstream_transport": None,
+        "sdk_retry_policy": None,
         "budget_settlement_complete": None,
         "cost_usd": None,
         "limitations": [
@@ -687,6 +688,12 @@ def verify_gateway_usage(
             "Unknown gateway upstream transport provenance",
         )
         result["upstream_transport"] = transport
+        retry_policy = gateway.get("sdk_retry_policy")
+        _require(
+            retry_policy is None or retry_policy == "reject_automatic_retries_v1",
+            "Unknown gateway SDK retry policy",
+        )
+        result["sdk_retry_policy"] = retry_policy
         settings = DiscoverySettings.model_validate(gateway.get("discovery_settings"))
         strategy = gateway.get("strategy_control")
         if strategy is not None:
@@ -758,6 +765,7 @@ def verify_gateway_usage(
         verified_requests = []
         budget_operations = set()
         interrupted = False
+        upstream_request_ids = []
         for index, value in enumerate(records, 1):
             record = _dict(value, "Request record")
             identity = f"request-{index:04d}"
@@ -778,6 +786,32 @@ def verify_gateway_usage(
             )
             _require(isinstance(record.get("finished_at"), str), "Request has no finish time")
             _require(
+                ("sdk_retry_headers" in record) == (retry_policy is not None),
+                "SDK retry evidence differs from gateway policy",
+            )
+            if retry_policy is not None:
+                retry_headers = record["sdk_retry_headers"]
+                _require(
+                    isinstance(retry_headers, list)
+                    and all(isinstance(value, str) for value in retry_headers),
+                    "Invalid SDK retry header evidence",
+                )
+                if retry_headers not in ([], ["0"]):
+                    _require(
+                        outcome == "denied"
+                        and record.get("reason") == "automatic_retry_rejected"
+                        and record.get("reserved_attempt_number") is None
+                        and record.get("budget_operation_id") is None
+                        and not record.get("budget_reservation_pending", False)
+                        and not record.get("dispatch_started"),
+                        "Automatic SDK retry was admitted",
+                    )
+                else:
+                    _require(
+                        record.get("reason") != "automatic_retry_rejected",
+                        "SDK retry denial lacks matching header evidence",
+                    )
+            _require(
                 type(record.get("forwarded")) is bool
                 and type(record.get("dispatch_started")) is bool
                 and record["forwarded"] == record["dispatch_started"],
@@ -794,11 +828,24 @@ def verify_gateway_usage(
                     "Budget operation belongs to another execution or request",
                 )
             reservation = record.get("reserved_attempt_number")
+            if reservation is None:
+                _require(
+                    not record["dispatch_started"] and outcome == "denied",
+                    "Unadmitted request reports provider activity",
+                )
+            if budget_state["budget_operation_id"] is not None:
+                _require(
+                    "forwarded_sha256" in record,
+                    "Acknowledged budget reservation lacks its prepared request",
+                )
             if reservation is not None:
                 _require(
                     _count(reservation, "reserved attempt") > 0, "Invalid reserved attempt number"
                 )
                 reserved.append(reservation)
+            if reservation is not None or (
+                budget_policy is not None and "forwarded_sha256" in record
+            ):
                 expected_files.add(prefix + "forwarded.json")
                 raw_forwarded = contents[prefix + "forwarded.json"]
                 _require(
@@ -865,6 +912,7 @@ def verify_gateway_usage(
                 "forwarded_sha256": record.get("forwarded_sha256"),
                 "dispatched": record["dispatch_started"],
                 "usage": None,
+                "provider_error": None,
                 "response_service_tier": None,
                 "status": "unknown" if record["dispatch_started"] else "not_dispatched",
                 "issues": [],
@@ -899,6 +947,11 @@ def verify_gateway_usage(
                 _require(not body, "Undispatched request contains response bytes")
                 verified_requests.append(request_evidence)
                 continue
+            upstream_request_id = record.get("upstream_request_id")
+            if isinstance(upstream_request_id, str) and re.fullmatch(
+                r"[!-~]{1,200}", upstream_request_id
+            ):
+                upstream_request_ids.append(upstream_request_id)
             response, issue = None, "missing_response_headers"
             provider_metadata = {
                 "models": set(),
@@ -985,7 +1038,39 @@ def verify_gateway_usage(
                     request_evidence["usage"] = observation
                     if not request_evidence["issues"]:
                         request_evidence["status"] = "complete"
+            # This identifies evidence an operator can reconcile against a
+            # provider confirmation. It does not make cost or usage known.
+            if (
+                budget_verified
+                and request_evidence["budget_operation_id"] is not None
+                and request_evidence["budget_dispatch_marked"]
+                and not request_evidence["budget_dispatch_pending"]
+                and not request_evidence["budget_reservation_pending"]
+                and outcome == "completed"
+                and type(record.get("upstream_status")) is int
+                and 400 <= record["upstream_status"] <= 599
+                and isinstance(upstream_request_id, str)
+                and re.fullmatch(r"[!-~]{1,200}", upstream_request_id)
+                and "json" in record.get("response_content_type", "").lower()
+                and isinstance(response, dict)
+                and not ({"id", "status", "usage", "output"} & set(response))
+                and isinstance(response.get("error"), dict)
+                and isinstance(response["error"].get("message"), str)
+                and response["error"]["message"].strip()
+                and "nonterminal_response" in request_evidence["issues"]
+                and set(request_evidence["issues"])
+                <= {"nonterminal_response", "missing_response_service_tier"}
+            ):
+                request_evidence["provider_error"] = {
+                    "http_status": record["upstream_status"],
+                    "provider_request_id": upstream_request_id,
+                }
             verified_requests.append(request_evidence)
+        for request in verified_requests:
+            error = request["provider_error"]
+            if error and upstream_request_ids.count(error["provider_request_id"]) != 1:
+                request["provider_error"] = None
+                request["issues"].append("ambiguous_provider_request_id")
         _require(
             set(contents) == expected_files, "Archive contains unbound or missing request files"
         )

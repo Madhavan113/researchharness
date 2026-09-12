@@ -92,13 +92,20 @@ class PilotConfig(StrictModel):
 
 
 def _ledger(path: Path, config: PilotConfig, *, create: bool = False) -> BudgetLedger:
+    if create:
+        return BudgetLedger.prepare_registered(
+            path,
+            rates=config.rates,
+            ceiling_usd=config.ceiling_usd,
+            authorization=config.authorization,
+        )
     if not create and not path.is_file():
         raise ValueError("Shared budget ledger is missing; never recreate spent funds")
     return BudgetLedger(
         path,
         rates=config.rates,
         ceiling_usd=config.ceiling_usd,
-        authorization=config.authorization if create else None,
+        create=False,
     )
 
 
@@ -120,17 +127,9 @@ def prepare_pilot(
         raise ValueError("The shared ledger must live outside the prepared comparison")
     load_benchmark(benchmark_path)
     registry_path = Path(str(ledger_path) + ".pilots.json")
-    if registry_path.exists() and not ledger_path.is_file():
-        raise ValueError("Registered shared ledger is missing; never recreate spent funds")
-    if ledger_path.exists() and not registry_path.is_file():
-        raise ValueError("Existing shared budget ledger has no pilot registry; do not reset it")
     ledger = _ledger(ledger_path, config, create=True)
     with ledger.lock:
-        registry = (
-            _check_registered_pilots(ledger)
-            if registry_path.is_file()
-            else {"schema_version": 1, "pilots": {}}
-        )
+        registry = _check_registered_pilots(ledger)
         control = DispatchBudget.configuration_metadata(
             ledger,
             policy=config.policy,
@@ -625,10 +624,29 @@ def finalize_pilot(output: Path) -> dict:
             for key, row in snapshot["reservations"].items()
             if key.split("/", 1)[0] in identities
         ]
+        operator_accounted = {
+            row["operation_id"]
+            for row in selected
+            if (row.get("settlement") or {}).get("kind")
+            == "operator_reviewed_provider_accounting_v1"
+        }
+        accounting_evidence_complete = all(
+            isinstance(gateway := result["score"].get("gateway_usage"), dict)
+            and gateway.get("status") in {"verified_complete", "verified_lower_bound"}
+            and gateway.get("budget_control_verified") is True
+            and isinstance(gateway.get("verified_requests"), list)
+            and all(
+                request["status"] in {"complete", "not_dispatched"}
+                or request.get("budget_operation_id") in operator_accounted
+                for request in gateway["verified_requests"]
+            )
+            for arm in report["arms"]
+            for result in arm["results"]
+        )
         report["pilot_budget"] = {
             "purpose": config.purpose,
             "execution": config.comparison.execution,
-            "cost_semantics": "Supplied token-rate accounting, not a provider invoice; fixture amounts are synthetic",
+            "cost_semantics": "Supplied token-rate settlements and separately operator-reviewed provider confirmations; not a provider invoice; fixture amounts are synthetic",
             "rates": config.rates.model_dump(mode="json"),
             "accounting_observed_at": timestamp(),
             "comparison_settlement_complete": all(
@@ -638,6 +656,9 @@ def finalize_pilot(output: Path) -> dict:
                 for result in arm["results"]
             )
             and all(row["status"] in {"settled", "released"} for row in selected),
+            "comparison_accounting_complete": accounting_evidence_complete
+            and all(row["status"] in {"settled", "released"} for row in selected),
+            "operator_reviewed_accounting_operations": sorted(operator_accounted),
             "comparison_settled_nanodollars": sum(
                 row["charged_nanodollars"] for row in selected if row["status"] == "settled"
             ),

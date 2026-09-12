@@ -114,6 +114,7 @@ def test_rate_math_is_independent_of_decimal_context_and_rounds_conservatively(t
     assert book.snapshot()["ceiling_nanodollars"] == 1
     with pytest.raises(BudgetExceeded):
         reserve(book, "request-2", output_tokens=1)
+    book.mark_dispatched("request-1")
     assert settle(book, input_tokens=0, output_tokens=1)["charged_nanodollars"] == 1
     with pytest.raises(BudgetExceeded):
         reserve(book, "request-2", output_tokens=1)
@@ -141,12 +142,39 @@ def test_reservation_retry_and_restart_never_create_a_second_charge(tmp_path, ra
         ledger(tmp_path, changed)
 
 
+@pytest.mark.parametrize("held", [False, True])
+def test_settlement_requires_a_durable_dispatch_marker(tmp_path, rates, held):
+    book = ledger(tmp_path, rates)
+    reserve(book)
+    if held:
+        book.hold("request-1", reason="Unknown reservation acknowledgment")
+    before = book.path.read_bytes()
+    with pytest.raises(ValueError, match="dispatch"):
+        settle(book)
+    assert book.path.read_bytes() == before
+    assert book.snapshot()["accounting"]["held_nanodollars"] == 8000
+
+
+def test_reopening_settlement_rejects_a_lost_dispatch_marker(tmp_path, rates):
+    book = ledger(tmp_path, rates)
+    reserve(book)
+    book.mark_dispatched("request-1")
+    settle(book)
+    state = json.loads(book.path.read_text())
+    state["reservations"]["request-1"]["dispatched_at"] = None
+    book.path.write_text(json.dumps(state))
+    with pytest.raises(ValueError, match="settled"):
+        ledger(tmp_path, rates)
+
+
 def test_settlement_releases_only_verified_remainder_and_is_terminal(tmp_path, rates):
     book = ledger(tmp_path, rates)
     reserve(book)
     reserve(book, "request-2")
     with pytest.raises(BudgetExceeded):
         reserve(book, "request-3")
+    book.mark_dispatched("request-1")
+    book.mark_dispatched("request-2")
     first = settle(book)
     assert first["status"] == "settled" and first["charged_nanodollars"] == 3000
     assert settle(book) == first
@@ -251,6 +279,7 @@ def test_pre_dispatch_release_requires_complete_bound_proof_and_does_not_rearm_i
 def test_failed_atomic_settlement_keeps_the_previous_full_reservation(tmp_path, rates, monkeypatch):
     book = ledger(tmp_path, rates, "0.000008")
     reserve(book)
+    book.mark_dispatched("request-1")
 
     def failed_write(*args, **kwargs):
         raise OSError("fixture disk write failure")
@@ -260,7 +289,7 @@ def test_failed_atomic_settlement_keeps_the_previous_full_reservation(tmp_path, 
         with pytest.raises(OSError, match="disk write failure"):
             settle(book)
     reopened = ledger(tmp_path, rates, "0.000008")
-    assert reopened.snapshot()["reservations"]["request-1"]["status"] == "reserved"
+    assert reopened.snapshot()["reservations"]["request-1"]["status"] == "dispatched"
     assert reopened.snapshot()["accounting"]["held_nanodollars"] == 8000
     with pytest.raises(BudgetExceeded):
         reserve(reopened, "request-2")
@@ -345,6 +374,7 @@ def test_concurrent_process_reservations_never_exceed_the_ceiling(tmp_path, rate
 def test_racing_settlements_cannot_replace_the_first_verified_usage(tmp_path, rates):
     book = ledger(tmp_path, rates, "0.000008")
     reserve(book)
+    book.mark_dispatched("request-1")
     barrier = Barrier(2)
 
     def complete(tokens):

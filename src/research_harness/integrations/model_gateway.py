@@ -312,6 +312,7 @@ class ResponsesGateway:
                 else None,
                 "supported_request_fields": sorted(SUPPORTED_REQUEST_FIELDS),
                 "shutdown_policy": "seal_interrupted_records_before_returning",
+                "sdk_retry_policy": "reject_automatic_retries_v1",
             },
         )
 
@@ -332,7 +333,9 @@ class ResponsesGateway:
                 self._started = self._clock()
                 self._started_at = timestamp(utcnow())
 
-    def _record(self, path: str, incoming: bytes) -> dict | None:
+    def _record(
+        self, path: str, incoming: bytes, sdk_retry_headers: list[str] | None = None
+    ) -> dict | None:
         with self._lock:
             if self._closing.is_set():
                 return None
@@ -341,6 +344,7 @@ class ResponsesGateway:
                 "path": path,
                 "received_at": timestamp(utcnow()),
                 "incoming_sha256": digest(incoming),
+                "sdk_retry_headers": list(sdk_retry_headers or []),
                 "forwarded": False,
                 "dispatch_started": False,
                 "outcome": "received",
@@ -575,6 +579,8 @@ class ResponsesGateway:
                     if reason := self._admission_denial(record):
                         return None, reason
                     record["budget_reservation_pending"] = True
+                    record["forwarded_sha256"] = digest(raw)
+                    (self.output / record["id"] / "forwarded.json").write_bytes(raw)
                     self._save_record(record)
                 try:
                     reservation = self._dispatch_budget.reserve(record["id"], digest(raw))
@@ -585,8 +591,10 @@ class ResponsesGateway:
                 except Exception:
                     return None, "budget_reservation_failed"
                 with self._lock:
-                    if reason := self._admission_denial(record):
-                        return None, reason
+                    # A sealed archive is immutable; acknowledgments arriving
+                    # after sealing remain conservatively unresolved.
+                    if self._sealed:
+                        return None, "gateway_closed"
                     if (
                         reservation.get("status") != "reserved"
                         or reservation.get("operation_id")
@@ -601,6 +609,9 @@ class ResponsesGateway:
                         budget_operation_id=reservation["operation_id"],
                         budget_reserved_nanodollars=reservation["reserved_nanodollars"],
                     )
+                    self._save_record(record)
+                    if reason := self._admission_denial(record):
+                        return None, reason
                     self._reserve_round(record, raw)
                 return forwarded, None
         finally:
@@ -817,6 +828,9 @@ class ResponsesGateway:
             for name in ("content-type", "content-encoding", "content-length", "x-request-id"):
                 if name in response.headers:
                     handler.send_header(name, response.headers[name])
+            # The controlled run records failures; SDK retries cannot replay
+            # provider work, even if the upstream recommends a retry.
+            handler.send_header("x-should-retry", "false")
             handler.send_header("Connection", "close")
             handler.end_headers()
             headers_sent = True
@@ -884,6 +898,7 @@ class ResponsesGateway:
             handler.send_response(status)
             handler.send_header("Content-Type", "application/json")
             handler.send_header("Content-Length", str(len(body)))
+            handler.send_header("x-should-retry", "false")
             handler.send_header("Connection", "close")
             handler.end_headers()
             handler.wfile.write(body)
@@ -931,9 +946,14 @@ class ResponsesGateway:
                     incoming = self.rfile.read(length)
                 except OSError:
                     return
-                record = gateway._record(self.path, incoming)
+                retry_headers = self.headers.get_all("x-stainless-retry-count", [])
+                record = gateway._record(self.path, incoming, retry_headers)
                 if record is None:
                     gateway._error(self, 503, "gateway_closed")
+                    return
+                if retry_headers not in ([], ["0"]):
+                    gateway._deny(record, "automatic_retry_rejected")
+                    gateway._error(self, 400, "automatic_retry_rejected")
                     return
                 if self.path != "/v1/responses":
                     gateway._deny(record, "unsupported_auxiliary_endpoint")

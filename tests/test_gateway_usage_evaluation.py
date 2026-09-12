@@ -151,6 +151,39 @@ def test_real_gateway_json_and_gzip_sse_are_verified_without_proposal(archive):
     assert set(result["files"]) == {"archive.json", *load(archive / "archive.json")["files"]}
     assert verify(archive)["total_tokens"] == 330
     assert result["upstream_transport"] == "caller-supplied"
+    assert result["sdk_retry_policy"] == "reject_automatic_retries_v1"
+
+
+@pytest.mark.parametrize("header", [["1"], ["0", "0"], "0", None])
+def test_verifier_rejects_dispatched_sdk_retry_or_invalid_header_evidence(archive, header):
+    update_record(archive, lambda record: record.update(sdk_retry_headers=header))
+    result = verify(archive)
+    assert result["status"] == "invalid"
+    assert not result["verified_requests"]
+    assert any("retry" in error for error in result["errors"])
+
+
+def test_legacy_archives_do_not_claim_sdk_retry_enforcement(archive):
+    metadata = load(archive / "gateway.json")
+    metadata.pop("sdk_retry_policy")
+    write_json(archive / "gateway.json", metadata)
+    report = load(archive / "report.json")
+    for record in report["requests"]:
+        record.pop("sdk_retry_headers")
+        write_json(archive / record["id"] / "record.json", record)
+    write_json(archive / "report.json", report)
+    reindex(archive)
+    result = verify(archive)
+    assert result["status"] == "verified_complete", result["errors"]
+    assert result["sdk_retry_policy"] is None
+
+
+def test_verifier_rejects_removing_retry_policy_without_its_evidence(archive):
+    metadata = load(archive / "gateway.json")
+    metadata.pop("sdk_retry_policy")
+    write_json(archive / "gateway.json", metadata)
+    reindex(archive)
+    assert verify(archive)["status"] == "invalid"
 
 
 def test_legacy_gateway_transport_provenance_is_unknown(archive):

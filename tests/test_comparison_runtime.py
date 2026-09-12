@@ -34,7 +34,7 @@ from research_harness.evaluation.runtime_executor import (
     RuntimeExecutor,
     task_strategy_session,
 )
-from research_harness.execution import DiscoverySettings
+from research_harness.execution import DiscoverySettings, GatewayBinding
 from research_harness.integrations.model_gateway import ResponsesGateway
 from research_harness.integrations.omnigent import (
     PRIMARY_SESSION_ENV,
@@ -444,6 +444,101 @@ def test_direct_failure_is_not_retried_and_retains_partial_artifacts(tmp_path, r
     assert (partial.research / "failure.json").exists()
     assert task.output / "execution.json" in partial.attachments
     assert not (partial.research / "proposal.json").exists()
+
+
+@pytest.mark.parametrize("arm", ["direct", "omnigent"])
+@pytest.mark.parametrize("status", [429, 500])
+def test_controlled_runtime_provider_errors_dispatch_once_and_retain_hold(
+    tmp_path, recording, arm, status
+):
+    from research_harness.evaluation.budget import BudgetLedger, RateCard
+    from research_harness.evaluation.dispatch_budget import DispatchBudget, DispatchPolicy
+
+    python = os.environ.get("RH_TEST_OMNIGENT_PYTHON")
+    if arm == "omnigent" and not python:
+        pytest.skip("Set RH_TEST_OMNIGENT_PYTHON for actual Omnigent retry acceptance")
+    task = task_for(tmp_path, recording, arm)
+    settings = task.config.settings.model_copy(update={"service_tier": "default"})
+    task = replace(
+        task,
+        config=task.config.model_copy(update={"settings": settings}),
+        gateway_binding=GatewayBinding(
+            execution_id=digest(f"{arm}:{status}")[:32],
+            case_id=task.case_id,
+            runtime=arm,
+            task_sha256=digest(
+                canonical_json(
+                    {
+                        "brief": task.brief,
+                        "instructions": task.instructions,
+                        "settings": settings.model_dump(mode="json"),
+                        "fixture_status": status,
+                    }
+                )
+            ),
+        ),
+    )
+    ledger = BudgetLedger(
+        tmp_path / "shared-budget.json",
+        rates=RateCard(
+            model=task.config.model,
+            snapshot=task.config.model,
+            input_usd_per_million="1",
+            output_usd_per_million="2",
+            max_input_tokens_per_request=10000,
+            price_source_url="https://prices.fixture.example/model",
+            price_as_of="2026-09-10",
+        ),
+        ceiling_usd="1",
+    )
+    budget = DispatchBudget(
+        ledger,
+        binding=task.gateway_binding,
+        settings=settings,
+        policy=DispatchPolicy(
+            mode="fixture", upstream_base_url="https://fixture.invalid/v1", model=task.config.model
+        ),
+    )
+    sent = []
+
+    def upstream(request):
+        sent.append(request)
+        return httpx.Response(
+            status,
+            json={"error": {"message": "Authored provider failure", "type": "fixture_error"}},
+        )
+
+    with httpx.Client(transport=httpx.MockTransport(upstream)) as client:
+        with ResponsesGateway(
+            task.output / "gateway",
+            model=task.config.model,
+            settings=settings,
+            binding=task.gateway_binding,
+            upstream_base_url=budget.policy.upstream_base_url,
+            client=client,
+            dispatch_budget=budget,
+        ) as proxy:
+            run = RuntimeExecutor(
+                base_url=proxy.base_url,
+                api_key=proxy.api_key,
+                omnigent_python=Path(python or sys.executable),
+                max_spend_usd=1,
+            )
+            with pytest.raises(RuntimeExecutionError) as raised:
+                run(task)
+            assert len(sent) == proxy.report()["upstream_requests"] == 1
+            assert len(proxy.report()["requests"]) == 1
+            assert proxy.report()["requests"][0]["sdk_retry_headers"] == ["0"]
+            with pytest.raises(ValueError, match="already started"):
+                run(task)
+    assert raised.value.artifacts.metadata["status"] == "failed"
+    report = budget.reconcile_archive(task.output / "gateway/archive.json")
+    assert report["archive_valid"], report["errors"]
+    rows = ledger.snapshot()["reservations"]
+    assert len(rows) == 1
+    row = next(iter(rows.values()))
+    assert row["status"] == "held" and row["settlement"] is None
+    assert report["accounting"]["held_nanodollars"] == row["reserved_nanodollars"]
 
 
 @pytest.mark.parametrize("failure", [None, "start", "send", "export", "send_and_export", "close"])

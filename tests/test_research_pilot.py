@@ -128,6 +128,57 @@ def install_runtime(monkeypatch, *, interrupt=False):
     monkeypatch.setattr(pilot, "RuntimeExecutor", RuntimeFixture)
 
 
+def test_reviewed_provider_errors_preserve_case_witnesses_and_unknown_usage(
+    package, tmp_path, monkeypatch
+):
+    from test_provider_accounting import accounting_cli, confirmation, retained_files
+
+    install_runtime(monkeypatch)
+    output, ledger = prepare(package, tmp_path)
+    sent = []
+    with pytest.raises(ValueError, match="Finish or resolve every case"):
+        finalize_pilot(output)
+
+    def provider_error(task, request):
+        sent.append(task.arm)
+        return httpx.Response(
+            500,
+            json={"error": {"message": "Authored request failure"}},
+            headers={"x-request-id": f"req_fixture_{task.arm}"},
+        )
+
+    for arm in ARMS:
+        entry = execute_pilot_case(
+            output, arm, CASE, omnigent_python=Path("unused"), fixture_handler=provider_error
+        )
+        assert entry["status"] == "failed"
+    assert finalize_pilot(output)["pilot_budget"]["comparison_accounting_complete"] is False
+    for arm in ARMS:
+        archive = output / arm / "cases" / CASE / "gateway/archive.json"
+        saved = retained_files(archive.parent)
+        proof = tmp_path / f"{arm}-confirmation.json"
+        write_json(proof, confirmation(f"req_fixture_{arm}", "0.000003").model_dump(mode="json"))
+        result = accounting_cli(ledger.path, archive, proof)
+        assert result.returncode == 0, result.stderr
+        assert retained_files(archive.parent) == saved
+        # Completed cases must still validate and return without provider work.
+        assert (
+            execute_pilot_case(output, arm, CASE, omnigent_python=Path("unused"))["status"]
+            == "failed"
+        )
+
+    report = finalize_pilot(output)["pilot_budget"]
+    assert report["comparison_accounting_complete"] is True
+    assert report["comparison_settlement_complete"] is False
+    assert report["comparison_held_nanodollars"] == 0
+    assert report["comparison_settled_nanodollars"] == 6000
+    assert len(report["operator_reviewed_accounting_operations"]) == 2
+    saved_ledger = ledger.path.read_bytes()
+    prepare(package, tmp_path, name="next-pilot")
+    assert ledger.path.read_bytes() == saved_ledger
+    assert sent == list(ARMS)
+
+
 def test_preparation_freezes_one_shared_budget_without_dispatch(package, tmp_path):
     output, ledger = prepare(package, tmp_path)
     assert ledger.snapshot()["accounting"]["committed_nanodollars"] == 0
@@ -515,6 +566,49 @@ def test_pilot_preflight_serializes_concurrent_ledger_writers(package, tmp_path,
     thread.join(2)
     assert finished.is_set() and not failures
     assert "parallel-fixture" in ledger.snapshot()["reservations"]
+
+
+def test_failed_initial_preparation_leaves_a_reusable_empty_registry(
+    package, tmp_path, monkeypatch
+):
+    def fail(*args, **kwargs):
+        raise OSError("fixture preparation failure")
+
+    with monkeypatch.context() as patch:
+        patch.setattr(pilot, "prepare_comparison", fail)
+        with pytest.raises(OSError, match="preparation failure"):
+            prepare(package, tmp_path)
+    ledger_path = tmp_path / "shared-budget.json"
+    before = ledger_path.read_bytes()
+    registry_path = Path(str(ledger_path) + ".pilots.json")
+    assert json.loads(registry_path.read_bytes()) == {"schema_version": 1, "pilots": {}}
+    output, book = prepare(package, tmp_path, name="retry")
+    assert ledger_path.read_bytes() == before
+    assert str(output) in json.loads(registry_path.read_bytes())["pilots"]
+    assert book.snapshot()["accounting"]["held_nanodollars"] == 0
+
+
+def test_failed_first_registry_write_can_resume_the_same_ledger(package, tmp_path, monkeypatch):
+    from research_harness import util
+
+    atomic_write = util.atomic_write
+
+    def fail_registry(path, *args, **kwargs):
+        if str(path).endswith(".pilots.json"):
+            raise OSError("Authored initial registry write failure")
+        return atomic_write(path, *args, **kwargs)
+
+    with monkeypatch.context() as patch:
+        patch.setattr(util, "atomic_write", fail_registry)
+        with pytest.raises(OSError, match="registry write failure"):
+            prepare(package, tmp_path)
+    ledger_path = tmp_path / "shared-budget.json"
+    before = ledger_path.read_bytes()
+    output, book = prepare(package, tmp_path, name="recovered-initialization")
+    assert ledger_path.read_bytes() == before
+    assert str(output) in json.loads(Path(str(ledger_path) + ".pilots.json").read_bytes())["pilots"]
+    assert book.snapshot()["accounting"]["held_nanodollars"] == 0
+    assert not Path(str(ledger_path) + ".initializing.json").exists()
 
 
 def test_preparation_cannot_reinitialize_a_missing_registry(package, tmp_path):
