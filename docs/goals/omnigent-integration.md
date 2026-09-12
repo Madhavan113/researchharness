@@ -39,7 +39,7 @@ Use `queued`, `in_progress`, `blocked`, or `done`. Replace an owner only after a
 | M3 | Omnigent research agent bundle and runtime binding | done | `/root/omnigent_spike`, browser verification `/root` | Normal server/runner/MCP and browser chat save validated proposal/pipeline ids; synthetic model HTTP, frozen authored bundle |
 | M4 | Collection jobs, exports, case lookup, recovery | done | `/root` | Detached workers, cancellation, process termination, scoped data, exports, and full server/browser restart verified locally; local Postgres/MinIO tests and detached workflow/restart/export acceptance now verified |
 | M5 | Independent pilot evaluation and baseline comparison | blocked | `/root`, bounded agent work handed off | Twenty authored cases now discriminate in the offline policy comparison; independent evaluators, frozen controller and bound gateway usage verified through actual runtimes; budgeted dispatch and independent settlement verified through both actual runtimes; awaits human review, provider access and the pending spending decision |
-| M6 | Meta-Harness strategy optimization and isolated final evaluation | in_progress | `/root`, review follow-ups | RW-1/2/3/4/7/8/9/10/11/12/14 are published in PRs #2–#12, with PR #11 and #12 hosted checks passing. The bounded RW-15 admission/compatibility checkpoint is published in PR #13. Copied-feedback privacy is published in PR #14 with both hosted jobs passing. RW-13 verification efficiency is published in PR #15 and passes 1,378 required local tests with zero skips; both hosted jobs also pass. RW-6 tooling/policy is published in PR #16 with 1,412 required local tests passing; its first reviewed external asset round trip remains open. The bounded RW-5 portable review exporter and failure diagnostics are published in PR #17 with 1,446 required local tests and both hosted jobs passing. The historical-reference follow-up is published in PR #18 and passes 1,463 required local tests with zero skips and removes duplicate originals from the current checkout after exact restoration; a complete historical baseline review is now prepared and verified, including all 544 nested snapshots. Release publication/download remains pending. Exploration limits remain conditional on measured-run evidence. Measured search/final still awaits remaining review work, reviewed cases, provider access, spending approval and the measured baseline |
+| M6 | Meta-Harness strategy optimization and isolated final evaluation | in_progress | `/root`, review follow-ups | RW-1/2/3/4/7/8/9/10/11/12/14 are published in PRs #2–#12, with PR #11 and #12 hosted checks passing. The bounded RW-15 admission/compatibility checkpoint is published in PR #13. Copied-feedback privacy is published in PR #14 with both hosted jobs passing. RW-13 verification efficiency is published in PR #15 and passes 1,378 required local tests with zero skips; both hosted jobs also pass. RW-6 tooling/policy is published in PR #16 with 1,412 required local tests passing; its first reviewed external asset round trip remains open. The bounded RW-5 portable review exporter and failure diagnostics are published in PR #17 with 1,446 required local tests and both hosted jobs passing. The historical-reference follow-up is published in PR #18 and passes 1,463 required local tests with zero skips and removes duplicate originals from the current checkout after exact restoration; a complete historical baseline review is now prepared and verified in PR #19, including all 544 nested snapshots. Release publication/download remains pending. Exploration limits remain conditional on measured-run evidence. Measured search/final still awaits remaining review work, reviewed cases, provider access, spending approval and the measured baseline |
 
 M0 and M1 can proceed independently against the agreed tool/service boundary. Evaluation case design can also proceed independently. Agree on ownership of shared schemas, CLI wiring, dependencies, migrations, and this tracker before concurrent edits.
 
@@ -81,7 +81,9 @@ Retain completed handoffs so another agent can distinguish implemented behavior 
 
 ### September 12, 2026 — Complete historical review coverage ownership
 
-Owner: `/root`; `in_progress` on `docs/complete-historical-reviews`, based on
+Owner: `/root`; complete baseline preparation, verification and metadata publication
+done in [PR #19](https://github.com/Madhavan113/researchharness/pull/19), branch
+`docs/complete-historical-reviews`, based on
 PR #18 head `8fab9199eeb0b9e03fd99643e896f8b93f14ad8a`. The previous goal turn
 made progress: all 25 original files restored exactly, the 1,463-test required
 suite passed, and three checkpoint commits plus PR #18 were published.
@@ -146,8 +148,10 @@ The reproducible input recipe and small index/acceptance/verification summaries
 are committed; complete payloads remain outside Git. The intended release tag is
 `evidence-historical-review-all-2026-09-12`, still `availability: prepared`.
 RW-5 local content checks are complete; RW-5/RW-6 delivery remains open pending
-public release approval and a verified download. Next: publish the small metadata
-PR, inspect its checks, and await the publication decision. Do not infer consent
+public release approval and a verified download. Commits `c5efe82` (recipe) and
+`1638d23` (evidence) are pushed; [PR #19](https://github.com/Madhavan113/researchharness/pull/19)
+is open, stacked on #18. Next: inspect its hosted checks and await the publication
+decision for the complete package. Do not infer consent
 from elapsed time or the prior authorization to commit/open PRs.
 
 Provider prerequisites were rechecked: no configured `OPENAI_API_KEY` or project
