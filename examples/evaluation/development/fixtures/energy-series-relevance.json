@@ -2,12 +2,16 @@
   "authorship": "Synthetic fixture authored by Codex; no live source was sampled",
   "search_results": [
     {
+      "url": "https://energy-agency.fixture.example/publication-index.json",
+      "title": "Weekly energy storage series: publication index and monthly counts"
+    },
+    {
       "url": "https://energy-agency.fixture.example/press-stats.json",
-      "title": "Authored search result"
+      "title": "Weekly energy storage series: source publication"
     },
     {
       "url": "https://energy-agency.fixture.example/storage.json",
-      "title": "Authored search result"
+      "title": "Weekly energy storage series: source publication"
     }
   ],
   "responses": [
@@ -40,6 +44,23 @@
             "id": "week-1",
             "week_start": "2026-08-31",
             "storage": 321
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://energy-agency.fixture.example/publication-index.json",
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "synthetic": true,
+        "items": [
+          {
+            "id": "monthly-index",
+            "topic": "Weekly energy storage series",
+            "publication_count": 12
           }
         ]
       }

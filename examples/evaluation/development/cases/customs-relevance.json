@@ -28,7 +28,7 @@
   },
   "fixtures": {
     "path": "fixtures/customs-relevance.json",
-    "sha256": "1eb0a7b4dd3f0242e0253d6db85ccc0c7e61449ac9e41727bdd382178c5791fb"
+    "sha256": "d637d1b4f82fd61dc615ae97c2b848be73effefefd61318df884d03a88a7be99"
   },
   "sources": [
     {

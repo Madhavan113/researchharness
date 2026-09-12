@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import base64
 import json
 from pathlib import Path
 from time import perf_counter
@@ -11,6 +12,7 @@ from typing import Any, Literal
 import httpx
 
 from research_harness.backend import Backend
+from research_harness.config import SourceSpec
 from research_harness.discovery_models import Candidate, DataNeed, ProposalDraft
 from research_harness.evaluation.benchmark import (
     CaseRun,
@@ -23,6 +25,18 @@ from research_harness.evaluation.benchmark import (
 )
 from research_harness.services.research import ResearchService
 from research_harness.util import canonical_json, digest, write_json
+
+
+def fixture_response_bytes(response: dict) -> bytes:
+    """Preserve real binary documents without ambiguous or lossy fixture encoding."""
+    if ("body" in response) == ("body_base64" in response):
+        raise ValueError("Fixture response needs exactly one of body or body_base64")
+    if "body_base64" in response:
+        if not isinstance(response["body_base64"], str):
+            raise ValueError("Fixture body_base64 must be a string")
+        return base64.b64decode(response["body_base64"], validate=True)
+    body = response["body"]
+    return (body if isinstance(body, str) else canonical_json(body)).encode("utf-8")
 
 
 class FixtureProvider:
@@ -102,10 +116,10 @@ def run_fixture_arm(
                 raise RuntimeError(
                     "No authored fixture for requested URL; network access is disabled"
                 )
-            body = response["body"]
-            raw = body if isinstance(body, str) else canonical_json(body)
             return httpx.Response(
-                response.get("status", 200), headers=response.get("headers", {}), content=raw
+                response.get("status", 200),
+                headers=response.get("headers", {}),
+                content=fixture_response_bytes(response),
             )
 
         started = perf_counter()
@@ -164,7 +178,24 @@ def run_fixture_arm(
                             ],
                         )
                     )
-                for unsupported in case.fixture_plan.unsupported:
+                unsupported_choices = (
+                    case.fixture_plan.unsupported if policy == "authored-selection" else []
+                )
+                for index, unsupported in enumerate(unsupported_choices):
+                    if unsupported.status == "needs_connector":
+                        service.inspect(unsupported.url, operation_id=f"inspect-gap-{index}")
+                    else:
+                        # Failed probes retain captured HTTP errors as scoped evidence.
+                        # Inspection raises on HTTP errors and cannot export such a receipt.
+                        service.probe(
+                            SourceSpec(
+                                id=f"gap-{index}",
+                                name=unsupported.name,
+                                connector="html",
+                                url=unsupported.url,
+                            ),
+                            operation_id=f"probe-gap-{index}",
+                        )
                     candidates.append(
                         Candidate(
                             name=unsupported.name,

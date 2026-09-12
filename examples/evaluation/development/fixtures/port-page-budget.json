@@ -2,8 +2,12 @@
   "authorship": "Synthetic fixture authored by Codex; no live source was sampled",
   "search_results": [
     {
+      "url": "https://port-authority.fixture.example/publication-index.json",
+      "title": "Port arrival catalog bounds: publication index and monthly counts"
+    },
+    {
       "url": "https://port-authority.fixture.example/arrivals",
-      "title": "Authored search result"
+      "title": "Port arrival catalog bounds: source publication"
     }
   ],
   "responses": [
@@ -50,6 +54,23 @@
           }
         ],
         "next": null
+      }
+    },
+    {
+      "url": "https://port-authority.fixture.example/publication-index.json",
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "synthetic": true,
+        "items": [
+          {
+            "id": "monthly-index",
+            "topic": "Port arrival catalog bounds",
+            "publication_count": 12
+          }
+        ]
       }
     }
   ]

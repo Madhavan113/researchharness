@@ -1,88 +1,88 @@
 {
   "schema_version": 1,
-  "id": "research-discovery-development-v1",
+  "id": "research-discovery-development-v2",
   "split": "development",
   "description": "Twenty authored synthetic development contracts. No independent human review or live model quality claims.",
   "cases": [
     {
       "path": "cases/export-notices.json",
-      "sha256": "c53ebbdfd6cfe5cd5c217f65cb6f5427bd0408138007f5d614d0335f6c2eddf0"
+      "sha256": "fa404b07e4efbbe295ded636c10279d2080958a0c58349b27f06c45c882ae24c"
     },
     {
       "path": "cases/license-history-access.json",
-      "sha256": "a6ccf211298241ae83bcd40c43915734ff250276be4fe0c0f97cbc306e7eb091"
+      "sha256": "589a960dadd41c618d087b7b67be6ca79701327d988ca0820a5217e1fa72c8d8"
     },
     {
       "path": "cases/tariff-pagination.json",
-      "sha256": "a334a032e86b2ec3831931e3be9eaa6e0376e4e470951438c75eca574764f0c8"
+      "sha256": "78c2256f5fc47b4395dd84dfdeaad1a3dbb9b865e68a0404217ba3ef5df396ca"
     },
     {
       "path": "cases/customs-relevance.json",
-      "sha256": "2a2412641bc9481670bb7e0227ab8e8090e8280fded6d9c553732eaa9ed65c6f"
+      "sha256": "40f748f30507128074ff6218b019306a9df8b0655e97e4e82e292da3d9a8ce20"
     },
     {
       "path": "cases/sanctions-current-history.json",
-      "sha256": "065ed136b1ca6064f2d876331b305577304b40c56fcac35f0cc3a42196e8b579"
+      "sha256": "362eb12a7997dcc780c3ac9885acce0bce9c73abdc98b497c4ddce3b715f7b4c"
     },
     {
       "path": "cases/central-bank-publication-time.json",
-      "sha256": "4306dcdce071b37b5b49da93982e311f76b22ed867bbf8f07d608d1366c37a2b"
+      "sha256": "d5ea558e77cd682f021ccf90ac97cf007c9390e634b3fb2c36ede91f6a2ff0d8"
     },
     {
       "path": "cases/rates-workbook-unsupported.json",
-      "sha256": "028d5dc5557149ec10c30616d9836a0f7131250e7ed0ae3b266667bc8eb3299b"
+      "sha256": "976b54597d2ddb5ceebc1a24d24d6f9bc026c112e9a8231c0ddcf3e4304d8396"
     },
     {
       "path": "cases/procurement-stable-identity.json",
-      "sha256": "7f1329e757e26b6b70161501472db9d3c4cc1a042d0ffa17092d822147fffa05"
+      "sha256": "6cb347e715f68c0ade8bdd90ef51e674d0d47fc1b7ffce35683f225f2168c089"
     },
     {
       "path": "cases/award-terminal-pagination.json",
-      "sha256": "9528fc85fd507e16cd7df60c199712896bf966612940911b47318bb439779504"
+      "sha256": "d78c65fd5ee00247212a8a15b9e3e31bf7a786ccaea9ceee7bf9fbf12f31623b"
     },
     {
       "path": "cases/cyber-advisory-dates.json",
-      "sha256": "1a9c0b627380dd0150bba8e6e9bf0ae725579729b6ee6fbb85bc12e9b1cd913f"
+      "sha256": "acbe015caf8ae1aafb4413150a5f859a6f2c3a9e79de3f7d1735c73dae788041"
     },
     {
       "path": "cases/vendor-valid-alternatives.json",
-      "sha256": "14a159c05cd285c38c7fe5f37da80cb4d3dc2f32b35af7315983282345c7450c"
+      "sha256": "53b3ec89c62c308535b555bafa5c0f1fff8904a6b348f54f57727acdea6a2b71"
     },
     {
       "path": "cases/energy-series-relevance.json",
-      "sha256": "a6ca22df6b9f21e91db6e4325799fa0b74f748257997d94d45792631dd1f6417"
+      "sha256": "562b6518d469192bbf2207740bedd9ee294d8e88abeb00ce577b422ef395d041"
     },
     {
       "path": "cases/grid-next-url-pagination.json",
-      "sha256": "3bf1c93bfbebb4c5680eb838aae40c72f5bc96ad3f6a0d5646fc5d0eb918db43"
+      "sha256": "78d6722259619a9d9166feb15cdfb77051d246906e2d0c7791ff6d180c68f854"
     },
     {
       "path": "cases/port-page-budget.json",
-      "sha256": "0ad97c15b0c74223b31889b8b8c73c93c15b862d2895a1c4dd90649ee981a575"
+      "sha256": "33711e4d7cd3415bb7e6284ff110a9e06f3c7fc3fd2b705c74a49081b04d8898"
     },
     {
       "path": "cases/weather-alert-feed.json",
-      "sha256": "3da8ab987af0f28b12cef8838bba4853bc3262092004d8253ee718782e3fdf9d"
+      "sha256": "9ace7316d8e49010ca2adb6f5c00146f86db497f7e05f16e790ae03ae453a4c2"
     },
     {
       "path": "cases/recall-source-relevance.json",
-      "sha256": "b92ae480d85b426965814915a076ed0ebdc5a883d28c4f7c6d95f17a77299e2a"
+      "sha256": "c54d616e4f8fdb90b0dba37ed8c764233ddc512ca3d9f8efe4be319e018c123a"
     },
     {
       "path": "cases/issuer-release-timestamp.json",
-      "sha256": "87a50f039e029027666b401b6116ae4ee5c833dae4dae204239577498324497b"
+      "sha256": "7f293829a470d4a793b1bdbc072b6268c137d2109b6dbe3928f9acb40b1b7197"
     },
     {
       "path": "cases/filing-stable-accession.json",
-      "sha256": "a82bcf368c4ba6198523740378a1fc5ca5476238bf43f227746f496ab6cd3f67"
+      "sha256": "84ed68ec35d7aa41f91dda9bc24a1240a1db42181fb7dabadfaf26c9c206c6fd"
     },
     {
       "path": "cases/market-contract-and-rules.json",
-      "sha256": "a8396315d89c16b4a894fb3f4182cc0117e3bcaaa2b8917c44fd3fce14111b8a"
+      "sha256": "5f367ff01ff3623d8ad74dcdfdeff1209b6c38674b242db236278a5a94fb0068"
     },
     {
       "path": "cases/legislation-unsupported-votes.json",
-      "sha256": "7724057eedcdb163ce4b0f6ade975d429db62cfafd4257ecf6946c605fb139de"
+      "sha256": "b533d4223f11ae9019d89bedcd6834c46b5d4d39b8d4c6298613fefc23281f5b"
     }
   ]
 }

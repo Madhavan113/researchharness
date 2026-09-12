@@ -13,6 +13,7 @@ import pytest
 from research_harness.config import PipelineSpec, SourceSpec
 from research_harness.engine import probe_source
 from research_harness.evaluation import frontier, score, validate_requirements
+from research_harness.evaluation.discovery import matches
 from research_harness.execution import GatewayBinding
 from research_harness.util import digest
 
@@ -167,6 +168,258 @@ def test_successful_irrelevant_source_and_exact_configuration_do_not_earn_credit
     assert result["status"] == "ok"
     assert result["quality"] == 0
     assert result["source_precision"] == 0
+
+
+@pytest.mark.parametrize("pointers", [["/filed_at", "/form"], ["/other", "/filed_at", "/form"]])
+def test_required_pointers_accept_reordering_and_stricter_supersets(artifacts, pointers):
+    artifacts.specification["requirements"] = artifacts.specification["requirements"][:1]
+    artifacts.specification["requirements"][0]["any_of"][0]["required_pointers"] = [
+        "/form",
+        "/filed_at",
+    ]
+    artifacts.source["required_pointers"] = pointers
+    artifacts.pipeline["sources"][0]["required_pointers"] = pointers
+    artifacts.probes[0]["source_fingerprint"] = SourceSpec.model_validate(
+        artifacts.source
+    ).fingerprint()
+    assert artifacts.evaluate()["quality"] == 1
+
+
+def test_pointer_subset_does_not_relax_missing_pointers_or_other_list_fields():
+    assert not matches(
+        {"required_pointers": ["/form"]}, {"required_pointers": ["/form", "/filed_at"]}
+    )
+    parameters = [{"name": "q", "value": "first"}, {"name": "q", "value": "second"}]
+    assert not matches({"parameters": parameters[::-1]}, {"parameters": parameters})
+    assert not matches({"parameters": parameters}, {"parameters": parameters[:1]})
+    assert not matches({"max_pages": True}, {"max_pages": 1})
+
+
+@pytest.mark.parametrize("pointers", ["/form", [None], [12], ["form"], {}])
+def test_independent_pointer_predicates_reject_malformed_lists(artifacts, pointers):
+    artifacts.specification["requirements"][0]["any_of"][0]["required_pointers"] = pointers
+    with pytest.raises(ValueError, match="JSON pointers"):
+        artifacts.evaluate()
+
+
+def gap_artifacts(artifacts, *, status="needs_access", status_code=401, content_type=None):
+    url = artifacts.source["url"]
+    rule = {"url": url, "status": status, "status_code": status_code}
+    if content_type is not None:
+        rule["content_type"] = content_type
+    artifacts.specification = {
+        "requirements": [{"id": "history", "any_of": [], "gap_any_of": [rule]}]
+    }
+    artifacts.candidate.update(status=status, source=None, probe_id=None)
+    artifacts.pipeline = None
+    artifacts.probes = []
+    artifacts.proposal["registry"] = {"discovery_id": "discovery-1"}
+    capture = {
+        "capture_id": "capture-1",
+        "url": url,
+        "status_code": status_code,
+        "body_sha256": digest(b"authored response"),
+    }
+    if content_type is not None:
+        capture["content_type"] = content_type
+    artifacts.receipts = [{"kind": "inspection", "discovery_id": "discovery-1", "payload": capture}]
+    return artifacts
+
+
+def test_evidenced_gap_has_partial_research_credit_and_no_data_coverage(artifacts):
+    result = gap_artifacts(artifacts).evaluate()
+    assert result["evaluator_version"] == 2
+    assert result["status"] == "ok"
+    assert result["source_precision"] == result["requirement_recall"] == 0
+    assert result["research_recall"] == result["gap_credit"] == 0.5
+    assert result["research_precision"] == result["gap_recall"] == 1
+    assert result["quality"] == pytest.approx(2 / 3)
+    assert result["coverage"] == [{"id": "history", "covered": False, "source_ids": []}]
+    assert result["gap_coverage"] == [{"id": "history", "gap_reported": True, "claim_indexes": [0]}]
+
+
+@pytest.mark.parametrize("kind", ["receipt", "trace", "both"])
+def test_scoped_failed_probe_captures_prove_access_gap_without_crediting_duplicates(
+    artifacts, kind
+):
+    gap_artifacts(artifacts)
+    capture = artifacts.receipts[0]["payload"]
+    result = {"probe_id": "denied-probe", "status": "failed", "captures": [capture]}
+    artifacts.receipts = [{"kind": "probe", "discovery_id": "discovery-1", "payload": result}]
+    if kind in {"trace", "both"}:
+        artifacts.events = [
+            {
+                "event": "service_receipt",
+                "kind": "probe",
+                "discovery_id": "discovery-1",
+                "result": result,
+            }
+        ]
+    if kind == "trace":
+        artifacts.receipts = []
+    assert artifacts.evaluate()["quality"] == pytest.approx(2 / 3)
+
+
+@pytest.mark.parametrize("missing", ["capture_id", "body_sha256", "status_code", "url"])
+def test_incomplete_capture_cannot_prove_a_gap(artifacts, missing):
+    gap_artifacts(artifacts)
+    artifacts.receipts[0]["payload"].pop(missing)
+    assert artifacts.evaluate()["quality"] == 0
+
+
+@pytest.mark.parametrize("status_code", [200, 403, 500, None, "401", True])
+def test_wrong_or_malformed_response_status_does_not_match_independent_gap(artifacts, status_code):
+    gap_artifacts(artifacts)
+    artifacts.receipts[0]["payload"]["status_code"] = status_code
+    assert artifacts.evaluate()["quality"] == 0
+
+
+@pytest.mark.parametrize("scope", [None, "foreign"])
+def test_gap_credit_requires_matching_discovery_scope(artifacts, scope):
+    gap_artifacts(artifacts)
+    artifacts.receipts[0]["discovery_id"] = scope
+    assert artifacts.evaluate()["status"] == "invalid"
+    artifacts.proposal.pop("registry")
+    assert artifacts.evaluate()["quality"] == 0
+
+
+def test_search_citation_and_agent_status_cannot_prove_a_blocker(artifacts):
+    gap_artifacts(artifacts)
+    artifacts.receipts[0].update(
+        kind="search", payload={"results": [{"url": artifacts.source["url"]}]}
+    )
+    result = artifacts.evaluate()
+    assert result["status"] == "ok"
+    assert result["quality"] == result["gap_recall"] == 0
+
+
+def test_outer_scope_cannot_override_a_conflicting_result_scope(artifacts):
+    gap_artifacts(artifacts)
+    artifacts.receipts[0]["payload"]["discovery_id"] = "foreign"
+    result = artifacts.evaluate()
+    assert result["status"] == "invalid"
+    assert result["quality"] == 0
+
+
+@pytest.mark.parametrize("change", ["status", "url", "unapproved"])
+def test_evidence_does_not_credit_a_wrong_or_unapproved_gap_claim(artifacts, change):
+    gap_artifacts(artifacts)
+    if change == "status":
+        artifacts.candidate["status"] = "needs_connector"
+    elif change == "url":
+        artifacts.specification["requirements"][0]["gap_any_of"][0]["url"] += "?different"
+    else:
+        artifacts.specification["requirements"][0]["gap_any_of"] = []
+        artifacts.specification["requirements"][0]["any_of"] = [
+            {"url": artifacts.source["url"], "connector": "json"}
+        ]
+    assert artifacts.evaluate()["quality"] == 0
+
+
+def test_successful_http_observation_contradicts_access_gap(artifacts):
+    gap_artifacts(artifacts)
+    later = copy.deepcopy(artifacts.receipts[0])
+    later["payload"].update(capture_id="capture-2", status_code=200)
+    artifacts.receipts.append(later)
+    assert artifacts.evaluate()["quality"] == 0
+
+
+@pytest.mark.parametrize("missing", ["capture_id", "body_sha256"])
+def test_incomplete_additional_observation_cannot_be_silently_dropped(artifacts, missing):
+    gap_artifacts(artifacts)
+    incomplete = copy.deepcopy(artifacts.receipts[0])
+    incomplete["payload"]["capture_id"] = "incomplete"
+    incomplete["payload"].pop(missing)
+    artifacts.receipts.append(incomplete)
+    assert artifacts.evaluate()["quality"] == 0
+
+
+@pytest.mark.parametrize("status_code", [404, 410])
+def test_captured_unavailability_can_receive_only_gap_credit(artifacts, status_code):
+    result = gap_artifacts(artifacts, status="unavailable", status_code=status_code).evaluate()
+    assert result["quality"] == pytest.approx(2 / 3)
+    assert result["requirement_recall"] == 0
+
+
+def test_conflicting_exports_of_one_capture_are_invalid(artifacts):
+    gap_artifacts(artifacts)
+    other = copy.deepcopy(artifacts.receipts[0])
+    other["payload"]["body_sha256"] = "b" * 64
+    artifacts.receipts.append(other)
+    result = artifacts.evaluate()
+    assert result["status"] == "invalid"
+    assert result["quality"] == 0
+    assert any("Conflicting service exports" in error for error in result["errors"])
+
+
+@pytest.mark.parametrize(
+    "content_type",
+    [
+        "application/pdf",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "application/vnd.ms-excel",
+    ],
+)
+def test_unsupported_format_requires_matching_captured_content_type(artifacts, content_type):
+    gap_artifacts(artifacts, status="needs_connector", status_code=200, content_type=content_type)
+    artifacts.receipts[0]["payload"]["content_type"] = content_type.upper() + "; charset=binary"
+    assert artifacts.evaluate()["quality"] == pytest.approx(2 / 3)
+    artifacts.receipts[0]["payload"]["content_type"] = "application/json"
+    assert artifacts.evaluate()["quality"] == 0
+    artifacts.receipts[0]["payload"].pop("content_type")
+    assert artifacts.evaluate()["quality"] == 0
+
+
+def test_duplicate_gap_claims_reduce_precision_without_increasing_recall(artifacts):
+    gap_artifacts(artifacts)
+    artifacts.proposal["proposal"]["candidates"].append(copy.deepcopy(artifacts.candidate))
+    result = artifacts.evaluate()
+    assert result["research_precision"] == result["research_recall"] == 0.5
+    assert result["gap_recall"] == 1
+    assert result["quality"] == 0.5
+
+
+def test_fulfilled_requirement_cannot_also_earn_gap_credit(artifacts):
+    ready = copy.deepcopy(artifacts.candidate)
+    probes, pipeline = artifacts.probes, artifacts.pipeline
+    gap_artifacts(artifacts)
+    artifacts.proposal["proposal"]["candidates"].append(ready)
+    artifacts.probes, artifacts.pipeline = probes, pipeline
+    artifacts.specification["requirements"][0]["any_of"] = [
+        {"url": artifacts.source["url"], "connector": "json"}
+    ]
+    result = artifacts.evaluate()
+    assert result["requirement_recall"] == result["research_recall"] == 1
+    assert result["gap_recall"] == 0
+    assert result["research_precision"] == 0.5
+
+
+@pytest.mark.parametrize(
+    "update",
+    [
+        {"status_code": True},
+        {"status": "ready"},
+        {"status_code": 200},
+        {"status": "unavailable", "status_code": 500},
+        {"status": "needs_connector", "status_code": 200, "content_type": "application/json"},
+        {"content_type": "application/pdf"},
+        {"typo": True},
+    ],
+)
+def test_malformed_independent_gap_rules_are_rejected(artifacts, update):
+    gap_artifacts(artifacts)
+    artifacts.specification["requirements"][0]["gap_any_of"][0].update(update)
+    with pytest.raises(ValueError):
+        artifacts.evaluate()
+
+
+def test_frontier_refuses_to_mix_new_and_legacy_scoring(artifacts):
+    result = artifacts.evaluate()
+    with pytest.raises(ValueError, match="same evaluator version"):
+        frontier([result, {**result, "evaluator_version": 1}])
+    legacy = {key: value for key, value in result.items() if key != "evaluator_version"}
+    with pytest.raises(ValueError, match="same evaluator version"):
+        frontier([result, legacy])
 
 
 def test_changed_configuration_invalidates_even_apparently_complete_report(artifacts):

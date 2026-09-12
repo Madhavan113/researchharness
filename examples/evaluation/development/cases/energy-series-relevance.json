@@ -32,7 +32,7 @@
   },
   "fixtures": {
     "path": "fixtures/energy-series-relevance.json",
-    "sha256": "4723ae3e3c41934dd5e17c4017b76193ad6bd3966d05bb328aeb051b05fd42d0"
+    "sha256": "aa9c0464c0280206fb6be781ba4f21a52f3ea6cff894f667aa39b6975e0c1d82"
   },
   "sources": [
     {

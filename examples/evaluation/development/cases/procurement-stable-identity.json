@@ -29,7 +29,7 @@
   },
   "fixtures": {
     "path": "fixtures/procurement-stable-identity.json",
-    "sha256": "f0f3bb4ad1f84df882a2466aa0770ef9b62fb14793adc9bd317c9105dfaf962d"
+    "sha256": "204374900edc78e7264174dc3af9aef8e811072329b692bcf108051f3fabca2e"
   },
   "sources": [
     {

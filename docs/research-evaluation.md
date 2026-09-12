@@ -61,7 +61,11 @@ Write a specification for one brief before inspecting candidate performance. Eac
 
 This URL is illustrative. Use actual reviewed sources for a benchmark, and include valid alternatives so the evaluator does not penalize good sources merely because a reviewer omitted them.
 
-Requirement ids must be unique, and weights must be finite and positive. Each alternative requires an exact HTTP(S) URL and a connector. Objects match a subset of fields; lists and scalar values match exactly, including their types. Use published_pointer, required_pointers, or pagination predicates when those configuration details determine relevance. Unknown top-level SourceSpec field names are rejected to catch misspelled requirements.
+Requirement ids must be unique, and weights must be finite and positive. Each source alternative requires an exact HTTP(S) URL and a connector. Objects match a subset of fields. Evaluator version 2 treats `required_pointers` as an unordered required subset: a predicate of `["/form", "/filed_at"]` accepts either order and additional required pointers. Its values must be a list of JSON-pointer strings. Other lists, including ordered query parameters, and scalar values still match exactly, including their types. Use published_pointer, required_pointers, or pagination predicates when those configuration details determine relevance. Unknown top-level SourceSpec field names are rejected to catch misspelled requirements.
+
+An independent requirement may additionally allow an evidenced gap. For example, `{"id":"history","any_of":[],"gap_any_of":[{"url":"https://agency.example/history.json","status":"needs_access","status_code":401}]}` specifies an inaccessible historical archive without pretending it is a usable source. `any_of` may be empty only when there is at least one valid gap alternative. A fulfilled source alternative always takes precedence over gap credit for the same requirement.
+
+Gap predicates require an exact URL, candidate status and HTTP status. Access gaps allow 401/403; unavailable-source gaps allow 404/410. Connector gaps require HTTP 200 and `content_type` equal to `application/pdf`, `application/vnd.ms-excel` or `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`. They describe currently unsupported document extraction; other formats need a reviewed extension to this contract. Independent predicates and weights remain host-only evaluation inputs, separate from the authored fixture selection and candidate-facing brief.
 
 ## What the score proves
 
@@ -71,19 +75,25 @@ Every candidate citation, including citations on unsupported sources, must appea
 
 The service format is supported both in receipts.json as records with kind, discovery_id, and payload, and in trace.jsonl as service_receipt events with kind, discovery_id, and result. When proposal.registry.discovery_id exists, these receipts must match it. Explicitly mismatched probe discovery ids are also rejected. Older unscoped probe files remain supported as trusted exports; the evaluator cannot reconstruct missing ownership metadata.
 
+Gap credit has a stricter evidence requirement: a nonempty discovery id in the saved proposal must match a service inspection or probe receipt. Captures must retain their id, exact URL, HTTP status and body SHA-256. Connector gaps also require the inspection's content type, normalized for case and optional MIME parameters. Search results and unscoped legacy reports can establish observation but cannot establish a blocker. Conflicting exports for the same capture invalidate the result; contradictory or incomplete observations at the gap URL prevent gap credit. Repeated receipt/trace copies are deduplicated. This checks trusted runner exports, not the authenticity of arbitrary files or long-term availability; content-type metadata does not prove semantic extraction correctness.
+
 | Measurement | Meaning |
 | --- | --- |
 | status / errors | Whether artifact evidence and ready configurations satisfy these consistency checks |
 | requirement_recall | Weight of independently covered requirements divided by all requirement weight |
 | source_precision | Relevant verified sources divided by all ready sources |
-| quality | Harmonic mean of recall and precision; zero for any invalid result |
+| gap_recall | Weight of otherwise unfulfilled requirements with a correctly evidenced gap divided by all requirement weight |
+| research_recall | Data requirement recall plus half of gap recall |
+| research_precision | Relevant verified sources plus distinct relevant gap claims divided by all ready sources and nonready claims |
+| quality | Harmonic mean of research recall and research precision; zero for any invalid result |
 | total_tokens | Reported input plus output tokens, or null when either count is missing or invalid |
 | completed_token_lower_bound | Verified completed-response usage, retained separately when auxiliary/compaction usage or interruption prevents a complete total |
 | coverage | Each independent requirement and the source ids that satisfy it |
+| gap_coverage | Each requirement's evidenced-gap status and indexes into the nonready claim list |
 
-Recall and precision remain diagnostic when a result is invalid; quality is the selection gate. Honest unsupported sources can yield a valid result with uncovered requirements and zero quality.
+Recall and precision remain diagnostic when a result is invalid; quality is the selection gate. A correctly evidenced gap earns half the recall credit of a fulfilled requirement, with `gap_credit=0.5` recorded in the result. A pure gap can therefore earn quality 2/3 while its data requirement recall remains zero. Repeating the same URL/status claim never increases credit and lowers research precision. A claim with no independently permitted, matching blocker earns no gap credit. The half-credit choice is an authored scoring convention requiring human review before measured evaluation.
 
-The frontier maximizes quality and minimizes known model tokens. It retains ties and tradeoffs, excludes dominated results, and excludes invalid results or unknown costs. It rejects results carrying different specification hashes. Compare runs for the same brief with the same model, search provider, fixtures, and budgets; this function does not verify those experiment controls. Tokens alone do not measure money, provider/search usage, wall time, or recovery cost.
+The frontier maximizes quality and minimizes known model tokens. It retains ties and tradeoffs, excludes dominated results, and excludes invalid results or unknown costs. It rejects results carrying different specification hashes or evaluator versions; an absent evaluator version is treated as legacy version 1. Existing archived scores remain historical. Re-evaluate both arms under the same version and specification for a new comparison. Compare runs for the same brief with the same model, search provider, fixtures, and budgets; this function does not verify those experiment controls. Tokens alone do not measure money, provider/search usage, wall time, or recovery cost.
 
 Reports include the canonical specification SHA-256 and the hashes of the exact artifact bytes parsed, including receipts.json when present. Hashes support reproduction and change detection. The report does not authenticate file provenance: the evaluation controller must prevent candidate code from rewriting authoritative artifacts.
 
@@ -101,7 +111,7 @@ A valid complete gateway archive supplies total_tokens, even if the research tas
 
 The [development manifest](../examples/evaluation/development/manifest.json) pins 20 case files and their synthetic HTTP fixtures by SHA-256. Each case contains a brief, source-family/topic grouping, independent accepted-source predicates, manual review questions, and an explicitly authored fixture selection. Every case is marked authored; none is represented as independently human-reviewed. Endpoints under fixture.example and the records they return are illustrative.
 
-The cases cover export-control notices and inaccessible history; tariff, procurement, outage, and port pagination; parseable but irrelevant customs, energy, and recall feeds; publication versus retrieval/amendment time; stable procurement/filing identities; acceptable vendor-source alternatives; contract metadata plus settlement wording; and unsupported spreadsheets/PDFs. Historical and unsupported requirements deliberately remain gaps. Their placeholder normalized-source predicates need review before use with live research tasks.
+The cases cover export-control notices and inaccessible history; tariff, procurement, outage, and port pagination; parseable but irrelevant customs, energy, and recall feeds; publication versus retrieval/amendment time; stable procurement/filing identities; acceptable vendor-source alternatives; contract metadata plus settlement wording; and unsupported spreadsheets/PDFs. The version-2 package replaces impossible future-JSON placeholders with independent gap predicates and actual captured 401/403 responses or PDF/workbook documents. Every case includes a parseable search distractor outside its source answer set. Formerly trivial cases now include plausible wrong timestamps, current summaries or unrelated publications, while both legitimate vendor alternatives remain acceptable.
 
 Validate the suite and run a complete offline software comparison:
 
@@ -110,9 +120,11 @@ uv run python -m research_harness.evaluation.benchmark check examples/evaluation
 uv run python -m research_harness.evaluation.fixtures examples/evaluation/development/manifest.json artifacts/evaluation/demo-001
 ~~~
 
-Choose a new output directory. The fixture runner preserves existing runs and denies HTTP requests absent from the authored fixture map. It executes actual ResearchService search, probe, and submission operations for two deterministic policies: authored-selection and first-listed-source. It writes 40 case artifact directories, two run.json manifests, and comparison.json. The second policy demonstrates why sample compatibility alone cannot establish relevance or complete source coverage. These policies are software fixtures; neither runs a model or the Omnigent agent.
+Choose a new output directory. The fixture runner preserves existing runs and denies HTTP requests absent from the authored fixture map. It executes actual ResearchService search, inspection, probe, and submission operations for two deterministic policies: authored-selection and first-listed-source. Only the authored policy receives the explicit gap selection, and it must inspect or probe those URLs to retain blocker evidence. The naive policy takes the first listed source configuration. It does not perform search ranking; the distractors are available to future discovery runs. It writes 40 case artifact directories, two run.json manifests, and comparison.json. The second policy demonstrates why sample compatibility alone cannot establish relevance or complete source coverage. These policies are software fixtures; neither runs a model or the Omnigent agent. Both the domain fixture runner and subprocess source transport decode binary documents from a strict `body_base64` field, mutually exclusive with the existing text/JSON `body` field.
 
 Model tokens and dollar costs remain unknown for this demonstration. Elapsed seconds measure only the executed fixture workflow. Some correctly documented unsupported/history gaps yield less than full source coverage even for authored-selection; the fixture is not designed to make every result perfect.
+
+The revised twenty-case comparison gives authored-selection macro quality 0.9495238095238095 versus first-listed-source 0.08333333333333333, with twenty strict per-case wins and forty valid runs. Authored data requirement recall remains 0.8416666666666666; its research recall is 0.9208333333333334. These numbers establish fixture discrimination under the revised contract, not model improvement. No search run has yet used the twenty-case package. Archived searches used a one-case scripted runtime fixture whose perfect ties verify orchestration only; those archives are unchanged and cannot support a research-quality claim.
 
 [build_cases.py](../examples/evaluation/development/build_cases.py) reproduces the authored case/fixture files. Editing and rebuilding cases changes the pinned benchmark revision and invalidates old run manifests for comparisons with that revision.
 

@@ -206,7 +206,10 @@ def synthetic_executor(calls, *, fail_case=None, unknown_case=None, interrupt_at
         if len(calls) == interrupt_at:
             (task.output / "partial.log").write_text("Available evidence before host interruption")
             raise KeyboardInterrupt
-        result = fixture_executor(task)
+        result = fixture_executor(
+            task,
+            source_id="row-number-id" if task.case_id == "filing-stable-accession" else None,
+        )
         proposal = read(result.research / "proposal.json")
         proposal["usage"] = (
             {} if task.case_id == unknown_case else {"input_tokens": 10, "output_tokens": 1}
@@ -247,7 +250,7 @@ def test_private_final_compares_original_baseline_and_frozen_selection(
     for candidate in report["candidates"]:
         assert candidate["summary"]["case_count"] == 2
         assert candidate["summary"]["macro_quality"] == 0.5
-        # The parseable first filing source uses the wrong identity field;
+        # The explicitly selected row-number source uses the wrong identity field;
         # independent held-out predicates correctly give it zero usefulness.
         assert candidate["cases"][0]["quality"] == 0.0
         assert candidate["summary"]["total_tokens"] == 22

@@ -288,7 +288,7 @@ def _aggregate(results: list[dict[str, Any]]) -> dict[str, Any]:
             ],
         },
         "usefulness": {
-            "scope": "independent_source_predicates",
+            "scope": "independent_source_and_gap_predicates",
             "macro_quality": sum(result["score"]["quality"] for result in results) / count,
             "macro_requirement_recall": sum(
                 result["score"]["requirement_recall"]
@@ -302,6 +302,15 @@ def _aggregate(results: list[dict[str, Any]]) -> dict[str, Any]:
                 if result["score"]["status"] == "ok"
             )
             / count,
+            **{
+                f"macro_{metric}": sum(
+                    result["score"][metric]
+                    for result in results
+                    if result["score"]["status"] == "ok"
+                )
+                / count
+                for metric in ("research_recall", "research_precision", "gap_recall")
+            },
             "qualitative_review": "not_measured",
         },
         "efficiency": {

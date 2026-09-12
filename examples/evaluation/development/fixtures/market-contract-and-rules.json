@@ -2,12 +2,16 @@
   "authorship": "Synthetic fixture authored by Codex; no live source was sampled",
   "search_results": [
     {
+      "url": "https://prediction-exchange.fixture.example/publication-index.json",
+      "title": "Contract metadata and settlement text: publication index and monthly counts"
+    },
+    {
       "url": "https://prediction-exchange.fixture.example/contracts.json",
-      "title": "Authored search result"
+      "title": "Contract metadata and settlement text: source publication"
     },
     {
       "url": "https://prediction-exchange.fixture.example/rules.json",
-      "title": "Authored search result"
+      "title": "Contract metadata and settlement text: source publication"
     }
   ],
   "responses": [
@@ -39,6 +43,23 @@
           {
             "id": "contract-1",
             "settlement_text": "Illustrative official release criterion"
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://prediction-exchange.fixture.example/publication-index.json",
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "synthetic": true,
+        "items": [
+          {
+            "id": "monthly-index",
+            "topic": "Contract metadata and settlement text",
+            "publication_count": 12
           }
         ]
       }

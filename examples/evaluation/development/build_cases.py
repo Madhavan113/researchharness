@@ -2,9 +2,13 @@
 
 from __future__ import annotations
 
+import base64
 import hashlib
+import io
 import json
+import zipfile
 from pathlib import Path
+from urllib.parse import urljoin
 
 ROOT = Path(__file__).resolve().parent
 ENTRIES = []
@@ -30,6 +34,13 @@ def source(identity, url, **fields):
 
 
 def response(url, items=None, *, body=None, content_type="application/json", status=200):
+    if isinstance(body, bytes):
+        return {
+            "url": url,
+            "status": status,
+            "headers": {"content-type": content_type},
+            "body_base64": base64.b64encode(body).decode("ascii"),
+        }
     return {
         "url": url,
         "status": status,
@@ -51,8 +62,63 @@ def response(url, items=None, *, body=None, content_type="application/json", sta
     }
 
 
-def requirement(identity, *alternatives, weight=1):
-    return {"id": identity, "weight": weight, "any_of": list(alternatives)}
+def requirement(identity, *alternatives, weight=1, gaps=None):
+    return {
+        "id": identity,
+        "weight": weight,
+        "any_of": list(alternatives),
+        **({"gap_any_of": gaps} if gaps else {}),
+    }
+
+
+def gap(url, status, status_code, content_type=None):
+    return {
+        "url": url,
+        "status": status,
+        "status_code": status_code,
+        **({"content_type": content_type} if content_type else {}),
+    }
+
+
+def workbook(url):
+    """A deterministic, actual one-sheet XLSX document with monthly rate cells."""
+    files = {
+        "[Content_Types].xml": '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>',
+        "_rels/.rels": '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>',
+        "xl/workbook.xml": '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Monthly rates" sheetId="1" r:id="rId1"/></sheets></workbook>',
+        "xl/_rels/workbook.xml.rels": '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>',
+        "xl/worksheets/sheet1.xml": '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData><row r="1"><c r="A1" t="inlineStr"><is><t>Month</t></is></c><c r="B1" t="inlineStr"><is><t>Rate</t></is></c></row><row r="2"><c r="A2" t="inlineStr"><is><t>2020-01</t></is></c><c r="B2"><v>1.5</v></c></row></sheetData></worksheet>',
+    }
+    output = io.BytesIO()
+    with zipfile.ZipFile(output, "w", compression=zipfile.ZIP_STORED) as archive:
+        for name, content in files.items():
+            archive.writestr(zipfile.ZipInfo(name, date_time=(1980, 1, 1, 0, 0, 0)), content)
+    return response(
+        url,
+        body=output.getvalue(),
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
+
+
+def vote_pdf(url):
+    """A small PDF with a page, text stream, font, and exact cross-reference offsets."""
+    text = b"BT /F1 12 Tf 72 720 Td (Authored roll call: Bill 1; Ada Yea; Bea Nay.) Tj ET\n"
+    objects = [
+        b"<< /Type /Catalog /Pages 2 0 R >>",
+        b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+        b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>",
+        b"<< /Length " + str(len(text)).encode() + b" >>\nstream\n" + text + b"endstream",
+        b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+    ]
+    body, offsets = b"%PDF-1.4\n", []
+    for index, value in enumerate(objects, 1):
+        offsets.append(len(body))
+        body += f"{index} 0 obj\n".encode() + value + b"\nendobj\n"
+    start = len(body)
+    body += b"xref\n0 6\n0000000000 65535 f \n"
+    body += b"".join(f"{offset:010d} 00000 n \n".encode() for offset in offsets)
+    body += f"trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n{start}\n%%EOF\n".encode()
+    return response(url, body=body, content_type="application/pdf")
 
 
 def predicate(value, **extra):
@@ -86,12 +152,21 @@ def case(
     result_urls = list(
         dict.fromkeys([value["url"] for value in sources] + [value["url"] for value in unsupported])
     )
+    # This parseable near-topic result is deliberately outside the source answer set.
+    # It provides publication counts, not the underlying records requested by the brief.
+    index_url = urljoin(result_urls[0], "/publication-index.json")
+    assert index_url not in result_urls
+    responses = [
+        *responses,
+        response(index_url, [{"id": "monthly-index", "topic": title, "publication_count": 12}]),
+    ]
     fixture = write(
         ROOT / "fixtures" / f"{identity}.json",
         {
             "authorship": "Synthetic fixture authored by Codex; no live source was sampled",
             "search_results": [
-                {"url": url, "title": "Authored search result"} for url in result_urls
+                {"url": index_url, "title": f"{title}: publication index and monthly counts"},
+                *[{"url": url, "title": f"{title}: source publication"} for url in result_urls],
             ],
             "responses": responses,
         },
@@ -122,6 +197,7 @@ def case(
 
 
 def main():
+    ENTRIES.clear()
     url = "https://export-office.fixture.example/notices.json"
     good = source(
         "official-notices", url, published_pointer="/published_at", required_pointers=["/title"]
@@ -133,7 +209,15 @@ def main():
         "export-controls",
         ["export-office"],
         ["official-source", "timestamps"],
-        [good],
+        [
+            source(
+                "notice-download-date",
+                url,
+                published_pointer="/downloaded_at",
+                required_pointers=["/title"],
+            ),
+            good,
+        ],
         [response(url)],
         [
             requirement(
@@ -144,6 +228,10 @@ def main():
     )
 
     url = "https://export-office.fixture.example/license-history.json"
+    current = source(
+        "current-license-summary",
+        "https://export-office.fixture.example/current-license-summary.json",
+    )
     case(
         "license-history-access",
         "Historical export licenses",
@@ -151,14 +239,18 @@ def main():
         "export-controls",
         ["export-office"],
         ["unsupported", "access", "historical-gap"],
-        [],
-        [response(url, body={"error": "Licensed archive"}, status=401)],
+        [current],
+        [
+            response(current["url"], [{"id": "summary-2026", "year": 2026, "approved_count": 14}]),
+            response(url, body={"error": "Licensed archive"}, status=401),
+        ],
         [
             requirement(
                 "license-history",
-                {"url": url, "connector": "json", "published_pointer": "/decision_at"},
+                gaps=[gap(url, "needs_access", 401)],
             )
         ],
+        chosen=[],
         unsupported=[
             {
                 "name": "License decision archive",
@@ -239,13 +331,20 @@ def main():
         ["sanctions-office"],
         ["rss", "historical-gap", "partial-coverage"],
         [good],
-        [rss(url)],
+        [
+            rss(url),
+            response(
+                archive,
+                body={"error": "Historical snapshots require archive credentials"},
+                status=403,
+            ),
+        ],
         [
             requirement("current-updates", predicate(good)),
             requirement(
                 "historical-designations",
-                {"url": archive, "connector": "json", "published_pointer": "/effective_at"},
                 weight=2,
+                gaps=[gap(archive, "needs_access", 403)],
             ),
         ],
         unsupported=[
@@ -274,6 +373,9 @@ def main():
     )
 
     url = "https://central-bank.fixture.example/rates.xlsx"
+    current = source(
+        "current-policy-rate", "https://central-bank.fixture.example/current-rate.json"
+    )
     case(
         "rates-workbook-unsupported",
         "Historical rate workbook",
@@ -281,15 +383,28 @@ def main():
         "monetary-policy",
         ["central-bank"],
         ["unsupported", "spreadsheet"],
-        [],
-        [],
-        [requirement("monthly-rates", {"url": url, "connector": "json"})],
+        [current],
+        [response(current["url"], [{"id": "current-rate", "rate": 2.5}]), workbook(url)],
+        [
+            requirement(
+                "monthly-rates",
+                gaps=[
+                    gap(
+                        url,
+                        "needs_connector",
+                        200,
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    )
+                ],
+            )
+        ],
+        chosen=[],
         unsupported=[
             {
                 "name": "Monthly rate workbook",
                 "url": url,
                 "status": "needs_connector",
-                "limitation": "The current harness has no workbook extraction connector; the acceptance rule is a future normalized-source placeholder.",
+                "limitation": "The response is a workbook; the current harness has no worksheet extraction connector. Current-rate JSON does not supply monthly history.",
             }
         ],
     )
@@ -372,6 +487,9 @@ def main():
     )
 
     first = source("vendor-advisories", "https://vendor-security.fixture.example/advisories.json")
+    counts = source(
+        "vendor-advisory-counts", "https://vendor-security.fixture.example/advisory-counts.json"
+    )
     alternative = {
         "id": "vendor-feed",
         "name": "Official security RSS",
@@ -385,8 +503,12 @@ def main():
         "vendor-security",
         ["vendor-security"],
         ["valid-alternatives", "rss"],
-        [first, alternative],
-        [response(first["url"]), rss(alternative["url"])],
+        [counts, first, alternative],
+        [
+            response(counts["url"], [{"id": "2026-09", "advisory_count": 4}]),
+            response(first["url"]),
+            rss(alternative["url"]),
+        ],
         [requirement("vendor-advisories", predicate(first), predicate(alternative))],
     )
 
@@ -463,6 +585,12 @@ def main():
 
     url = "https://weather-office.fixture.example/alerts.xml"
     good = {"id": "official-alerts", "name": "Weather alert feed", "connector": "rss", "url": url}
+    summary = {
+        "id": "weekly-weather",
+        "name": "Weekly weather summary",
+        "connector": "rss",
+        "url": "https://weather-office.fixture.example/weekly.xml",
+    }
     case(
         "weather-alert-feed",
         "Official weather alerts",
@@ -470,8 +598,11 @@ def main():
         "weather-alerts",
         ["weather-office"],
         ["rss", "freshness-limit"],
-        [good],
-        [rss(url, title="Authored flood advisory")],
+        [summary, good],
+        [
+            rss(summary["url"], title="Weekly rainfall summary"),
+            rss(url, title="Authored flood advisory"),
+        ],
         [requirement("weather-alerts", predicate(good))],
     )
 
@@ -601,10 +732,12 @@ def main():
         ["legislature"],
         ["unsupported", "pdf", "partial-coverage"],
         [good],
-        [response(good["url"], [{"id": "bill-1", "status": "committee"}])],
+        [response(good["url"], [{"id": "bill-1", "status": "committee"}]), vote_pdf(votes)],
         [
             requirement("bill-status", predicate(good)),
-            requirement("roll-call-votes", {"url": votes, "connector": "json"}),
+            requirement(
+                "roll-call-votes", gaps=[gap(votes, "needs_connector", 200, "application/pdf")]
+            ),
         ],
         unsupported=[
             {
@@ -621,7 +754,7 @@ def main():
         ROOT / "manifest.json",
         {
             "schema_version": 1,
-            "id": "research-discovery-development-v1",
+            "id": "research-discovery-development-v2",
             "split": "development",
             "description": "Twenty authored synthetic development contracts. No independent human review or live model quality claims.",
             "cases": ENTRIES,

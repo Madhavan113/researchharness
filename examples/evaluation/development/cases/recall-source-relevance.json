@@ -29,7 +29,7 @@
   },
   "fixtures": {
     "path": "fixtures/recall-source-relevance.json",
-    "sha256": "6fffd9d9f8742d44a5cdd09ec56ca5dd12e03047edcdcdbad9e636f308c7bfa9"
+    "sha256": "36733ff7bdabbee7ac05a73e46d57bfd1be071378cfa88c935492e30ce91a987"
   },
   "sources": [
     {

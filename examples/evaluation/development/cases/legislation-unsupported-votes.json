@@ -28,10 +28,13 @@
       {
         "id": "roll-call-votes",
         "weight": 1,
-        "any_of": [
+        "any_of": [],
+        "gap_any_of": [
           {
             "url": "https://legislature.fixture.example/roll-call.pdf",
-            "connector": "json"
+            "status": "needs_connector",
+            "status_code": 200,
+            "content_type": "application/pdf"
           }
         ]
       }
@@ -39,7 +42,7 @@
   },
   "fixtures": {
     "path": "fixtures/legislation-unsupported-votes.json",
-    "sha256": "757c7646810c88fcb6c236c4391b32ccc23be6f4fbfe3b5ffed34a2538bbe487"
+    "sha256": "48026a14d65a9ea5c614d1193e2e27ba32e7c3e2805f8bbbf483a8ff44d20a55"
   },
   "sources": [
     {

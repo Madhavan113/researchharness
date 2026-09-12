@@ -34,7 +34,7 @@
   },
   "fixtures": {
     "path": "fixtures/port-page-budget.json",
-    "sha256": "abc3a5358d73e5e4ea5712d4e3375a908c4d861c95b3281fc656f8e162bbd7ff"
+    "sha256": "797da571e69e77858c3363c793521701deba94f2ec86ed0b559024ac0cd436e5"
   },
   "sources": [
     {

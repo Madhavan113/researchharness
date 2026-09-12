@@ -8,23 +8,62 @@ from __future__ import annotations
 
 import json
 import math
+import re
 from pathlib import Path
 from typing import Any
 
-from pydantic import ValidationError
+from pydantic import StrictInt, ValidationError, model_validator
 
-from research_harness.config import PipelineSpec, SourceSpec
+from research_harness.config import PipelineSpec, SourceSpec, StrictModel
 from research_harness.evaluation.gateway_usage import verify_gateway_usage
 from research_harness.evaluation.usage import verify_runtime_usage
 from research_harness.execution import GatewayBinding
 from research_harness.util import canonical_json, digest, http_url
 
+EVALUATOR_VERSION = 2
+GAP_CREDIT = 0.5
 
-def matches(value: Any, expected: Any) -> bool:
-    """Objects are subset predicates; scalars and lists require exact equality."""
+
+class GapPredicate(StrictModel):
+    """An independently authored blocker, not a candidate's explanation."""
+
+    url: str
+    status: str
+    status_code: StrictInt
+    content_type: str | None = None
+
+    @model_validator(mode="after")
+    def coherent(self):
+        http_url(self.url)
+        if self.status == "needs_connector":
+            if self.status_code != 200 or self.content_type not in {
+                "application/pdf",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "application/vnd.ms-excel",
+            }:
+                raise ValueError("Connector gaps require HTTP 200 and a PDF/workbook content type")
+        elif self.status in {"needs_access", "unavailable"}:
+            allowed = {401, 403} if self.status == "needs_access" else {404, 410}
+            if self.status_code not in allowed or self.content_type is not None:
+                raise ValueError("Access/availability gaps require a corresponding HTTP status")
+        else:
+            raise ValueError("Unknown gap status")
+        return self
+
+
+def matches(value: Any, expected: Any, *, _path: tuple[str, ...] = ()) -> bool:
+    """Objects are subsets; required_pointers is a set subset; other lists are exact."""
+    if _path == ("required_pointers",):
+        return (
+            isinstance(value, list)
+            and isinstance(expected, list)
+            and all(isinstance(item, str) for item in [*value, *expected])
+            and set(expected) <= set(value)
+        )
     if isinstance(expected, dict):
         return isinstance(value, dict) and all(
-            key in value and matches(value[key], target) for key, target in expected.items()
+            key in value and matches(value[key], target, _path=(*_path, key))
+            for key, target in expected.items()
         )
     return type(value) is type(expected) and value == expected
 
@@ -44,7 +83,12 @@ def validate_requirements(requirements: Any) -> list[dict]:
         if type(weight) not in (int, float) or not math.isfinite(weight) or weight <= 0:
             raise ValueError("Requirement weights must be finite and positive")
         alternatives = requirement.get("any_of")
-        if not isinstance(alternatives, list) or not alternatives:
+        gaps = requirement.get("gap_any_of", [])
+        if not isinstance(gaps, list):
+            raise ValueError(f"{identity}: gap alternatives must be a list")
+        for gap in gaps:
+            GapPredicate.model_validate(gap)
+        if not isinstance(alternatives, list) or (not alternatives and not gaps):
             raise ValueError(f"{identity}: supply acceptable source predicates")
         for alternative in alternatives:
             if not isinstance(alternative, dict) or not isinstance(alternative.get("url"), str):
@@ -55,7 +99,97 @@ def validate_requirements(requirements: Any) -> list[dict]:
             unknown = set(alternative) - set(SourceSpec.model_fields)
             if unknown:
                 raise ValueError(f"{identity}: unknown source fields {sorted(unknown)}")
+            if "required_pointers" in alternative:
+                pointers = alternative["required_pointers"]
+                if not isinstance(pointers, list) or any(
+                    not isinstance(pointer, str) or (pointer != "" and not pointer.startswith("/"))
+                    for pointer in pointers
+                ):
+                    raise ValueError(
+                        f"{identity}: required_pointers must be a list of JSON pointers"
+                    )
     return requirements
+
+
+def _gap_captures(
+    events: list[dict], receipts: list[dict], discovery_id: str | None, errors: list[str]
+) -> list[dict]:
+    """Only scoped service exports establish blocker evidence; deduplicate trace copies."""
+    if not isinstance(discovery_id, str) or not discovery_id:
+        return []
+    captures: dict[str, dict] = {}
+    incomplete: list[dict] = []
+    exports = [
+        (item.get("kind"), item.get("payload"), item.get("discovery_id")) for item in receipts
+    ] + [
+        (event.get("kind"), event.get("result"), event.get("discovery_id"))
+        for event in events
+        if event.get("event") == "service_receipt"
+    ]
+    for kind, result, scope in exports:
+        if (
+            scope != discovery_id
+            or not isinstance(result, dict)
+            or kind not in {"inspection", "probe"}
+        ):
+            continue
+        if result.get("discovery_id", scope) != scope:
+            errors.append("Gap evidence result belongs to another discovery")
+            continue
+        items = [result] if kind == "inspection" else result.get("captures", [])
+        if not isinstance(items, list):
+            continue
+        for item in items:
+            if not isinstance(item, dict):
+                continue
+            capture = {
+                key: item.get(key) for key in ("capture_id", "url", "status_code", "body_sha256")
+            }
+            content_type = item.get("content_type")
+            if isinstance(content_type, str):
+                capture["content_type"] = content_type.split(";", 1)[0].strip().lower()
+            elif kind == "inspection":
+                capture["content_type"] = None
+            identity = item.get("capture_id")
+            if not isinstance(identity, str) or not identity:
+                incomplete.append(capture)
+                continue
+            previous = captures.get(identity)
+            if previous is not None:
+                if any(previous[key] != value for key, value in capture.items() if key in previous):
+                    errors.append("Conflicting service exports for the same capture")
+                captures[identity] = {**previous, **capture}
+            else:
+                captures[identity] = capture
+    return [*captures.values(), *incomplete]
+
+
+def _gap_matches(candidate: dict, predicate: dict, captures: list[dict]) -> bool:
+    rule = GapPredicate.model_validate(predicate)
+    if candidate.get("status") != rule.status or rule.url not in candidate.get("evidence_urls", []):
+        return False
+    observations = [capture for capture in captures if capture.get("url") == rule.url]
+    proved = False
+    for capture in observations:
+        status = capture.get("status_code")
+        # A contradictory or incomplete capture cannot establish a consistent blocker in this run.
+        if (
+            not isinstance(capture.get("capture_id"), str)
+            or not capture["capture_id"]
+            or type(status) is not int
+            or status != rule.status_code
+            or not isinstance(capture.get("body_sha256"), str)
+            or not re.fullmatch(r"[0-9a-f]{64}", capture["body_sha256"])
+        ):
+            return False
+        content_type = capture.get("content_type")
+        if rule.content_type is not None:
+            if "content_type" in capture and content_type != rule.content_type:
+                return False
+            proved |= content_type == rule.content_type
+        else:
+            proved = True
+    return proved
 
 
 def _objects(value: Any, label: str) -> list[dict]:
@@ -216,6 +350,7 @@ def score(
     registration = proposal.get("registry") or {}
     discovery_id = registration.get("discovery_id") if isinstance(registration, dict) else None
     observed = observed_urls(traces, receipts, discovery_id, errors)
+    captures = _gap_captures(traces, receipts, discovery_id, errors)
     by_probe: dict[str, dict] = {}
     for probe in probes:
         identity = probe.get("probe_id")
@@ -230,6 +365,7 @@ def score(
 
     ready: dict[str, dict] = {}
     valid_sources: list[dict] = []
+    gaps: list[dict] = []
     for index, candidate in enumerate(candidates):
         before = len(errors)
         label = candidate.get("name", f"candidate {index}")
@@ -244,6 +380,8 @@ def score(
         if status not in {"ready", "needs_connector", "needs_access", "unavailable"}:
             errors.append(f"{label}: unknown candidate status")
         if status != "ready":
+            if len(errors) == before:
+                gaps.append(candidate)
             continue
         try:
             spec = SourceSpec.model_validate(candidate.get("source"))
@@ -280,8 +418,11 @@ def score(
         errors.append("Compiled pipeline does not match the ready candidate configurations")
 
     coverage = []
+    gap_coverage = []
     relevant: set[int] = set()
-    total_weight = covered_weight = 0.0
+    relevant_gaps: set[int] = set()
+    claim_for_gap: dict[tuple[str, str], int] = {}
+    total_weight = covered_weight = gap_weight = 0.0
     for requirement in requirements:
         weight = requirement.get("weight", 1)
         total_weight += weight
@@ -300,17 +441,47 @@ def score(
                 "source_ids": [valid_sources[index]["id"] for index in matching],
             }
         )
+        matched_gaps: set[int] = set()
+        if not matching:
+            for predicate in requirement.get("gap_any_of", []):
+                key = (predicate["url"], predicate["status"])
+                for index, candidate in enumerate(gaps):
+                    if _gap_matches(candidate, predicate, captures):
+                        # Multiple copies of the same URL/status claim get only one credit.
+                        matched_gaps.add(claim_for_gap.setdefault(key, index))
+                        break
+        relevant_gaps.update(matched_gaps)
+        if matched_gaps:
+            gap_weight += weight
+        gap_coverage.append(
+            {
+                "id": requirement["id"],
+                "gap_reported": bool(matched_gaps),
+                "claim_indexes": sorted(matched_gaps),
+            }
+        )
     recall = covered_weight / total_weight
     precision = len(relevant) / len(ready) if ready else 0.0
-    f1 = 2 * precision * recall / (precision + recall) if precision + recall else 0.0
+    research_recall = (covered_weight + GAP_CREDIT * gap_weight) / total_weight
+    claims = len(ready) + len(gaps)
+    research_precision = (len(relevant) + len(relevant_gaps)) / claims if claims else 0.0
+    f1 = (
+        2 * research_precision * research_recall / (research_precision + research_recall)
+        if research_precision + research_recall
+        else 0.0
+    )
     selected_usage = gateway_evidence if gateway_evidence is not None else usage_evidence
     return {
-        "evaluator_version": 1,
-        "scope": "sampled_source_selection",
+        "evaluator_version": EVALUATOR_VERSION,
+        "scope": "sampled_source_selection_and_gaps",
         "status": "invalid" if errors else "ok",
         "quality": 0.0 if errors else f1,
         "requirement_recall": recall,
         "source_precision": precision,
+        "research_recall": research_recall,
+        "research_precision": research_precision,
+        "gap_recall": gap_weight / total_weight,
+        "gap_credit": GAP_CREDIT,
         "total_tokens": selected_usage["total_tokens"] if selected_usage else token_usage(proposal),
         "completed_token_lower_bound": selected_usage["completed_token_lower_bound"]
         if selected_usage
@@ -333,6 +504,7 @@ def score(
             }
         ),
         "coverage": coverage,
+        "gap_coverage": gap_coverage,
         "errors": errors,
         "artifacts": str(artifacts.resolve()),
         "specification_sha256": digest(canonical_json(specification)),
@@ -347,6 +519,8 @@ def frontier(results: list[dict]) -> list[dict]:
     }
     if len(specifications) > 1:
         raise ValueError("Only compare runs scored against the same specification")
+    if len({result.get("evaluator_version", 1) for result in results}) > 1:
+        raise ValueError("Only compare runs scored with the same evaluator version")
     eligible = [
         result
         for result in results

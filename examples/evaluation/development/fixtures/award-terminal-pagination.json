@@ -2,8 +2,12 @@
   "authorship": "Synthetic fixture authored by Codex; no live source was sampled",
   "search_results": [
     {
+      "url": "https://tender-service.fixture.example/publication-index.json",
+      "title": "Award catalog terminal page: publication index and monthly counts"
+    },
+    {
       "url": "https://tender-service.fixture.example/awards",
-      "title": "Authored search result"
+      "title": "Award catalog terminal page: source publication"
     }
   ],
   "responses": [
@@ -21,6 +25,23 @@
             "title": "Authored policy notice",
             "published_at": "2026-09-01T12:00:00Z",
             "downloaded_at": "2026-09-08T12:00:00Z"
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://tender-service.fixture.example/publication-index.json",
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "synthetic": true,
+        "items": [
+          {
+            "id": "monthly-index",
+            "topic": "Award catalog terminal page",
+            "publication_count": 12
           }
         ]
       }
