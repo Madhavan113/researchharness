@@ -185,6 +185,8 @@ Completed September 12 by `/root` on `test/reproducible-runtime-checks`, based o
 
 ### RW-15 · Small items · `open`
 
+RW-14 is published in [PR #12](https://github.com/Madhavan113/researchharness/pull/12), stacked on PR #11. The remaining small items below are separate work.
+
 - Declare `anyio` under the `mcp` extra; it is imported directly in `mcp/server.py`.
 - Remove or explain the four zero-byte `.log` files under `examples/omnigent/evidence/`.
 - `optimization/proposer.py` near line 455 requires `response["model"]` to equal the configured snapshot exactly; an alias fails at the first response. Document or normalize.
