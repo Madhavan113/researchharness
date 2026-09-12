@@ -135,15 +135,17 @@ Acceptance: tests for invalid filters not consuming budget, a 404 from a "writer
 
 Completed September 10 by `/root`, branch `fix/mcp-cli-parity`, [PR #8](https://github.com/Madhavan113/researchharness/pull/8), based on PR #7. The full required suite passes 1,264 tests with zero skips, including 26 added cases for service/direct/MCP admission, failure classification and replay, actual writer locks, fresh budgets and failure reporting, and custom-model CLI stdio resumption. Reconciliation annotations and frozen binding rejection are also verified. The [service guide](research-service.md) documents the behavior and the shared tracker records the command and report hash. The original documentation-only checkpoint has been followed by the implemented fixes.
 
-### RW-10 · Preflight strict tool schemas against the live provider · `open` · plausible
+### RW-10 · Preflight strict provider schemas · `done` · confirmed
 
-Files: `src/research_harness/discovery.py` (`SEARCH_TOOL` lines 82–89 and the `ProposalDraft` text format), `examples/omnigent/search_preflight.py`.
+Files: `src/research_harness/integrations/provider_schema.py`, direct discovery, MCP server, schema/SDK/protocol/runtime tests, and `examples/omnigent/provider_schema_preflight.py`. The existing `search_preflight.py` checks Keenable's MCP endpoint, not OpenAI schema acceptance.
 
-Problem: the strict search tool schema carries non-null `default` keys and min/max bounds; the installed SDK strips only `None` defaults, and strict mode has historically rejected `default`. No live call has exercised it.
+Problem: the installed SDK strips only `None` defaults, leaving non-null `default` annotations in generated search and nested proposal schemas. This was confirmed in the actual SDK. Live API rejection has not been reproduced; numeric/array bounds have documented support and should be preserved independently of default handling.
 
 Fix direction: make tool-schema fields nullable and apply defaults host-side; run the preflight once provider access exists and record the result in the tracker.
 
 Acceptance: a recorded live preflight or a unit test asserting the generated strict schema contains no `default` keys.
+
+Completed September 12 by `/root` on `fix/strict-provider-schemas`, based on PR #10, using the unit-test acceptance option. A shared adapter emits default-free, closed, required schemas while host validation restores nullable defaults and preserves existing probe identity and operation replay. The offline preflight checks actual SDK serialization/parsing, three direct function schemas, one proposal schema, fourteen MCP input schemas and fourteen strict Agents SDK conversions. All new schema/SDK/protocol tests and the actual controlled Docker/Omnigent comparison pass. The full required run records 1,331 passes and four runtime timeout failures; a focused rerun passes the context/rejection checks but retains two one-second runaway-test timeouts. These are recorded in the [tracker handoff](goals/omnigent-integration.md#september-10-2026--rw-10-strict-provider-schema-ownership), with no relaxed limits or assertions. Live API acceptance remains a separate M0 gate, with provider access and spending decisions still pending.
 
 ### RW-11 · Storage parity fixes · `done` · confirmed
 
@@ -197,10 +199,7 @@ Unchanged from the tracker: provider access, the spending decision, human review
 
 ## Suggested order for a continuing agent
 
-1. RW-3 and RW-4: small, surgical, fully testable offline.
-2. RW-7: visibility first, so every later run reports what it actually executed.
-3. RW-2 scorer changes, then case repairs, then fixture distractors.
-4. RW-8, RW-9, RW-11: independent, offline, each closable in one session.
-5. RW-5 and RW-6 at the next evidence regeneration.
-6. RW-1 once the owner records the decision.
-7. RW-10 and the blocked items when provider access exists.
+1. Check the published checkpoint's required CI result, including the two local Docker runaway-test timeouts recorded in the RW-10 handoff.
+2. RW-5 and RW-6: agree on artifact retention and path/hostname handling before the next evidence regeneration or public release.
+3. RW-13, RW-14 and RW-15: remaining independent offline efficiency and maintenance work.
+4. Resolve the external decisions above, then perform live compatibility and the measured baseline before model-mode search. RW-10's offline acceptance does not replace that live compatibility gate.

@@ -4,7 +4,7 @@ Goal id: `omnigent-research-harness`
 
 Status: in_progress; implementing September 10 review follow-ups; measured evaluation still requires independent benchmark review, provider access and the pending spending decision
 
-Accepted: September 8, 2026. Last updated: September 10, 2026
+Accepted: September 8, 2026. Last updated: September 12, 2026
 
 Build an interactive research harness using Omnigent for agent execution and the interface, with Research Harness providing verified evidence, pipeline proposals, collection, and durable state. After measuring the working integration, add the Meta-Harness paper's strategy optimization process with independent evaluation.
 
@@ -39,7 +39,7 @@ Use `queued`, `in_progress`, `blocked`, or `done`. Replace an owner only after a
 | M3 | Omnigent research agent bundle and runtime binding | done | `/root/omnigent_spike`, browser verification `/root` | Normal server/runner/MCP and browser chat save validated proposal/pipeline ids; synthetic model HTTP, frozen authored bundle |
 | M4 | Collection jobs, exports, case lookup, recovery | done | `/root` | Detached workers, cancellation, process termination, scoped data, exports, and full server/browser restart verified locally; local Postgres/MinIO tests and detached workflow/restart/export acceptance now verified |
 | M5 | Independent pilot evaluation and baseline comparison | blocked | `/root`, bounded agent work handed off | Twenty authored cases now discriminate in the offline policy comparison; independent evaluators, frozen controller and bound gateway usage verified through actual runtimes; budgeted dispatch and independent settlement verified through both actual runtimes; awaits human review, provider access and the pending spending decision |
-| M6 | Meta-Harness strategy optimization and isolated final evaluation | in_progress | `/root`, review follow-ups | RW-1/2/3/4/7/8/9/11 are published in PRs #2–#9. RW-12 adds offline domain split checks and advisory development-string audits, verified with 1,315 required tests and complete synthetic search/final execution. Measured search/final still awaits remaining review work, reviewed cases, provider access, spending approval and the measured baseline |
+| M6 | Meta-Harness strategy optimization and isolated final evaluation | in_progress | `/root`, review follow-ups | RW-1/2/3/4/7/8/9/11/12 are published in PRs #2–#10. RW-10 now satisfies its offline schema acceptance, including actual SDK/MCP/runtime checks; two unchanged local Docker runaway checks still time out on recheck, as recorded below. Measured search/final still awaits remaining review work, reviewed cases, provider access, spending approval and the measured baseline |
 
 M0 and M1 can proceed independently against the agreed tool/service boundary. Evaluation case design can also proceed independently. Agree on ownership of shared schemas, CLI wiring, dependencies, migrations, and this tracker before concurrent edits.
 
@@ -77,6 +77,46 @@ For each active task, add a short entry with:
 Retain completed handoffs so another agent can distinguish implemented behavior from planned work. Avoid copying secrets, raw credentials, or held-out task contents into this shared tracker.
 
 ## Activity and handoffs
+
+### September 10, 2026 — RW-10 strict provider schema ownership
+
+Owner: `/root`; RW-10 done on `fix/strict-provider-schemas`, based on [PR #10](https://github.com/Madhavan113/researchharness/pull/10), head `0d70ff9`. It satisfies the review item's offline acceptance option; live provider acceptance remains in M0. The previous turn made progress: RW-12 was implemented, passed 1,315 required tests and complete synthetic search/final acceptance, then was committed/pushed and published ready for review. Both jobs in [PR #10's pull-request run](https://github.com/Madhavan113/researchharness/actions/runs/34560118417) have since passed; its earlier push run was superseded.
+
+Scope: remove default annotations from model-facing strict schemas, represent defaulted inputs as nullable and apply domain defaults at the host boundary; preserve domain validation, bounds and operation-replay behavior. Intended files: a shared provider-schema adapter, direct discovery, MCP server, focused schema/SDK/protocol tests, an offline preflight artifact helper if useful, and research/Omnigent/status documentation. Inspect the actual SDK and normal Omnigent tool conversion; validate generated search/proposal and MCP input schemas without claiming live provider acceptance. The existing `search_preflight.py` targets Keenable MCP metadata/query compatibility and cannot prove OpenAI schema acceptance. Acceptance includes default-free strict emitted schemas, all properties required with appropriate nullability, valid host defaults, unchanged explicit values and meaningful invalid-input errors through actual SDK/MCP requests. OpenAI documentation skill applied; current official sources support the numeric/array bounds, so retain them. No live model calls or spending records are authorized by this task; pending provider/budget and independent-review gates remain unchanged.
+
+September 12 resumption: source changes persisted, but earlier temporary test reports and the separate Omnigent checkout did not. Restored the clean pinned checkout using `sh examples/omnigent/setup.sh /tmp/researchharness-omnigent-be042b39` and confirmed the Docker image digest. Fresh required-suite and offline preflight evidence replace reliance on the missing temporary reports. The user has authorized committing/pushing all checkpoints and opening PRs; earlier checkpoints are published in PRs #2–#10. This task finishes and publishes RW-10, without changing the pending live-run decisions.
+
+Implementation: the shared provider adapter removes only schema `default` annotations, requires every named property, closes objects and makes defaulted nonnullable inputs nullable. Normalization against the original domain schema restores defaults before validation, including nested source/proposal models, while preserving explicit values and meaningful nulls. Direct search, `source_json` probes, structured output and all fourteen MCP tools use it. MCP advertises typed search filters without coercing legacy explicit values before operation hashing. New tests cover actual SDK serialization/parsing, nullable defaults, bounds, required-null rejection before admission, unchanged probe/proposal identity and receipt replay without extra source/provider calls. The actual normal Omnigent/Docker comparison also checks emitted schemas. Configuration models, dependency pins and historical archives are unchanged.
+
+Fresh offline preflight: `uv run --locked --extra mcp python examples/omnigent/provider_schema_preflight.py --out /tmp/rh-rw10-schema-preflight-final-20260912 --omnigent-python /tmp/researchharness-omnigent-be042b39/.venv/bin/python` passed with OpenAI SDK 2.54.0, Pydantic 2.13.5 and Agents SDK 0.13.6. It captured three direct function schemas, one proposal schema, fourteen MCP input schemas and fourteen successful strict conversions. All five artifact hashes and the unchanged helper were independently rechecked. Report SHA-256: `ca0b008a3d57f28a2baa5a3dc88b2f14a14f916e3e6a07361a045a4283969e93`; helper SHA-256: `c75886e0cf594cd536ce9ef4f13acb28cf7851a5b1953acf9f2d36c7c15b74ea`. Provider requests: zero. The fixtures establish serialization, conversion and default restoration; they do not establish live API acceptance or native Omnigent's strict-flag selection.
+
+Required full run on September 12:
+
+~~~sh
+RH_TEST_REQUIRE_RUNTIME=1 \
+RH_TEST_STRATEGY_IMAGE=python@sha256:9d2e5553305c7c7b0097999bb17187c69b921ccd6bc9d40e4bb5ebe652c00285 \
+RH_TEST_OMNIGENT_PYTHON=/tmp/researchharness-omnigent-be042b39/.venv/bin/python \
+uv run --locked --extra mcp pytest --tb=short \
+  --basetemp=/tmp/rh-rw10-required-final-20260912 \
+  --junitxml=/tmp/rh-rw10-required-final-20260912.xml
+~~~
+
+Result: **1,331 passed, four failed, zero skipped**, 991.40 seconds. JUnit SHA-256: `7e264a6a3d1a71409cc9174d788275a8693f363a02e02d2a66e983ff63ff2b42`; console output: `/tmp/rh-rw10-required-final-20260912.log`. All new schema/SDK/protocol cases and the controlled Docker/both-runtime comparison passed. The failures were the normal-runner context follow-up, Docker create-rejection check, and two runaway-candidate cases. Captured execution records show a sandbox wall-clock timeout and `docker info` exceeding 15 seconds; the runaway cases reached their one-second wall-clock limit before the expected output/memory-specific failures. The suite continued and no running containers remained afterward. No runtime limit or assertion was relaxed. A targeted recheck covers those failures plus the third runaway case in a fresh directory; retain both reports rather than describing the original command as green.
+
+Recheck, using the same three `RH_TEST_*` variables above:
+
+~~~sh
+uv run --locked --extra mcp pytest \
+  tests/test_strategy_context.py::test_actual_normal_runner_followup_prunes_only_the_previous_completed_interaction \
+  tests/test_strategy_sandbox.py::test_actual_cli_create_rejection_stays_quiescent_after_recovery \
+  tests/test_strategy_sandbox.py::test_actual_runaway_candidates_are_bounded_and_removed \
+  --tb=short --basetemp=/tmp/rh-rw10-runtime-recheck-20260912 \
+  --junitxml=/tmp/rh-rw10-runtime-recheck-20260912.xml
+~~~
+
+Result: **three passed, two failed, zero skipped**, 81.61 seconds. The normal-runner context follow-up, create-rejection check and intentional wall-clock case passed. The output/memory cases again reached their one-second wall-clock limit before their more specific expected errors. Their test and sandbox implementation are unchanged by this checkpoint; no assertion or runtime limit was relaxed. JUnit SHA-256: `125e0bd19c9d084ae9207a6083e74af28057f9a48bff28e1658de090c1b85b75`; console output: `/tmp/rh-rw10-runtime-recheck-20260912.log`. Required CI must establish the hosted result; this is not a fully green local suite.
+
+Handoff: changed the shared provider adapter, direct discovery and MCP server; five test modules; the offline preflight helper; README, research service/example guides, accepted plan and shared trackers. `uv run --locked --extra mcp ruff check src tests examples/omnigent/provider_schema_preflight.py` and the corresponding `ruff format --check` pass for 110 files. RW-10 is closed on its explicit offline acceptance branch. Next action: publish the checkpoint and inspect required CI, retaining the local timeout evidence. Remaining artifact hygiene/retention and efficiency/test-maintenance work is tracked in RW-5/6/13/14/15. The shared goal stays active; human case review, provider access, spending decisions and measured baseline/search/final remain unfinished.
 
 ### September 10, 2026 — RW-12 split isolation and leakage audit ownership
 

@@ -10,6 +10,8 @@ The [durable research service and fourteen local MCP tools](docs/research-servic
 
 The [budgeted strategy runner](docs/strategy-optimization.md#run-search-with-the-shared-model-budget) now shares the pilot ledger across research, coding proposals and private final evaluation. Its [acceptance record](examples/evaluation/evidence/budgeted-strategy-search-2026-09-09/acceptance.json) verifies 125 reserved and settled synthetic requests through actual Omnigent/Docker execution. The September 9 checkpoint records 1,004 passing tests; current follow-up verification is recorded in the tracker. Human review and measured model evaluation remain outstanding.
 
+Direct discovery and MCP now emit strict provider schemas with host-owned defaults. The [offline schema preflight](examples/omnigent/README.md#offline-provider-schema-preflight) captures SDK serialization and conversion without a provider call; live acceptance remains outstanding.
+
 ## Start with a research question
 
 Requires Python 3.11+ and [uv](https://docs.astral.sh/uv/). The lockfile pins dependencies.
