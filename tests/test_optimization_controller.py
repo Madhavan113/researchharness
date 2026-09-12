@@ -211,6 +211,77 @@ def test_invalid_candidate_is_retained_and_does_not_trigger_evaluation(search):
     assert len(list(proposer.snapshots[-1].glob("candidate-attempts/*/admission.json"))) == 4
 
 
+def test_last_proposal_admission_crash_cannot_freeze_an_incomplete_frontier(search, monkeypatch):
+    executor, proposer = Executor(), Proposer(search)
+    admit = search._admit
+
+    def interrupt_last(proposal, journal, limits):
+        if proposal["iteration"] == 3:
+            raise OSError("Admission interrupted after completed proposal was saved")
+        return admit(proposal, journal, limits)
+
+    monkeypatch.setattr(search, "_admit", interrupt_last)
+    with pytest.raises(OSError, match="Admission interrupted"):
+        search.run(executor=executor, proposer=proposer)
+    reopened = SearchController(search.root)
+    journal_path = search.root / "journal.json"
+    before = journal_path.read_bytes()
+    last = read(journal_path)["proposals"]["iteration-0003"]
+    assert last["status"] == "completed" and last["closed"] and last["quiescent"]
+    assert not last.get("admitted")
+    assert len(executor.calls) == 5 and len(proposer.calls) == 3
+    with pytest.raises(ValueError, match="admit"):
+        reopened.select(proposer=proposer)
+    assert journal_path.read_bytes() == before and not proposer.closed
+    assert reopened.archive.status()["selection"] is None
+    result = reopened.run(executor=executor, proposer=proposer)
+    assert result["phase"] == "selected" and proposer.closed
+    assert len(executor.calls) == 7 and len(proposer.calls) == 3
+    assert len(result["archive"]["selection"]["candidate_ids"]) == 7
+    assert set(last["candidate_ids"]) <= result["candidates"].keys()
+    assert all(proposal.get("admitted") is True for proposal in result["proposals"].values())
+
+
+@pytest.mark.parametrize("damage", ["admission", "candidate", "proposal-state"])
+def test_incomplete_older_selection_is_rejected_before_replay_or_private_evaluation(
+    search, monkeypatch, tmp_path, damage
+):
+    from research_harness.optimization import final as final_module
+
+    executor, proposer = Executor(), Proposer(search)
+    search.run(executor=executor, proposer=proposer)
+    journal_path = search.root / "journal.json"
+    journal = read(journal_path)
+    last = journal["proposals"]["iteration-0003"]
+    if damage == "admission":
+        last.pop("admitted")
+    elif damage == "candidate":
+        journal["candidates"].pop(last["candidate_ids"][-1])
+    else:
+        last["status"] = "unresolved"
+    write_json(journal_path, journal)
+    before = journal_path.read_bytes()
+    reopened = SearchController(search.root)
+    monkeypatch.setattr(
+        final_module,
+        "evaluate_final",
+        lambda *args, **kwargs: pytest.fail("Private evaluation entered"),
+    )
+    with pytest.raises(ValueError, match="admit|candidate|proposal"):
+        reopened.select()
+    with pytest.raises(ValueError, match="admit|candidate|proposal"):
+        reopened.run(executor=executor, proposer=proposer)
+    with pytest.raises(ValueError, match="admit|candidate|proposal"):
+        reopened.final(
+            heldout_manifest=tmp_path / "must-not-be-read.json",
+            output=tmp_path / "private-final",
+            executor=executor,
+        )
+    assert journal_path.read_bytes() == before
+    assert not (tmp_path / "private-final").exists()
+    assert len(executor.calls) == 7 and len(proposer.calls) == 3
+
+
 def test_development_leak_findings_survive_admission_restart_and_proposer_feedback(search):
     url = "https://export-office.fixture.example/notices.json"
 

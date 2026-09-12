@@ -16,6 +16,8 @@ The pinned Omnigent normal runner forwards reasoning effort, but drops authored 
 
 The controlled Omnigent bundle also enforces its discovery allowlist at tool dispatch; stripping request advertisement alone does not prevent the SDK from calling registered functions. Normal workflow bundles keep their collection/export tools. The controlled runtime names identify this adapter. Prompt assembly, function schemas, proposal delivery, streaming and error handling still differ. A common instruction hash does not mean the full assembled model prompt is identical. Limits bound requests; they are not an exact provider billing cap. A verified gateway archive can establish complete provider tokens while Omnigent's narrower turn export remains a lower bound. The report retains both evidence scopes. An invalid selected gateway archive keeps the total unknown; it cannot fall back to a smaller proposal or runtime counter.
 
+New comparison plans disclose the built-in clients' different SDK policies in `limitations`. The direct client sets `max_retries=0` and a request timeout of `min(90, deadline_seconds)` seconds. At the pinned Omnigent commit, the normal executor uses Omnigent's default `RetryPolicy`: seven retries and a 120-second request timeout. These are not identical client settings or unconfigured SDK defaults. The host gateway rejects SDK retry attempts before provider dispatch and enforces the shared request/deadline limits, but client error handling and timing can still differ. This disclosure does not change either client's behavior or rewrite historical plans.
+
 ## Prepare and inspect a run
 
 Preparation makes no model or source requests:

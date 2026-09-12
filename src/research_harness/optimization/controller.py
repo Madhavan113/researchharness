@@ -608,7 +608,7 @@ class SearchController:
         with self.lock:
             plan, journal, config, limits = self._load()
             if journal["phase"] != "search":
-                return {"status": journal["phase"], "selection": self.archive.status()["selection"]}
+                return self._select(journal, proposer=proposer)
             for proposal in journal["proposals"].values():
                 if proposal["status"] in {"running", "unresolved"}:
                     raise ValueError("Proposal attempt requires explicit recovery")
@@ -635,11 +635,10 @@ class SearchController:
                 return self.status()
 
     def _select(self, journal: dict, *, proposer=None) -> dict:
+        self._quiescent(journal)
+        self._selection_ready(journal)
         if journal["phase"] != "search":
             return {"status": journal["phase"], "selection": self.archive.status()["selection"]}
-        self._quiescent(journal)
-        if any(c["status"] not in TERMINAL_CANDIDATES for c in journal["candidates"].values()):
-            raise ValueError("Resolve every candidate before selection")
         if "proposer_revocation" not in journal:
             if proposer is None:
                 raise ValueError("Close the configured proposer before freezing selection")
@@ -652,6 +651,19 @@ class SearchController:
         journal.update(phase="selected", selected_at=timestamp(), selection=result)
         self._save(journal)
         return {"status": "selected", "selection": result}
+
+    @staticmethod
+    def _selection_ready(journal: dict) -> None:
+        """Require every reserved proposal slot to be resolved before freezing or reuse."""
+        for proposal in journal["proposals"].values():
+            if proposal["status"] not in {"completed", "failed"}:
+                raise ValueError("Resolve every proposal before selection")
+            if proposal["status"] == "completed" and proposal.get("admitted") is not True:
+                raise ValueError("Resume search to admit every completed proposal before selection")
+            if any(identity not in journal["candidates"] for identity in proposal["candidate_ids"]):
+                raise ValueError("Resolve every reserved candidate before selection")
+        if any(c["status"] not in TERMINAL_CANDIDATES for c in journal["candidates"].values()):
+            raise ValueError("Resolve every candidate before selection")
 
     @staticmethod
     def _quiescent(journal):
@@ -765,6 +777,7 @@ class SearchController:
                 raise ValueError("Final evaluation requires permanent proposer revocation")
             if journal["phase"] not in {"selected", "final_started", "finalized"}:
                 raise ValueError("Finish search and freeze selection before final evaluation")
+            self._selection_ready(journal)
             if journal["phase"] == "selected":
                 self.archive.validate_final_selection()
             terminal = journal["phase"] == "finalized"
