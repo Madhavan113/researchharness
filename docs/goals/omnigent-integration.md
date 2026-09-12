@@ -79,6 +79,35 @@ Retain completed handoffs so another agent can distinguish implemented behavior 
 
 ## Activity and handoffs
 
+### September 12, 2026 — Complete historical review coverage ownership
+
+Owner: `/root`; `in_progress` on `docs/complete-historical-reviews`, based on
+PR #18 head `8fab9199eeb0b9e03fd99643e896f8b93f14ad8a`. The previous goal turn
+made progress: all 25 original files restored exactly, the 1,463-test required
+suite passed, and three checkpoint commits plus PR #18 were published.
+Current PR #18 run `34725093128` is pending while the older required job in
+`34725081916` is still active; do not restart either from an observation timeout.
+
+RW-5 still covers only one representative derived archive. The baseline contains
+11 regular-member tar archives and two gzip JSON request captures. The largest
+member is below 1 MB; a complete review is within the existing tooling limits.
+Scope: verify every selected original from the pinned Git baseline and its
+original member index, prepare private review inputs with explicit container/member
+provenance, export and re-verify every file with the existing portable tools,
+and prepare a complete external asset package. Keep original bytes, indices,
+ledgers, frozen proofs and private final data unchanged. Do not execute archived
+code or upload any release assets. Human/provider/budget decisions stay pending.
+
+Intended repository edits are small evidence indices/summaries and review guides,
+plus this tracker and remaining-work status. Full original/review trees and
+compressed assets remain in private local directories outside Git. Acceptance:
+all original files and expanded archive members accounted for, source-bound
+transform verification, no configured operator identity or JUnit hostname in
+new review files, archive member verification and a fresh extraction scan, with
+all limitations recorded. A derived copy cannot reproduce an audit that requires
+omitted private inputs or resume an original budgeted run.
+
+
 ### September 12, 2026 — Historical evidence reference migration ownership
 
 Owner: `/root`; bounded implementation, local verification and publication done
