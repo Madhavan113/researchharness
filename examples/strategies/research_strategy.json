@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "source": "research_strategy.py",
-  "source_sha256": "8a572dbb38e1131ad3ddcfa7411b28e5dc792a51b4f5cd80ec77e0827ad7bbe7",
+  "source_sha256": "ca7722ae7b05afb9908774270141df22cbb9821ea447b65caddfd3405b57c194",
   "sandbox": {
     "schema_version": 1,
     "image": "python@sha256:9d2e5553305c7c7b0097999bb17187c69b921ccd6bc9d40e4bb5ebe652c00285",
@@ -12,7 +12,8 @@
     "max_source_bytes": 1048576
   },
   "observations": true,
-  "context": false,
+  "context": true,
+  "finalize_on_stop": true,
   "max_events": 128,
   "max_state_bytes": 65536,
   "max_render_bytes": 32768

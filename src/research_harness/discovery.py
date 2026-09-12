@@ -129,6 +129,7 @@ class Discovery:
         settings: DiscoverySettings | None = None,
         instructions: str | None = None,
         strategy: StrategySession | None = None,
+        strategy_requests_at_gateway: bool = False,
     ):
         """Use explicit shared settings, or retain the legacy direct defaults.
 
@@ -171,6 +172,7 @@ class Discovery:
         )
         self.search_provider = search_provider
         self.strategy = strategy
+        self.strategy_requests_at_gateway = strategy_requests_at_gateway
         if strategy is not None and search_provider is None:
             raise ValueError("Code strategies require the wrapped search provider")
         self.instructions = (
@@ -201,6 +203,9 @@ class Discovery:
             strategy.assert_ready()
             self.execution_config["code_strategy_sha256"] = strategy.bundle.sha256
             self.execution_config["strategy_session_id"] = strategy.session_id
+            self.execution_config["strategy_request_owner"] = (
+                "gateway" if strategy_requests_at_gateway else "direct"
+            )
         self.search_config: dict[str, Any] = {
             "mode": "native" if search_provider is None else "wrapped",
             "provider": "openai-native" if search_provider is None else search_provider.name,
@@ -298,6 +303,8 @@ class Discovery:
             if len(arguments) > 60_000:
                 raise ValueError("Tool arguments exceed limit")
             args = json.loads(arguments)
+            if self.strategy is not None:
+                self.strategy.admit_observation(name, self.service.discovery_id, operation_id)
             if name == "search_sources" and self.search_provider is not None:
                 search = SearchArguments.model_validate(args)
                 result = self.service.search(
@@ -385,14 +392,38 @@ class Discovery:
                 }
                 if self.search_provider is None:
                     model_settings["max_tool_calls"] = max(1, min(6, remaining["search"]))
+                model_request = {
+                    "model": self.model,
+                    "instructions": round_instructions,
+                    "input": history,
+                    "tools": round_tools,
+                    **model_settings,
+                }
+                if self.strategy is not None and not self.strategy_requests_at_gateway:
+                    from research_harness.strategies.context import project_context
+                    from research_harness.strategies.stopping import finalize_request
+
+                    with self.strategy.guard():
+                        model_request = project_context(
+                            self.strategy,
+                            model_request,
+                            operation_id=f"context:direct:{self.service.discovery_id}:{round_number}",
+                        )
+                        if self.strategy.stopping_event(self.service.discovery_id) is not None:
+                            model_request = finalize_request(model_request)
                 self.event(
                     {
                         "event": "model_request",
                         "round": round_number,
                         "model": self.model,
-                        "instructions": round_instructions,
-                        "input": history,
-                        "tools": round_tools,
+                        "instructions": model_request["instructions"],
+                        "input": model_request["input"],
+                        "tools": model_request["tools"],
+                        **(
+                            {"tool_choice": model_request["tool_choice"]}
+                            if "tool_choice" in model_request
+                            else {}
+                        ),
                         "response_schema": ProposalDraft.model_json_schema(),
                         "model_settings": model_settings,
                         "omitted_model_settings": self.execution_config["omitted_model_settings"],
@@ -400,12 +431,8 @@ class Discovery:
                     }
                 )
                 response = self.client.responses.parse(
-                    model=self.model,
-                    instructions=round_instructions,
-                    input=history,
-                    tools=round_tools,
                     text_format=ProposalDraft,
-                    **model_settings,
+                    **model_request,
                 )
                 if response.usage:
                     self.usage["input_tokens"] += response.usage.input_tokens

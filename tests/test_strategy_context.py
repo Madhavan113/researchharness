@@ -521,12 +521,32 @@ def test_close_settles_strategy_writer_before_publishing_archive_and_blocks_late
     )
 
 
-def test_actual_docker_context_selection_and_gateway_verification(tmp_path):
+@pytest.mark.parametrize("maintained_seed", [False, True])
+def test_actual_docker_context_selection_and_gateway_verification(tmp_path, maintained_seed):
     if not os.environ.get("RH_TEST_STRATEGY_IMAGE"):
         pytest.skip("Set RH_TEST_STRATEGY_IMAGE for actual isolated context execution")
-    session = StrategySession(tmp_path / "strategy", bundle(tmp_path))
+    code = (
+        StrategyBundle.load(
+            Path(__file__).resolve().parents[1] / "examples/strategies/research_strategy.json"
+        )
+        if maintained_seed
+        else bundle(tmp_path)
+    )
+    if maintained_seed:
+        from research_harness.optimization.controller import _contract
+
+        contract = _contract(code)
+        assert contract["context"]["enabled"] is True
+        assert contract["observations"]["finalize_on_stop"] is True
+        assert contract["frozen_limits"]["finalize_on_stop"] is True
+    session = StrategySession(tmp_path / "strategy", code)
     output = tmp_path / "gateway"
-    with httpx.Client(transport=httpx.MockTransport(provider)) as client:
+
+    def upstream(incoming):
+        assert json.loads(incoming.content)["input"] == history()[:2] + history()[8:]
+        return provider(incoming)
+
+    with httpx.Client(transport=httpx.MockTransport(upstream)) as client:
         with ResponsesGateway(
             output,
             model=MODEL,
@@ -539,7 +559,7 @@ def test_actual_docker_context_selection_and_gateway_verification(tmp_path):
             assert post(gateway).status_code == 200
     result = verify(output, session)
     assert result["status"] == "verified_complete", result["errors"]
-    assert session.status()["state"] == {"calls": 1}
+    assert session.status()["state"] == {"context_requests" if maintained_seed else "calls": 1}
 
 
 def test_budget_reserves_final_projected_request_only(tmp_path, fake_runner):

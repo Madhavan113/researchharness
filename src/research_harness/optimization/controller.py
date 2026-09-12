@@ -80,7 +80,8 @@ def _contract(bundle: StrategyBundle) -> dict:
             "kind": "observation",
             "payload": "tool, authoritative observation, items [{id,value}]",
             "decision": "Optional order of supplied item IDs; rendered [{text,references}]; replace_body; stop_recommended; stop_reason",
-            "constraints": "Only supplied IDs may be selected or referenced. Rendering and stop advice are interpretation; original receipts remain authoritative.",
+            "constraints": "Only supplied IDs may be selected or referenced. Rendering is interpretation; original receipts remain authoritative. When finalize_on_stop is enabled, a verified stop prevents further discovery and requests a validated proposal from existing evidence.",
+            "finalize_on_stop": bundle.config.finalize_on_stop,
         },
         "context": {
             "enabled": bundle.config.context,

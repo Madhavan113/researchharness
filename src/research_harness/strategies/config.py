@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
 
-from pydantic import ConfigDict, Field, StrictBool, StrictInt
+from pydantic import ConfigDict, Field, StrictBool, StrictInt, model_serializer
 
 from research_harness.config import StrictModel
 from research_harness.strategies.sandbox import SandboxConfig, _json_object
@@ -23,9 +23,18 @@ class StrategyConfig(StrictModel):
     sandbox: SandboxConfig
     observations: StrictBool = True
     context: StrictBool = False
+    finalize_on_stop: StrictBool = False
     max_events: StrictInt = Field(default=128, ge=1, le=1000)
     max_state_bytes: StrictInt = Field(default=65536, ge=1024, le=1024 * 1024)
     max_render_bytes: StrictInt = Field(default=32768, ge=1024, le=1024 * 1024)
+
+    @model_serializer(mode="wrap")
+    def legacy_controls(self, handler):
+        value = handler(self)
+        # Disabled is the original advisory contract. Preserve its frozen digest.
+        if not self.finalize_on_stop:
+            value.pop("finalize_on_stop", None)
+        return value
 
 
 def _path(path: Path) -> Path:

@@ -20,6 +20,7 @@ from research_harness.discovery_models import ProposalDraft
 from research_harness.services.jobs import JobService
 from research_harness.services.research import DEFAULT_LIMITS, ResearchService
 from research_harness.strategies.session import StrategySession, StrategySessionError
+from research_harness.strategies.stopping import ResearchFinalizing
 from research_harness.util import error_message
 
 OperationId = Annotated[str, Field(min_length=1, max_length=200)]
@@ -64,7 +65,9 @@ def _failure(service: ResearchService, exc: Exception, operation_id: str | None)
     message = error_message(exc)
     lower = message.lower()
     code, retryable = "operation_failed", False
-    if isinstance(exc, StrategySessionError):
+    if isinstance(exc, ResearchFinalizing):
+        code = "research_finalizing"
+    elif isinstance(exc, StrategySessionError):
         code = "strategy_failed"
     elif "begin or resume" in lower:
         code = "not_initialized"
@@ -206,6 +209,8 @@ def create_server(
                     else nullcontext()
                 )
                 with guard:
+                    if strategy is not None and tool is not None:
+                        strategy.admit_observation(tool, service.discovery_id, operation_id)
                     result = action()
                     error = None
                     if source_validation and result.get("status") in {"error", "failed"}:

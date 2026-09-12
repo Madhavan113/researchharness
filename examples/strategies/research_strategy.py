@@ -1,9 +1,17 @@
-"""Authored observation strategy example; no optimization/performance claim."""
+"""Authored observation/context strategy; no optimization/performance claim."""
 
 
 def apply(event):
+    if event["kind"] == "context":
+        return {
+            "decision": {"keep_group_ids": event["payload"]["required_group_ids"]},
+            "state": {
+                **event["state"],
+                "context_requests": event["state"].get("context_requests", 0) + 1,
+            },
+        }
     if event["kind"] != "observation":
-        raise ValueError("This example enables observation projection only")
+        raise ValueError("Unsupported strategy event")
     payload = event["payload"]
     items = payload["items"]
     ranked = sorted(
@@ -27,5 +35,5 @@ def apply(event):
             "stop_recommended": not items,
             "stop_reason": "No supplied results" if not items else "",
         },
-        "state": {"observations": event["state"].get("observations", 0) + 1},
+        "state": {**event["state"], "observations": event["state"].get("observations", 0) + 1},
     }
