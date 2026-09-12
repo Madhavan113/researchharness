@@ -207,7 +207,7 @@ Unchanged from the tracker: provider access, the spending decision, human review
 
 ## Suggested order for a continuing agent
 
-1. Check PR #13 and #14 required CI results. PR #13 ordinary tests/lint passed; its required runtime job is still active. The final private-feedback required local suite passes.
+1. Check PR #14 required CI. PR #13 ordinary tests/lint and required runtime CI both passed; the final private-feedback required local suite also passes.
 2. RW-5 and RW-6: agree on artifact retention and path/hostname handling before the next evidence regeneration or public release.
 3. RW-13 and RW-15: remaining independent offline efficiency and maintenance work.
 4. Resolve the external decisions above, then perform live compatibility and the measured baseline before model-mode search. RW-10's offline acceptance does not replace that live compatibility gate.
