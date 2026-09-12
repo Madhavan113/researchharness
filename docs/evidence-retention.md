@@ -186,6 +186,9 @@ against its pinned Git blob, and reintroducing a referenced file into the checko
 fails. Ignore rules help prevent accidental additions; the CI check enforces the
 policy on committed files. Keep restored originals outside the checkout.
 
-The first published checkpoint using external assets still needs a real upload
-and verified download. Local packaging tests and the small RW-13 report checkpoint
-do not establish that delivery step or remove historical operator paths.
+The [complete historical review checkpoint](../examples/evaluation/evidence/historical-review-all-2026-09-12/README.md)
+now establishes the first actual upload/download round trip: all 15,397 published
+members verify against the committed index. Its immutable release tag also keeps
+the historical baseline reachable. Local preparation alone still cannot establish
+remote availability; retain a publication receipt for each future released checkpoint.
+Exact historical originals and their operator paths remain in Git history.

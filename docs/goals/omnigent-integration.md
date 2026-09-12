@@ -2,7 +2,7 @@
 
 Goal id: `omnigent-research-harness`
 
-Status: in_progress; implementing September 10 review follow-ups; measured evaluation still requires independent benchmark review, provider access and the pending spending decision
+Status: in_progress; local software and artifact delivery verified; live provider acceptance and measured evaluation still require independent benchmark review, provider access and an approved spending budget
 
 Accepted: September 8, 2026. Last updated: September 12, 2026
 
@@ -39,13 +39,13 @@ Use `queued`, `in_progress`, `blocked`, or `done`. Replace an owner only after a
 | M3 | Omnigent research agent bundle and runtime binding | done | `/root/omnigent_spike`, browser verification `/root` | Normal server/runner/MCP and browser chat save validated proposal/pipeline ids; synthetic model HTTP, frozen authored bundle |
 | M4 | Collection jobs, exports, case lookup, recovery | done | `/root` | Detached workers, cancellation, process termination, scoped data, exports, and full server/browser restart verified locally; local Postgres/MinIO tests and detached workflow/restart/export acceptance now verified |
 | M5 | Independent pilot evaluation and baseline comparison | blocked | `/root`, bounded agent work handed off | Twenty authored cases now discriminate in the offline policy comparison; independent evaluators, frozen controller and bound gateway usage verified through actual runtimes; budgeted dispatch and independent settlement verified through both actual runtimes; awaits human review, provider access and the pending spending decision |
-| M6 | Meta-Harness strategy optimization and isolated final evaluation | in_progress | `/root`, review follow-ups | RW-1/2/3/4/7/8/9/10/11/12/14 are published in PRs #2–#12, with PR #11 and #12 hosted checks passing. The bounded RW-15 admission/compatibility checkpoint is published in PR #13. Copied-feedback privacy is published in PR #14 with both hosted jobs passing. RW-13 verification efficiency is published in PR #15 and passes 1,378 required local tests with zero skips; both hosted jobs also pass. RW-6 tooling/policy is published in PR #16 with 1,412 required local tests passing; its first reviewed external asset round trip remains open. The bounded RW-5 portable review exporter and failure diagnostics are published in PR #17 with 1,446 required local tests and both hosted jobs passing. The historical-reference follow-up is published in PR #18 and passes 1,463 required local tests with zero skips and removes duplicate originals from the current checkout after exact restoration; a complete historical baseline review is now prepared and verified in PR #19, including all 544 nested snapshots. Release publication/download remains pending. Exploration limits remain conditional on measured-run evidence. Measured search/final still awaits remaining review work, reviewed cases, provider access, spending approval and the measured baseline |
+| M6 | Meta-Harness strategy optimization and isolated final evaluation | in_progress | `/root`; measured validation next | Strategy execution, coding proposer, shared budget, development selection and isolated final evaluation are fixture-verified. The pre-measure software follow-ups are published in PRs #2–#19; the required core suite passes 1,463 tests with zero skips locally and in PR #18 CI. RW-5/RW-6 are complete: the full historical review release is published and all 15,397 downloaded members verify. Real-model baseline/search/final still require reviewed cases, provider access, spending approval and live compatibility. Exploration-limit changes remain conditional on measured evidence |
 
 M0 and M1 can proceed independently against the agreed tool/service boundary. Evaluation case design can also proceed independently. Agree on ownership of shared schemas, CLI wiring, dependencies, migrations, and this tracker before concurrent edits.
 
 ## Current evidence and limits
 
-- GitHub reports the repository public as of September 12. Twenty-five original files are now referenced at their pinned Git revision and restored outside the checkout with exact hash checks. Historical originals and Git history still contain operator paths. The portable exporter creates labelled derived review copies; its prepared release package is not published, and complete baseline review coverage is now verified locally; release publication/download remains pending.
+- GitHub reports the repository public as of September 12. Twenty-five original files are now referenced at their pinned Git revision and restored outside the checkout with exact hash checks. Historical originals and Git history still contain operator paths. The portable exporter creates labelled derived review copies. The complete historical-baseline release is now public with user approval; all 15,397 downloaded members verify. Original Git history and exact runtime proofs remain unchanged.
 - The repository already contains the direct discovery CLI, connector probes, proposal compilation, collection/export/replay, and local/shared backend work. Inspect and preserve the existing working-tree changes before building on them.
 - The tested Omnigent source pin is `be042b390e293a8d586cbb7e403a2ce0ce38fc62`, installed in a separate environment. Normal server, runner, MCP, browser, restart, and spending-policy fixtures have run. The current turn can exceed the configured budget threshold; the next turn is blocked. This is not an exact provider billing cap.
 - The independent evaluator is maintained in this package under `evaluation/`, with twenty authored development cases and verified Omnigent usage-file support. It derives source usefulness from independent requirements. Authored cases are not human-reviewed cases, and fixtures do not establish model performance.
@@ -57,7 +57,7 @@ M0 and M1 can proceed independently against the agreed tool/service boundary. Ev
 
 ## Next tasks
 
-The [remaining work](../remaining-work.md) list from the September 10 review records prioritized software follow-ups with acceptance checks; complete its P0 items before any budgeted or measured run. The items below are the external prerequisites.
+The [remaining work](../remaining-work.md) list records completed pre-measure software follow-ups and artifact delivery. Its only conditional follow-up is reconsidering proposer exploration limits after measured runs provide evidence. The remaining critical path is live compatibility, independent case review, the measured baseline and then optimization/final evaluation:
 
 1. Resolve provider access and the pending spending decision before a live compatibility case. The budgeted dispatcher and pilot runner are implemented and verified with actual runtime fixtures; the checked-in configuration remains draft. Recheck the priced snapshot/endpoint/tier/rates when recording the live configuration, and reuse the shared ledger and registered pilot directories across revisions.
 2. Finish M0's live provider/model checks once access and the pending budget choice are recorded. Validate live nested tool-schema acceptance and freeze the actual provider/model configuration before running a measured baseline.
@@ -78,6 +78,59 @@ For each active task, add a short entry with:
 Retain completed handoffs so another agent can distinguish implemented behavior from planned work. Avoid copying secrets, raw credentials, or held-out task contents into this shared tracker.
 
 ## Activity and handoffs
+
+### September 12, 2026 — Complete review release publication ownership
+
+Owner: `/root`; publication and download verification done on
+`docs/complete-historical-reviews`, continuing PR #19 from head
+`48a3564555987ef0205f12f1c75e3f38875db616`. The user explicitly answered
+"publish it" after the request to publish the complete 24.4 MB archive and
+604 KB inventory. This authorizes the two recorded assets under
+`evidence-historical-review-all-2026-09-12`; it does not authorize provider spending,
+benchmark sign-off or merging PRs. The repository had no existing release or tag
+with that name when checked. PR #19's exact-head hosted tests remain active.
+
+Scope: recheck the prepared files against the committed index, publish the release
+at the metadata checkpoint, download the exact two assets into a new private
+directory and verify every member. Only then mark remote availability verified,
+record the receipt, close RW-5/RW-6 delivery, and update the shared status/PR.
+Preserve the immutable tag, original evidence, private inputs and all model gates.
+
+Publication handoff: the [complete review release](https://github.com/Madhavan113/researchharness/releases/tag/evidence-historical-review-all-2026-09-12)
+was published at **2026-09-12 23:32:45 UTC**, release id `387735562`, at the
+immutable metadata tag commit `48a3564555987ef0205f12f1c75e3f38875db616`.
+The two uploaded assets match the committed SHA-256 values and lengths exactly:
+archive id `560138798` (24,371,182 bytes) and inventory id `560138799` (603,906
+bytes). The release is public, published, and is not marked as the latest product
+release. Its retained tag also keeps the original `b58bf44` baseline reachable.
+
+Both files were downloaded from the exact tag into the new private directory
+`/tmp/rh-rw5-complete-release-download-20260912`. The independent download check
+verifies **15,397 members / 140,767,556 expanded bytes** against the committed
+index. The [publication receipt](../../examples/evaluation/evidence/historical-review-all-2026-09-12/publication.json)
+records the API response, user authorization, commands and verification report
+hash. The current index now records `availability: download_verified`; earlier
+preparation reports and asset bytes remain unchanged.
+
+RW-5 and RW-6 are complete for their content/delivery acceptance. The complete
+review includes every baseline file and nested snapshot, all known identity
+checks passed before publication, and remote availability is now demonstrated.
+Exact historical originals still retain their original paths and remain the
+source for runtime proofs; derived copies cannot relocate a ledger or supply
+omitted private audit inputs. The publication does not establish model quality.
+
+Changed files: the release index and new receipt, evidence README/guides, main
+README, accepted-plan status and shared trackers. No production code, tests,
+benchmarks, model settings, budgets or dependency pins changed. Final metadata
+validation confirms the original prepared index differs only in availability,
+the receipt/report/index hashes agree, and all 386 local Markdown targets resolve.
+The retention guard passes for 21 checkpoints, 4,392,463 current evidence bytes
+and all 25 historical references; this new checkpoint occupies 24,183 bytes in
+Git. `git diff --check` passes. Next: finish
+PR #19's hosted checks, then resolve independent case review, provider access
+and spending authorization before live compatibility and measured evaluation.
+M1–M4 are complete; M0's live acceptance, M5's reviewed comparison and M6's
+measured optimization/final results remain unfinished. The full goal stays active.
 
 ### September 12, 2026 — Complete historical review coverage ownership
 

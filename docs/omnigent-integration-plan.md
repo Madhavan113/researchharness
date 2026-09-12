@@ -1,6 +1,6 @@
 # Research Harness with Omnigent: implementation plan
 
-Accepted plan: September 8, 2026. Scope: build an interactive research agent on the existing Research Harness backend, using Omnigent for execution and the interface, followed by independently evaluated strategy optimization. Offline follow-ups from the September 10 review are in progress. Measured evaluation still requires independent benchmark review, provider access and the pending spending decision. The local workflow has fixture and browser acceptance, while live evaluation and optimization remain outstanding; the full scope and acceptance criteria are unchanged.
+Accepted plan: September 8, 2026. Scope: build an interactive research agent on the existing Research Harness backend, using Omnigent for execution and the interface, followed by independently evaluated strategy optimization. Software follow-ups from the September 10 review have offline verification, and the evidence release has passed download verification. Measured evaluation still requires independent benchmark review, provider access and the pending spending decision. The local workflow has fixture and browser acceptance, while live evaluation and optimization remain outstanding; the full scope and acceptance criteria are unchanged.
 
 Track milestone status, ownership, validation evidence, and agent handoffs in the [shared goal](goals/omnigent-integration.md). All development agents should follow the repository's [coordination instructions](../AGENTS.md).
 
@@ -13,8 +13,9 @@ Git revision and can be restored with exact byte/hash verification. This keeps
 original runtime proofs intact; it does not erase public history or establish
 release availability. The [portable review exporter](portable-evidence.md)
 creates separately labelled derived copies. A complete historical-baseline review
-is now prepared and verified, including nested Omnigent snapshots. The first
-external asset upload/download remains unfinished.
+is now published and download-verified, including nested Omnigent snapshots.
+This completes the first external asset round trip; live model validation and
+measured evaluation remain unfinished.
 
 The first deliverable is one complete workflow: a user supplies a research brief, the agent discovers and tests sources, the backend produces a validated pipeline proposal, and the user can request collection, inspect the evidence, and return to the case later.
 

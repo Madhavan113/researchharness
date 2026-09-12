@@ -79,7 +79,7 @@ Completed September 10 by `/root` in the next PR #3 checkpoint: durable initiali
 
 ## P1: before the next checkpoint
 
-### RW-5 · Strip operator paths and hostnames from archived evidence · `in_progress` · confirmed
+### RW-5 · Strip operator paths and hostnames from archived evidence · `done` · confirmed
 
 Files: the evidence writers used by `examples/evaluation/*_fixture.py` and `examples/omnigent/*.py`; `examples/omnigent/evidence/*/agent/tools/mcp/research.yaml`, `examples/omnigent/evidence/*/metadata.json`, `examples/evaluation/evidence/search-orchestration-2026-09-09/pytest.xml`, and 74 files inside eight `artifacts.tar.gz` archives, including `verification-tools/audit-budgeted-search.py` in the budgeted archive, which hard-codes the repository path.
 
@@ -91,9 +91,9 @@ Acceptance: `git grep -l "$HOME"` over the evidence directories and a grep over 
 
 September 12 local content acceptance is now verified for the complete historical baseline in [PR #19](https://github.com/Madhavan113/researchharness/pull/19). The [complete review checkpoint](../examples/evaluation/evidence/historical-review-all-2026-09-12/README.md) covers all 150 original Git files, eleven top-level tar archives, two gzip JSON captures and 544 nested Omnigent snapshot archives. Every original and archive member was compared with the pinned Git bytes; all 15,395 leaf files plus provenance enter a separately labelled review. Source-bound verification changes 124 files and preserves 15,272 exactly. The current evidence tree and a fresh extraction of the complete 15,397-member prepared package have no configured operator home/hostname matches; all nine JUnit reports have no hostname.
 
-Original Git history, runtime proofs and ledger bindings remain unchanged. Derived templates cannot resume an original run or supply omitted private audit inputs. The item remains `in_progress` with RW-6 for delivery: complete replacement assets are prepared locally, with a reproducible recipe and small public metadata; publication and a verified download await the user's decision. The earlier 159-file representative check remains a separate dated checkpoint. The complete scan is for configured identity, not a general secrets detector.
+Original Git history, runtime proofs and ledger bindings remain unchanged. Derived templates cannot resume an original run or supply omitted private audit inputs. The user authorized publication of the complete replacement assets. The [public release](https://github.com/Madhavan113/researchharness/releases/tag/evidence-historical-review-all-2026-09-12) and [download receipt](../examples/evaluation/evidence/historical-review-all-2026-09-12/publication.json) verify all 15,397 published members, completing RW-5 delivery. The earlier 159-file representative check remains a separate dated checkpoint. The complete scan is for configured identity, not a general secrets detector.
 
-### RW-6 · Adopt an artifact retention policy · `in_progress` · confirmed
+### RW-6 · Adopt an artifact retention policy · `done` · confirmed
 
 Files: `examples/evaluation/evidence/*/artifacts.tar.gz`, `examples/omnigent/evidence/*/model-requests.json.gz`, `.gitattributes`, evidence READMEs.
 
@@ -103,7 +103,7 @@ Fix direction: keep `index.json`, `acceptance.json`, `verification.json` and the
 
 Acceptance: a new checkpoint adds under 1 MB to the repository and its README says where the archive lives and how to verify it.
 
-The [retention policy](evidence-retention.md) selects GitHub release assets for future archives and full inventories, with small hash-bound indices/summaries in Git. `/root` completed deterministic preparation, streaming verification and a CI size/archive guard in [PR #16](https://github.com/Madhavan113/researchharness/pull/16), branch `feat/evidence-retention`; all 34 added cases and the full **1,412-test required suite pass with zero skips**. The guard verifies all 13 original compressed hashes across 18 historical checkpoints. A separate CLI process verified a prepared package's three unchanged report files; no upload occurred. The [tooling handoff](goals/omnigent-integration.md#september-12-2026--rw-6-artifact-retention-tooling-handoff) records exact commands and hashes. The first actual upload/download round trip remains part of RW-6 acceptance; prepared URLs are not published assets. Existing archives and their hashes remain intact, and RW-5 content cleanup is separate.
+The [retention policy](evidence-retention.md) selects GitHub release assets for future archives and full inventories, with small hash-bound indices/summaries in Git. `/root` completed deterministic preparation, streaming verification and a CI size/archive guard in [PR #16](https://github.com/Madhavan113/researchharness/pull/16), branch `feat/evidence-retention`; all 34 added cases and the full **1,412-test required suite pass with zero skips**. The guard verifies all 13 original compressed hashes across 18 historical checkpoints. A separate CLI process verified a prepared package's three unchanged report files; no upload occurred. The [tooling handoff](goals/omnigent-integration.md#september-12-2026--rw-6-artifact-retention-tooling-handoff) records exact commands and hashes. That checkpoint established local packaging; the subsequent complete review release supplies the actual upload/download receipt required by RW-6. Existing archives and their hashes remain intact, and RW-5 content cleanup is separate.
 
 The schema-2 follow-up in [PR #18](https://github.com/Madhavan113/researchharness/pull/18)
 replaces duplicate current-checkout originals with pinned Git references, leaving
@@ -112,8 +112,11 @@ required Docker/Omnigent suite pass with zero skips. CI checks every reference
 and refuses unrecorded legacy deletions or reintroduced copies. Removed original
 bytes cannot be reused as a larger metadata allowance. Both CI jobs fetch full
 history; shallow clones must fetch the baseline before verification/restoration.
-This reduces current checkout size, not historical clone size. The first reviewed
-release upload/download remains pending.
+This reduces current checkout size, not historical clone size. The complete
+review release now supplies the first verified remote round trip: the archive
+and inventory match their recorded SHA-256 values and all 15,397 downloaded
+members verify. The new checkpoint stays below 1 MB in Git, with its immutable
+asset locations and verification commands documented. RW-6 acceptance is complete.
 
 ### RW-7 · Make runtime test skips visible and enforceable · `done` · confirmed
 
@@ -226,6 +229,6 @@ Unchanged from the tracker: provider access, the spending decision, human review
 ## Suggested order for a continuing agent
 
 1. PR #18 now passes both hosted jobs at exact head `8fab919`: 1,463 required tests, zero skips, and 1,431 ordinary tests with 32 expected optional-runtime skips. PR #17's diagnostic follow-up also passed; the earlier collection/export timeout did not recur and its cause remains unconfirmed. Retain that failure evidence for a recurrence.
-2. RW-5/RW-6 local preparation and content checks now cover the complete historical baseline, including nested snapshots. Inspect PR #19's hosted checks and publication handoff, then publish only if the pending user decision authorizes the complete package. Download the exact tag/assets and verify them against the committed index before recording remote availability. Historical originals stay unchanged in Git; the complete review is a derived artifact.
+2. RW-5/RW-6 are complete: the user-approved public release and fresh download verify all 15,397 members of the complete baseline review. Inspect PR #19's hosted checks after the publication receipt update. Preserve the immutable tag/assets and exact historical originals; the release is a derived artifact.
 3. RW-15: consider exploration tools/limits only after measured runs provide evidence.
 4. Resolve provider access, spending approval and independent case review, then perform live compatibility and the measured baseline before model-mode search. RW-10's offline acceptance does not replace that live compatibility gate.

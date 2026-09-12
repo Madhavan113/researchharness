@@ -1,6 +1,6 @@
 # Complete historical evidence review
 
-This checkpoint prepares a separately labelled review copy of **all 150 Git files**
+This checkpoint publishes a separately labelled review copy of **all 150 Git files**
 under both evidence roots at commit
 `b58bf44a84407d1069039499411e53aaaede5968`. The original baseline is 27,209,764
 bytes. Eleven tar archives, two gzip JSON captures and 544 nested Omnigent
@@ -60,20 +60,23 @@ record all counts, original/derived provenance, exact commands and report hashes
 A fresh private extraction checked every member hash, all normalized tar host
 metadata, zero configured identity matches and all nine JUnit reports.
 
-| Prepared asset | SHA-256 |
+| Published asset | SHA-256 |
 | --- | --- |
 | `artifacts.tar.gz` | `68f005af1e2107dbcc1ee3a7666cf01262ed82451c7dd29be8970617fee040f0` |
 | `files.json.gz` | `1a541a21ee8d86bc6d55229410850ea9342ca7e34cb57675590af99ea6011c3a` |
 
-The complete archive and member inventory are prepared outside Git. Publication
-to this public repository still requires the pending user decision; there is no
-upload or download receipt. Only the recipe, small index and verification
-summaries belong in this checkpoint under the
+The [public release](https://github.com/Madhavan113/researchharness/releases/tag/evidence-historical-review-all-2026-09-12)
+was published with explicit user approval on September 12, 2026. The
+[publication receipt](publication.json) records the release/asset ids, exact tag
+commit, both downloaded hashes and successful verification of all 15,397 members.
+The acceptance and verification JSON files preserve their earlier preparation
+results; the publication receipt records the subsequent remote round trip. Only
+the recipe, small index and verification summaries belong in Git under the
 [retention policy](../../../../docs/evidence-retention.md).
 
-The intended tag is `evidence-historical-review-all-2026-09-12`; the index remains
-`availability: prepared`. After an approved upload, retrieve those exact assets
-and verify the downloaded bytes, without substituting a newer release:
+The immutable tag is `evidence-historical-review-all-2026-09-12`; the current index
+records `availability: download_verified`. Retrieve those exact assets and verify
+the downloaded bytes, without substituting a newer release:
 
 ~~~sh
 gh release download evidence-historical-review-all-2026-09-12 \
