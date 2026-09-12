@@ -97,6 +97,24 @@ def test_search_resumes_failed_first_registry_write_without_replacing_ledger(
     assert not Path(str(ledger_path) + ".initializing.json").exists()
 
 
+def test_moved_registered_search_is_a_ledger_error_before_new_work(tmp_path, setup):
+    from research_harness.evaluation.budget import LedgerEvidenceError
+
+    older = prepare(tmp_path, setup, name="older")
+    current = prepare(tmp_path, setup, name="current")
+    before = current.ledger.path.read_bytes()
+    journal = current.root / "journal.json"
+    before_journal = journal.read_bytes()
+    moved = tmp_path / "moved-older"
+    older.root.rename(moved)
+    with pytest.raises(LedgerEvidenceError, match="Registered search evidence is missing or moved"):
+        BudgetedSearchRun(current.root)
+    assert current.ledger.path.read_bytes() == before and journal.read_bytes() == before_journal
+    moved.rename(older.root)
+    BudgetedSearchRun(current.root)
+    assert current.ledger.path.read_bytes() == before
+
+
 def install_runtime(monkeypatch, *, interrupt=False):
     class RuntimeFixture:
         def __init__(self, **options):

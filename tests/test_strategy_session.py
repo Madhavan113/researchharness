@@ -47,6 +47,40 @@ def receipt(operation_id="search-1"):
     }
 
 
+def test_settled_events_are_reused_while_public_audits_and_state_chains_stay_fresh(
+    tmp_path, fake_runner, monkeypatch, settled_verification
+):
+    session = StrategySession(tmp_path / "session", bundle(tmp_path))
+    session.project("search_sources", receipt())
+    first = session.root / "events" / session.status()["events"][0]["directory"]
+    assert first.is_dir()
+    settled_verification(session._verification)
+    session.status()
+    calls, original = [], session_module.verify_event
+
+    def verify(path, strategy):
+        calls.append(path)
+        return original(path, strategy)
+
+    monkeypatch.setattr(session_module, "verify_event", verify)
+    session.status()
+    session.assert_ready()
+    with session.guard():
+        pass
+    assert not calls
+    session.project("search_sources", receipt("search-2"))
+    assert first not in calls and fake_runner.calls == 2
+    with session.lock:
+        session_module.verify_session(session.root, session.bundle)
+    assert first in calls
+    record = first / "record.json"
+    before, raw = record.stat(), record.read_bytes()
+    record.write_bytes(raw.replace(b"completed", b"corrupted", 1))
+    os.utime(record, ns=(before.st_atime_ns, before.st_mtime_ns))
+    with pytest.raises(ValueError, match="changed"):
+        session.assert_ready()
+
+
 def test_restart_and_exact_retry_reuse_the_recorded_decision_and_state(tmp_path, fake_runner):
     original = bundle(tmp_path)
     session = StrategySession(tmp_path / "session", original)

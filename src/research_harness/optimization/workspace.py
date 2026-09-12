@@ -27,6 +27,7 @@ from pydantic import ConfigDict, Field, StrictInt, model_validator
 from research_harness.config import StrictModel
 from research_harness.strategies.sandbox import DockerStrategyRunner, SandboxConfig, _json_object
 from research_harness.util import atomic_write, canonical_json, digest, timestamp, write_json
+from research_harness.verification import VerificationMemo
 
 
 class WorkspaceConfig(StrictModel):
@@ -187,7 +188,19 @@ def _stat_identity(info: os.stat_result) -> tuple:
     return (info.st_dev, info.st_ino, info.st_mode, info.st_nlink, info.st_size, info.st_mtime_ns)
 
 
-def _inventory(root: Path, config: WorkspaceConfig, *, feedback: bool = False) -> dict:
+def _inventory(
+    root: Path,
+    config: WorkspaceConfig,
+    *,
+    feedback: bool = False,
+    memo: VerificationMemo | None = None,
+) -> dict:
+    if memo is not None:
+        return memo.verify(
+            ("workspace-inventory", feedback, config.model_dump_json()),
+            [root],
+            lambda: _inventory(root, config, feedback=feedback),
+        )
     if root.is_symlink() or not root.is_dir():
         raise ValueError("Workspace roots must be existing unlinked directories")
     maximum = config.max_feedback_files if feedback else config.max_files
@@ -286,6 +299,7 @@ class ProposalWorkspace:
 
     def __init__(self, feedback: Path, output: Path, config: WorkspaceConfig):
         self.config = WorkspaceConfig.model_validate(config)
+        self._verification = VerificationMemo()
         if Path(feedback).is_symlink() or Path(output).is_symlink():
             raise ValueError("Workspace and feedback roots cannot be symlinks")
         self.feedback_source = Path(feedback).expanduser().resolve()
@@ -385,20 +399,21 @@ class ProposalWorkspace:
             raise ValueError("Workspace identity changed")
         self._state = value
 
-    def _check_trees(self) -> dict:
+    def _check_trees(self, *, fresh: bool = False) -> dict:
+        memo = None if fresh else self._verification
         if self._state["feedback_view_owned"] and not self._state["feedback_view_removed"]:
             root, private = self._owned_feedback_root()
             if private and stat.S_IMODE(root.stat().st_mode) != 0o700:
                 raise ValueError("Temporary feedback parent must remain private (0700)")
-        if _inventory(self.feedback_source, self.config, feedback=True) != self._state[
+        if _inventory(self.feedback_source, self.config, feedback=True, memo=memo) != self._state[
             "feedback_inventory"
         ] or (
             not self._state["feedback_view_removed"]
-            and _inventory(self.feedback, self.config, feedback=True)
+            and _inventory(self.feedback, self.config, feedback=True, memo=memo)
             != self._state["feedback_inventory"]
         ):
             raise ValueError("Feedback changed after workspace binding")
-        current = _inventory(self.workspace, self.config)
+        current = _inventory(self.workspace, self.config, memo=memo)
         if current != self._state["workspace_inventory"]:
             raise ValueError("Workspace changed outside a completed tool operation")
         return current
@@ -797,7 +812,7 @@ class ProposalWorkspace:
         errors = []
         current = {}
         try:
-            current = self._check_trees()
+            current = self._check_trees(fresh=True)
         except Exception as exc:
             errors.append(f"{type(exc).__name__}: {exc}")
         quiescent = self._executions_quiescent()
@@ -878,6 +893,7 @@ class ProposalWorkspace:
                 raise ValueError("Recovery configuration differs from the workspace")
             instance = cls.__new__(cls)
             instance.config, instance.output, instance._state = config, output, state
+            instance._verification = VerificationMemo()
             instance.feedback, instance.workspace = Path(state["feedback"]), output / "workspace"
             instance._lock = FileLock(str(output / "owner.lock"), timeout=0)
             instance.feedback_source = Path(state["feedback_source"])

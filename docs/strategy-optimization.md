@@ -113,6 +113,33 @@ Older manifests omit `finalize_on_stop` and retain their canonical hashes and ad
 
 The [stopping tests](../tests/test_strategy_stopping.py) exercise durable decisions, malformed output, receipt replay, source admission, SDK/MCP proposal completion, fixed limits and altered gateway proofs. The [runtime comparison](../tests/test_comparison_runtime.py) exercises both enabled and legacy controls with actual Docker and pinned Omnigent. These use synthetic provider responses; they do not establish optimization gains or live provider compatibility.
 
+## Reusing verified artifacts
+
+Long-lived sessions, proposer workspaces and search/archive controllers reuse
+successful checks of completed artifact trees through a bounded process-local
+[verification memo](../src/research_harness/verification.py). Each lookup scans
+complete directory membership and host-maintained POSIX file identity,
+permissions, link count, size, mtime and ctime. A same-size edit with restored
+mtime invalidates the entry through ctime; changed controls also require fresh
+verification. Return values are copied so callers cannot alter cached proofs.
+
+Each memo retains at most 4,096 entries and 32 MiB of accounted built-in data.
+Non-POSIX platforms, metadata less than two seconds old, symlinks/hardlinks,
+unsupported entries, scan errors and scans above 65,536 entries use the original
+full verifier. These are cache limits, not relaxed artifact limits. A process
+restart starts cold. This optimization assumes trustworthy local filesystem
+metadata and the existing host locks; it does not authenticate a malicious host
+or filesystem that forges metadata.
+
+Journals, session ordering/state, expected inventories and workspace parent
+privacy checks are still read and compared on every operation. Frozen host
+implementation verification, public session/event audits and workspace closure
+continue to read artifact bytes freshly. The controller's archive property still
+validates a new archive object against current state. Private-final access still
+requires the existing phase and proposer-revocation checks. The
+[performance fixture](testing.md#artifact-verification-performance-fixture)
+records read counts and the limits of its timing result.
+
 ## Development archive and final evaluation
 
 [OptimizationArchive](../src/research_harness/optimization/archive.py) keeps frozen backend/evaluator/benchmark inputs and its operation journal in host-only state. A separate feedback directory contains candidate bundles, complete dedicated development artifacts and independent per-case evidence. Source trees and artifact trees are copied and hashed; symlinks, hardlinks, path escapes, extra files and changed bytes are rejected. Size limits fail an archive operation rather than silently summarize away artifacts.

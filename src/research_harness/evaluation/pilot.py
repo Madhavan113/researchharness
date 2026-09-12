@@ -27,7 +27,12 @@ from research_harness.evaluation.benchmark import (
     load_benchmark,
     local_path,
 )
-from research_harness.evaluation.budget import AuthorizationRecord, BudgetLedger, RateCard
+from research_harness.evaluation.budget import (
+    AuthorizationRecord,
+    BudgetLedger,
+    LedgerEvidenceError,
+    RateCard,
+)
 from research_harness.evaluation.controller import (
     ARMS,
     CaseTask,
@@ -38,7 +43,11 @@ from research_harness.evaluation.controller import (
     record_interruption,
     run_case,
 )
-from research_harness.evaluation.dispatch_budget import DispatchBudget, DispatchPolicy
+from research_harness.evaluation.dispatch_budget import (
+    DispatchBudget,
+    DispatchPolicy,
+    budget_evidence_hash,
+)
 from research_harness.evaluation.runtime_executor import (
     RuntimeExecutionError,
     RuntimeExecutor,
@@ -209,21 +218,27 @@ def _check_registered_pilots(ledger: BudgetLedger, *, required: Path | None = No
         current = ledger.snapshot()
         for location, expected_hash in registry["pilots"].items():
             output = Path(location)
-            manifest = json.loads((output / "pilot.json").read_bytes())
-            if (
-                digest(canonical_json(manifest)) != expected_hash
-                or Path(manifest["ledger_path"]) != ledger.path
-                or digest((output / "comparison.json").read_bytes())
-                != manifest["comparison_sha256"]
-            ):
-                raise ValueError("Registered pilot or ledger reference changed")
-            for arm in ARMS:
-                journal = json.loads((output / arm / "journal.json").read_bytes())
-                if journal.get("pilot_sha256") != expected_hash:
-                    raise ValueError("Registered pilot journal changed")
-            config = PilotConfig.model_validate(manifest["configuration"])
-            plan = json.loads((output / "comparison.json").read_bytes())
-            _check_ledger_evidence(output, config, ledger, plan, manifest, current)
+            try:
+                manifest = json.loads((output / "pilot.json").read_bytes())
+                if (
+                    digest(canonical_json(manifest)) != expected_hash
+                    or Path(manifest["ledger_path"]) != ledger.path
+                    or digest((output / "comparison.json").read_bytes())
+                    != manifest["comparison_sha256"]
+                ):
+                    raise ValueError("Registered pilot or ledger reference changed")
+                for arm in ARMS:
+                    journal = json.loads((output / arm / "journal.json").read_bytes())
+                    if journal.get("pilot_sha256") != expected_hash:
+                        raise ValueError("Registered pilot journal changed")
+                config = PilotConfig.model_validate(manifest["configuration"])
+                plan = json.loads((output / "comparison.json").read_bytes())
+                _check_ledger_evidence(output, config, ledger, plan, manifest, current)
+            except (FileNotFoundError, NotADirectoryError) as exc:
+                raise LedgerEvidenceError(
+                    f"Registered pilot evidence is missing or moved at {output}; "
+                    "restore the registered files before further budgeted work"
+                ) from exc
         searches = registry.get("searches", {})
         if not isinstance(searches, dict):
             raise ValueError("Invalid shared budget search registry")
@@ -231,7 +246,13 @@ def _check_registered_pilots(ledger: BudgetLedger, *, required: Path | None = No
             from research_harness.optimization.runner import _check_search_ledger_evidence
 
             for location, expected_hash in searches.items():
-                _check_search_ledger_evidence(Path(location), ledger, expected_hash, current)
+                try:
+                    _check_search_ledger_evidence(Path(location), ledger, expected_hash, current)
+                except (FileNotFoundError, NotADirectoryError) as exc:
+                    raise LedgerEvidenceError(
+                        f"Registered search evidence is missing or moved at {location}; "
+                        "restore the registered files before further budgeted work"
+                    ) from exc
         return registry
 
 
@@ -284,7 +305,7 @@ def _check_comparison_ledger_evidence(output, config, ledger, plan, current):
             for name, expected_hash in entry.get("artifact_hashes", {}).items():
                 if name.startswith("gateway/"):
                     path = local_path(case_root, name)
-                    if not path.is_file() or digest(path.read_bytes()) != expected_hash:
+                    if not path.is_file() or budget_evidence_hash(path) != expected_hash:
                         raise ValueError("Recorded gateway budget evidence changed or is missing")
             for name in ("budget-start.json", "budget-checkpoint.json"):
                 path = case_root / name

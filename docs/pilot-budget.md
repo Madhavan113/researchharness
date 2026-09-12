@@ -67,6 +67,23 @@ The [budgeted runtime fixture](../examples/evaluation/budgeted_runtime_fixture.p
 
 Provider access and the pending spending decision remain prerequisites for a live compatibility run. Human case review and a measured baseline are still required before running the [strategy optimization phase](omnigent-integration-plan.md). No fixture counters establish provider cost or research performance.
 
+## Checking registered run evidence
+
+Registered pilot/search runs must retain their evidence at the recorded paths.
+Missing or moved registered files raise `LedgerEvidenceError` before further
+budgeted work. Restore the original files at those paths, then retry the check;
+do not remove registry entries or reset the ledger to bypass it. This error does
+not discard charges or release reservations.
+
+Repeated checks reuse successful gateway proofs and artifact hashes only while
+their complete membership, POSIX metadata and verification controls match the
+[bounded memo contract](strategy-optimization.md#reusing-verified-artifacts).
+Current expected hashes, manifests, journals, budget witnesses and the live
+ledger are still checked on every operation. A reused raw proof is compared
+against the current ledger snapshot, so it cannot hide ledger rollback or a
+changed reservation. Independent gateway audits, reconciliation and reviewed
+provider-accounting verification retain their fresh full verification paths.
+
 ## Record reviewed accounting for a provider error
 
 This offline host command records a separately reviewed provider confirmation for one sealed HTTP error. It makes no provider request, cannot reopen a completed operation for dispatch and does not grant spending permission. The software verifies the local evidence and ledger binding; the operator is responsible for authenticating the external confirmation and its final charge. An error response, absent usage, an agent assertion or an aggregate cost report is insufficient. OpenAI's [Costs API](https://developers.openai.com/api/reference/resources/admin/subresources/organization/subresources/usage/methods/costs) returns time-bucket aggregates, so those totals alone cannot establish one failed request's charge.

@@ -38,6 +38,62 @@ def package(tmp_path):
     return path / "manifest.json"
 
 
+def test_registered_pilot_hashes_are_reused_but_restored_mtime_edits_fail(
+    package, tmp_path, monkeypatch, settled_verification
+):
+    import os
+
+    from research_harness.evaluation.dispatch_budget import _BUDGET_VERIFICATION
+
+    output, ledger = prepare(package, tmp_path)
+    install_runtime(monkeypatch)
+    requests = []
+    execute_pilot_case(
+        output, "direct", CASE, omnigent_python=Path("unused"), fixture_handler=provider(requests)
+    )
+    path = output / "direct/cases" / CASE / "gateway/gateway.json"
+    path.chmod(0o644)
+    settled_verification(_BUDGET_VERIFICATION)
+    pilot._check_registered_pilots(ledger)
+    observed, original = [], Path.read_bytes
+
+    def read_bytes(file):
+        if file == path:
+            observed.append(file)
+        return original(file)
+
+    monkeypatch.setattr(Path, "read_bytes", read_bytes)
+    pilot._check_registered_pilots(ledger)
+    pilot._check_registered_pilots(ledger)
+    assert not observed
+    before_ledger, before_requests = ledger.path.read_bytes(), len(requests)
+    before, raw = path.stat(), original(path)
+    path.write_bytes(b"!" + raw[1:])
+    os.utime(path, ns=(before.st_atime_ns, before.st_mtime_ns))
+    with pytest.raises(ValueError, match="gateway budget evidence"):
+        pilot._check_registered_pilots(ledger)
+    assert observed and len(requests) == before_requests
+    assert ledger.path.read_bytes() == before_ledger
+
+
+def test_moved_registered_pilot_is_a_ledger_error_before_new_work(package, tmp_path):
+    from research_harness.evaluation.budget import LedgerEvidenceError
+
+    older, ledger = prepare(package, tmp_path, name="older")
+    current, _ = prepare(package, tmp_path, name="current")
+    before = ledger.path.read_bytes()
+    journal = current / "direct/journal.json"
+    before_journal = journal.read_bytes()
+    moved = tmp_path / "moved-older"
+    older.rename(moved)
+    with pytest.raises(LedgerEvidenceError, match="Registered pilot evidence is missing or moved"):
+        execute_pilot_case(current, "direct", CASE, omnigent_python=Path("unused"))
+    assert ledger.path.read_bytes() == before and journal.read_bytes() == before_journal
+    moved.rename(older)
+    pilot._check_registered_pilots(ledger)
+    assert ledger.path.read_bytes() == before
+
+
 def configuration(*, ceiling="1", mode="fixture", authorization=None, purpose="compatibility"):
     model = "gpt-5.4-mini-2026-03-17"
     return PilotConfig(

@@ -173,9 +173,11 @@ Completed September 10 by `/root`, branch `fix/split-leakage-audit`, based on PR
 
 ## P2: quality and efficiency
 
-### RW-13 · Remove repeated hashing on hot paths · `open` · plausible
+### RW-13 · Remove repeated hashing on hot paths · `done` · confirmed
 
-`strategies/session.py` (lines 149–187) re-hashes every completed event on every `apply`, `assert_ready`, `guard` and `status`. `optimization/workspace.py` (lines 382–394) re-hashes the whole feedback tree on every tool call. `optimization/controller.py` (lines 247–268) re-hashes all inventories on every open, so `status` is O(archive bytes). `evaluation/pilot.py` (lines 199–236) re-verifies every registered run's archives on every case start and proposer attempt, and a moved run directory raises a raw `FileNotFoundError`. Cache by inventory digest and mtime; convert the missing-directory case into a ledger error.
+The review found repeated full hashing of completed strategy events, proposer feedback, search/archive inventories and registered-run budget evidence. Moved registered run directories also raised raw filesystem errors.
+
+Completed September 12 by `/root` on `perf/artifact-verification-cache`, based on PR #14. Bounded process-local verification now reuses settled artifact proofs after complete membership/identity/permissions/size/mtime/ctime checks and matching controls. Fresh journals, expected hashes, frozen host implementation, ledger comparisons, public audits, workspace closure and reconciliation remain in place. Unsupported/recent metadata and oversized scans use the original verifier. Missing/moved registered evidence raises `LedgerEvidenceError` before new work and preserves charges/holds. The [fixture reports](../examples/evaluation/evidence/verification-cache-2026-09-12/README.md) show repeated feedback reads falling from 512 MiB to zero; metadata reads remain. The final required suite passes **1,378 tests with zero failures/errors/skips**, including 26 added cases. The [tracker handoff](goals/omnigent-integration.md#september-12-2026--rw-13-verification-efficiency-handoff) records exact commands, hashes and limits; this is software/runtime evidence, not measured model performance.
 
 ### RW-14 · Test suite maintenance · `done` · confirmed
 
@@ -207,7 +209,7 @@ Unchanged from the tracker: provider access, the spending decision, human review
 
 ## Suggested order for a continuing agent
 
-1. Check PR #14 required CI. PR #13 ordinary tests/lint and required runtime CI both passed; the final private-feedback required local suite also passes.
+1. Publish the completed RW-13 checkpoint and check its hosted CI. PR #14 ordinary tests/lint and required runtime CI both passed; RW-13 passes the full required local suite.
 2. RW-5 and RW-6: agree on artifact retention and path/hostname handling before the next evidence regeneration or public release.
-3. RW-13 and RW-15: remaining independent offline efficiency and maintenance work.
+3. RW-15: consider exploration tools/limits only after measured runs provide evidence.
 4. Resolve the external decisions above, then perform live compatibility and the measured baseline before model-mode search. RW-10's offline acceptance does not replace that live compatibility gate.

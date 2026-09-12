@@ -681,6 +681,41 @@ def test_archive_consistency_is_read_only_and_honors_explicit_snapshot(tmp_path)
     assert budget.ledger.path.read_bytes() == settled
 
 
+def test_settled_gateway_proofs_are_cached_but_live_ledger_and_controls_are_not(
+    tmp_path, monkeypatch, settled_verification
+):
+    from research_harness.evaluation import dispatch_budget, gateway_usage
+
+    budget = make_budget(tmp_path)
+    initial = budget.ledger.snapshot()
+    archive, _, dispatched = make_archive(tmp_path / "gateway", budget)
+    settled_verification(dispatch_budget._BUDGET_VERIFICATION)
+    assert budget.archive_consistency(archive)["status"] == "consistent"
+    calls, original = [], gateway_usage.verify_gateway_usage
+
+    def verify(*args, **kwargs):
+        calls.append(args[0])
+        return original(*args, **kwargs)
+
+    monkeypatch.setattr(gateway_usage, "verify_gateway_usage", verify)
+    before = budget.ledger.path.read_bytes()
+    assert budget.archive_consistency(archive)["status"] == "consistent"
+    assert budget.archive_consistency(archive, snapshot=initial)["status"] == "inconsistent"
+    assert not calls and budget.ledger.path.read_bytes() == before
+    changed = DispatchBudget(
+        budget.ledger,
+        policy=budget.policy,
+        binding=budget.binding,
+        settings=budget.settings.model_copy(update={"max_output_tokens": 11}),
+    )
+    assert changed.archive_consistency(archive)["status"] == "unverified"
+    assert calls == [archive]
+    # A public audit remains fresh even when the hot-path proof is already memoized.
+    assert budget._verify_archive(archive)["status"] == "verified_complete"
+    assert calls == [archive, archive] and len(dispatched) == 1
+    assert budget.ledger.path.read_bytes() == before
+
+
 @pytest.mark.parametrize("before_dispatch", [False, True])
 def test_empty_rollback_ledger_cannot_reconcile_known_archived_reservations(
     tmp_path, before_dispatch

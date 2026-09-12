@@ -54,6 +54,7 @@ from research_harness.strategies.config import StrategyBundle
 from research_harness.strategies.context import project_context
 from research_harness.strategies.session import StrategySession
 from research_harness.util import canonical_json, digest, timestamp
+from research_harness.verification import VerificationMemo
 
 TERMINAL_CANDIDATES = {"evaluated", "evaluation_failed", "invalid", "proposal_failed"}
 
@@ -139,6 +140,7 @@ def _validate_interface(bundle: StrategyBundle, output: Path) -> None:
 class SearchController:
     def __init__(self, root: Path):
         self.root = _absolute(root)
+        self._verification = VerificationMemo()
         self.lock = FileLock(str(self.root) + ".lock", timeout=0)
         with self.lock:
             self._load()
@@ -249,7 +251,7 @@ class SearchController:
 
     @property
     def archive(self) -> OptimizationArchive:
-        return OptimizationArchive(self.root / "archive")
+        return OptimizationArchive(self.root / "archive", _memo=self._verification)
 
     def _load(self) -> tuple[dict, dict, SearchConfig, ArchiveConfig]:
         plan, journal = _read(self.root / "search.json"), _read(self.root / "journal.json")
@@ -270,7 +272,9 @@ class SearchController:
             for path_key, files_key in (("feedback", "feedback_files"), ("output", "files")):
                 if (
                     files_key in proposal
-                    and _inventory(self.root / _relative(proposal[path_key]), limits)
+                    and _inventory(
+                        self.root / _relative(proposal[path_key]), limits, memo=self._verification
+                    )
                     != proposal[files_key]
                 ):
                     raise ValueError("Immutable proposal input or output changed")
@@ -289,7 +293,9 @@ class SearchController:
                 raise ValueError("Candidate leakage audit changed")
             if (
                 "attempt_files" in candidate
-                and _inventory(self.root / _relative(candidate["attempt"]), limits)
+                and _inventory(
+                    self.root / _relative(candidate["attempt"]), limits, memo=self._verification
+                )
                 != candidate["attempt_files"]
             ):
                 raise ValueError("Candidate preparation or validation artifacts changed")

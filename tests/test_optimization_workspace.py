@@ -218,6 +218,46 @@ def test_feedback_removal_interruption_is_recoverable_without_replay(tmp_path, m
     assert ProposalWorkspace.recover(workspace.output, workspace.config) == recovered
 
 
+def test_settled_feedback_listing_skips_content_reads_but_close_is_fresh(
+    tmp_path, monkeypatch, settled_verification
+):
+    workspace = setup(tmp_path)
+    settled_verification(workspace._verification)
+    workspace.call("list_files", {"path": "feedback/", "limit": 1})
+    targets = {root / "full.bin" for root in (workspace.feedback_source, workspace.feedback)}
+    observed, original = [], os.open
+
+    def opened(path, flags, *args, **kwargs):
+        if isinstance(path, (str, Path)) and Path(path) in targets:
+            observed.append(Path(path))
+        return original(path, flags, *args, **kwargs)
+
+    monkeypatch.setattr(os, "open", opened)
+    for _ in range(3):
+        assert workspace.call("list_files", {"path": "feedback/", "limit": 1})["total_files"] == 2
+    assert not observed
+    assert workspace.close()["snapshot_valid"]
+    assert set(observed) == targets
+
+
+@pytest.mark.parametrize("which", ["feedback_source", "feedback"])
+def test_settled_feedback_detects_same_size_restored_mtime_edits(
+    tmp_path, settled_verification, which
+):
+    workspace = setup(tmp_path)
+    path = getattr(workspace, which) / "full.bin"
+    path.chmod(0o644)
+    settled_verification(workspace._verification)
+    workspace.call("list_files", {"path": "feedback/", "limit": 1})
+    before, raw = path.stat(), path.read_bytes()
+    path.write_bytes(b"x" + raw[1:])
+    os.utime(path, ns=(before.st_atime_ns, before.st_mtime_ns))
+    with pytest.raises(ValueError, match="Feedback changed"):
+        workspace.call("list_files", {"path": "feedback/", "limit": 1})
+    proof = workspace.close()
+    assert not proof["snapshot_valid"] and proof["quiescent"] and proof["feedback_view_removed"]
+
+
 def test_defaults_are_usable_and_impossible_protocol_bounds_rejected():
     assert config().max_files == 128
     with pytest.raises(ValueError, match="protocol"):

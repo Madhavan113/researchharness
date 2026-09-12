@@ -302,6 +302,10 @@ class BudgetExceeded(ValueError):
     pass
 
 
+class LedgerEvidenceError(ValueError):
+    """A registered run's retained evidence must be restored before further budgeted work."""
+
+
 class BudgetLedger:
     """A local, locked reservation journal; it never sends or authorizes requests.
 

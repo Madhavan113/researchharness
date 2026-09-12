@@ -27,6 +27,7 @@ from research_harness.config import StrictModel
 from research_harness.evaluation.benchmark import load_benchmark
 from research_harness.strategies.sandbox import SandboxConfig
 from research_harness.util import canonical_json, digest, timestamp, write_json
+from research_harness.verification import VerificationMemo
 
 IDENTIFIER = r"^[a-zA-Z0-9][a-zA-Z0-9_.-]{0,95}$"
 SHA256 = r"^[0-9a-f]{64}$"
@@ -249,8 +250,19 @@ def _disjoint(first: Path, second: Path) -> None:
         )
 
 
-def _inventory(root: Path, config: ArchiveConfig) -> dict[str, str]:
+def _inventory(
+    root: Path,
+    config: ArchiveConfig,
+    *,
+    memo: VerificationMemo | None = None,
+) -> dict[str, str]:
     root = _absolute(root)
+    if memo is not None:
+        return memo.verify(
+            ("archive-inventory", config.model_dump_json()),
+            [root],
+            lambda: _inventory(root, config),
+        )
     if not root.is_dir():
         raise ValueError("Expected a dedicated artifact directory")
     result, total = {}, 0
@@ -330,8 +342,9 @@ def _fingerprint(inventory: Mapping[str, str]) -> str:
 class OptimizationArchive:
     """Durable host archive. Opening never resumes an evaluator or a model turn."""
 
-    def __init__(self, state_dir: Path):
+    def __init__(self, state_dir: Path, *, _memo: VerificationMemo | None = None):
         self.root = _absolute(state_dir)
+        self._verification = _memo if _memo is not None else VerificationMemo()
         self.lock = FileLock(str(self.root) + ".lock")
         with self.lock:
             self._load()
@@ -482,9 +495,9 @@ class OptimizationArchive:
                     continue
                 relative = f"candidates/{_relative(candidate_id)}/{key}"
                 expected = record["files"]
-                if _inventory(self.root / relative, config) != expected:
+                if _inventory(self.root / relative, config, memo=self._verification) != expected:
                     raise ValueError("Immutable candidate artifact changed")
-                if _inventory(feedback / relative, config) != expected:
+                if _inventory(feedback / relative, config, memo=self._verification) != expected:
                     raise ValueError("Proposer feedback artifact changed")
                 feedback_files.update(
                     {f"{relative}/{name}": value for name, value in expected.items()}
@@ -511,7 +524,9 @@ class OptimizationArchive:
             if any(expected.get(name) != value for name, value in present.items()):
                 raise ValueError("Pending publication contains unexpected or changed files")
             feedback_files.update({f"{relative}/{name}": value for name, value in present.items()})
-        if _inventory(feedback, config) != dict(sorted(feedback_files.items())):
+        if _inventory(feedback, config, memo=self._verification) != dict(
+            sorted(feedback_files.items())
+        ):
             raise ValueError("Unexpected files in proposer feedback")
         return plan, journal, config
 

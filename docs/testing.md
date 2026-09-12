@@ -61,6 +61,32 @@ assert bounded captures, removal/recovery, output truncation or the OOM exit
 status as applicable. No production limits are changed. A Docker setup timeout
 still fails verification and must be reported.
 
+## Artifact verification performance fixture
+
+The [verification fixture](../examples/evaluation/verification_cache_fixture.py)
+measures eight repeated workspace listings over sixteen authored 2-MiB feedback
+files and their private readable copy. It waits for metadata to settle, warms
+verification, counts full artifact read opens and records implementation hashes.
+Closing the workspace still performs fresh verification and removes the copy.
+
+~~~sh
+uv run --locked --extra mcp python examples/evaluation/verification_cache_fixture.py \
+  --out /tmp/research-verification-fixture
+~~~
+
+Use a new output directory for each run. The September 12
+[before/after reports](../examples/evaluation/evidence/verification-cache-2026-09-12/README.md)
+record 256 full artifact opens (512 MiB) before memoization and zero afterward
+for the measured repeated listings. Metadata scans remain. This warm filesystem
+fixture does not measure live model quality, model cost or disk throughput.
+
+The [memo tests](../tests/test_verification.py) and session/workspace/controller/
+budget integration regressions check restored-mtime edits, replacement, directory
+membership, links, changed controls, current ledger comparisons and missing
+registered runs. Their eligibility clock is advanced to avoid sleeps; real
+filesystem metadata and domain validators still run. Wall-clock speed is not a
+test assertion. Required Docker/Omnigent checks remain separate from this fixture.
+
 ## Hosted CI
 
 The [Tests workflow](../.github/workflows/tests.yml) runs on pushes and pull requests and supports manual dispatch. Both jobs use Ubuntu 24.04, Python 3.13.12, uv 0.11.8 and the locked MCP extra:
