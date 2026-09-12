@@ -1,0 +1,50 @@
+{
+  "authorship": "Synthetic fixture authored by Codex; no live source was sampled",
+  "search_results": [
+    {
+      "url": "https://filings-registry.fixture.example/publication-index.json",
+      "title": "Stable filing identities: publication index and monthly counts"
+    },
+    {
+      "url": "https://filings-registry.fixture.example/index.json",
+      "title": "Stable filing identities: source publication"
+    }
+  ],
+  "responses": [
+    {
+      "url": "https://filings-registry.fixture.example/index.json",
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "synthetic": true,
+        "items": [
+          {
+            "row": "1",
+            "accession": "000-fixture-2026",
+            "form": "ANNUAL",
+            "filed_at": "2026-09-01T10:00:00Z"
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://filings-registry.fixture.example/publication-index.json",
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "synthetic": true,
+        "items": [
+          {
+            "id": "monthly-index",
+            "topic": "Stable filing identities",
+            "publication_count": 12
+          }
+        ]
+      }
+    }
+  ]
+}

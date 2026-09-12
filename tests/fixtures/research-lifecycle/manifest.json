@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "id": "research-lifecycle-snapshot-20260912",
+  "split": "development",
+  "description": "Four frozen authored inputs for software lifecycle tests; not a reviewed benchmark.",
+  "cases": [
+    {
+      "path": "cases/export-notices.json",
+      "sha256": "fa404b07e4efbbe295ded636c10279d2080958a0c58349b27f06c45c882ae24c"
+    },
+    {
+      "path": "cases/tariff-pagination.json",
+      "sha256": "78c2256f5fc47b4395dd84dfdeaad1a3dbb9b865e68a0404217ba3ef5df396ca"
+    },
+    {
+      "path": "cases/weather-alert-feed.json",
+      "sha256": "9ace7316d8e49010ca2adb6f5c00146f86db497f7e05f16e790ae03ae453a4c2"
+    },
+    {
+      "path": "cases/filing-stable-accession.json",
+      "sha256": "84ed68ec35d7aa41f91dda9bc24a1240a1db42181fb7dabadfaf26c9c206c6fd"
+    }
+  ]
+}

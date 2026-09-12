@@ -24,7 +24,7 @@ from research_harness.execution import DiscoverySettings
 from research_harness.strategies.session import StrategySession
 from research_harness.util import write_json
 
-DEVELOPMENT = Path(__file__).resolve().parents[1] / "examples/evaluation/development"
+DEVELOPMENT = Path(__file__).resolve().parent / "fixtures/research-lifecycle"
 CASE = "filing-stable-accession"
 
 

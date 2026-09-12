@@ -1,0 +1,52 @@
+{
+  "authorship": "Synthetic fixture authored by Codex; no live source was sampled",
+  "search_results": [
+    {
+      "url": "https://weather-office.fixture.example/publication-index.json",
+      "title": "Official weather alerts: publication index and monthly counts"
+    },
+    {
+      "url": "https://weather-office.fixture.example/weekly.xml",
+      "title": "Official weather alerts: source publication"
+    },
+    {
+      "url": "https://weather-office.fixture.example/alerts.xml",
+      "title": "Official weather alerts: source publication"
+    }
+  ],
+  "responses": [
+    {
+      "url": "https://weather-office.fixture.example/weekly.xml",
+      "status": 200,
+      "headers": {
+        "content-type": "application/rss+xml"
+      },
+      "body": "<rss version=\"2.0\"><channel><title>Authored fixture feed</title><description>Synthetic development data</description><item><guid>fixture-1</guid><title>Weekly rainfall summary</title><link>https://weather-office.fixture.example/weekly.xml/notice-1</link><pubDate>Tue, 01 Sep 2026 12:00:00 GMT</pubDate><description>Illustrative source content only.</description></item></channel></rss>"
+    },
+    {
+      "url": "https://weather-office.fixture.example/alerts.xml",
+      "status": 200,
+      "headers": {
+        "content-type": "application/rss+xml"
+      },
+      "body": "<rss version=\"2.0\"><channel><title>Authored fixture feed</title><description>Synthetic development data</description><item><guid>fixture-1</guid><title>Authored flood advisory</title><link>https://weather-office.fixture.example/alerts.xml/notice-1</link><pubDate>Tue, 01 Sep 2026 12:00:00 GMT</pubDate><description>Illustrative source content only.</description></item></channel></rss>"
+    },
+    {
+      "url": "https://weather-office.fixture.example/publication-index.json",
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "synthetic": true,
+        "items": [
+          {
+            "id": "monthly-index",
+            "topic": "Official weather alerts",
+            "publication_count": 12
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -11,7 +11,7 @@ import research_harness.strategies.session as session_module
 from research_harness.strategies.config import StrategyBundle
 from research_harness.strategies.sandbox import SandboxConfig
 from research_harness.strategies.session import StrategySession, StrategySessionError
-from research_harness.util import canonical_json, digest, write_json
+from research_harness.util import digest, write_json
 
 IMAGE = "python@sha256:9d2e5553305c7c7b0097999bb17187c69b921ccd6bc9d40e4bb5ebe652c00285"
 CODE = """def apply(event):
@@ -45,57 +45,6 @@ def receipt(operation_id="search-1"):
         "receipt_id": "receipt-" + operation_id,
         "results": [{"url": "https://fixture.invalid/a"}, {"url": "https://fixture.invalid/b"}],
     }
-
-
-@pytest.fixture
-def fake_runner(monkeypatch):
-    """Authored evidence for host journal tests; never executes candidate Python."""
-
-    class FakeRunner:
-        calls = 0
-        invalid = False
-
-        def __init__(self, config):
-            self.config = config
-
-        def execute(self, source, event, output):
-            type(self).calls += 1
-            inputs = output / "input"
-            inputs.mkdir(parents=True)
-            (inputs / "strategy.py").write_bytes(source.read_bytes())
-            (inputs / "request.json").write_text(canonical_json(event))
-            (inputs / "worker.py").write_text("# authored fixture worker evidence\n")
-            decision = {"order": [item["id"] for item in reversed(event["payload"]["items"])]}
-            if self.invalid:
-                decision["order"] = ["invented-result"]
-            raw = {"decision": decision, "state": {"calls": event["state"].get("calls", 0) + 1}}
-            write_json(output / "decision.json", raw)
-            (output / "stdout.txt").write_text(canonical_json(raw))
-            (output / "stderr.txt").write_text("")
-            write_json(
-                output / "execution.json",
-                {
-                    "status": "completed",
-                    "cleanup": "removed",
-                    "configuration": self.config.model_dump(mode="json"),
-                    "source_sha256": digest(source.read_bytes()),
-                    "request_sha256": digest(canonical_json(event)),
-                    "output_truncated": False,
-                    "output_collection_complete": True,
-                    "artifact_hashes": {
-                        p.relative_to(output).as_posix(): digest(p.read_bytes())
-                        for p in sorted(output.rglob("*"))
-                        if p.is_file()
-                    },
-                },
-            )
-            return raw
-
-        def recover(self, output):
-            return json.loads((output / "execution.json").read_bytes())
-
-    monkeypatch.setattr(session_module, "DockerStrategyRunner", FakeRunner)
-    return FakeRunner
 
 
 def test_restart_and_exact_retry_reuse_the_recorded_decision_and_state(tmp_path, fake_runner):

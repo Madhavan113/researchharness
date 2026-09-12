@@ -6,7 +6,6 @@ import shutil
 import anyio
 import pytest
 from test_strategy_session import bundle
-from test_strategy_session import fake_runner as fake_runner
 
 import research_harness.cli as cli_module
 from research_harness.evaluation.fixture_transport import fixture_server

@@ -32,7 +32,7 @@ from research_harness.strategies.config import StrategyBundle
 from research_harness.strategies.session import StrategySession
 from research_harness.util import canonical_json, digest, write_json
 
-DEVELOPMENT = Path(__file__).resolve().parents[1] / "examples/evaluation/development"
+DEVELOPMENT = Path(__file__).resolve().parent / "fixtures/research-lifecycle"
 
 
 @pytest.fixture

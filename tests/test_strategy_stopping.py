@@ -11,7 +11,6 @@ from openai import OpenAI
 from test_discovery import api_response, draft
 from test_strategy_context import BINDING, MODEL, post, provider, reindex
 from test_strategy_session import bundle, receipt
-from test_strategy_session import fake_runner as fake_runner
 
 from research_harness.backend import Backend
 from research_harness.config import SourceSpec
