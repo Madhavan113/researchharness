@@ -213,7 +213,7 @@ Unchanged from the tracker: provider access, the spending decision, human review
 
 ## Suggested order for a continuing agent
 
-1. Check PR #16 hosted CI. Its tooling checkpoint passes all 1,412 required local tests. PR #15 ordinary tests/lint and required runtime CI both passed.
-2. RW-5 and RW-6: complete reviewed export path/hostname cleanup, then publish the first appropriate external archive and verify its download using the adopted retention policy.
+1. PR #16 now passes both hosted jobs at head `e03c498`. Inspect PR #17's runtime follow-up: run `34723146902` passed ordinary checks but the required job had one collection/export timeout and 1,443 passing tests. The exact test passed locally in 8.49 seconds; the cause is not established. Bounded fixture-state diagnostics are implemented and a fresh required suite passes 1,446 tests with zero skips. Preserve the original failure and inspect the new hosted result; do not treat a passing rerun as a demonstrated timeout fix.
+2. RW-5 and RW-6: portable review tooling and a complete prepared asset package are in PR #17. Public release publication is awaiting the user's answer. Historical path cleanup and the first actual asset upload/download remain open; preserve original runtime proofs and verify downloaded bytes under the adopted retention policy.
 3. RW-15: consider exploration tools/limits only after measured runs provide evidence.
 4. Resolve the external decisions above, then perform live compatibility and the measured baseline before model-mode search. RW-10's offline acceptance does not replace that live compatibility gate.

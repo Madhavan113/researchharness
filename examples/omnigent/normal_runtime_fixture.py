@@ -81,6 +81,35 @@ class ModelFixture:
         self.reopened_jobs = []
         self.control_path = None
 
+    def diagnostics(self):
+        """Bounded state from this authored fixture, without request/response content."""
+        last = self.responses[-1].get("output", []) if self.responses else []
+        return {
+            "phase": self.mode,
+            "stage": self.stage,
+            "model_requests": len(self.requests),
+            "model_responses": len(self.responses),
+            "auxiliary_requests": len(self.auxiliary_requests),
+            "model_error_count": len(self.errors),
+            "last_model_errors": [str(error)[:1000] for error in self.errors[-5:]],
+            "last_response_outputs": [
+                {key: item.get(key) for key in ("type", "name", "status")} for item in last[-5:]
+            ],
+            "jobs": {
+                job_id: {
+                    **{
+                        key: job.get(key)
+                        for key in ("kind", "status", "worker_active", "recovery_pending")
+                    },
+                    "error": str(job["error"])[:1000] if job.get("error") else None,
+                }
+                for job_id, job in list(self.jobs.items())[-5:]
+            },
+            "job_count": len(self.jobs),
+            "export_artifacts_observed": sorted(self.artifacts),
+            "interpretation": "Last observed fixture state; not proof a pending job stopped",
+        }
+
     def job_call(self):
         if self.mode == "context":
             self.stage += 1
@@ -626,6 +655,9 @@ def run(
         write_json(out / "jobs.json", model.jobs)
         write_json(out / "export-artifacts.json", model.artifacts)
     finally:
+        # Preserve the fixture's progress even when a runtime turn remains unresolved.
+        # Full authored traffic/errors remain in their separate original captures.
+        write_json(out / "fixture-state.json", model.diagnostics())
         if proxy is not None:
             proxy.close()
         write_json(out / "model-requests.json", model.requests)

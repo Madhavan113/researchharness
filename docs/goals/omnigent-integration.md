@@ -79,6 +79,71 @@ Retain completed handoffs so another agent can distinguish implemented behavior 
 
 ## Activity and handoffs
 
+### September 12, 2026 — Runtime collection timeout investigation
+
+Owner: `/root`; `in_progress`, continuing PR #17 on `feat/portable-evidence-export`
+from head `49c0ecdbf4830dcfb8c301281d196e94c0d15b54` (initial investigation branch
+`fix/runtime-fixture-diagnostics`; no separate implementation commits). The prior turn was a
+verified wait. PR #16 exact-head run `34722233873` attempt 2 passed both hosted
+jobs (1,412 required tests, zero skips). PR #17 run `34723146902` passed ordinary
+checks but failed one required test: the normal server/runner collection/export
+follow-up timed out after 90 seconds; 1,443 other required tests passed.
+The console trace identifies an unresolved turn, not its cause. The public CI
+log does not retain the fixture's model errors, session events or job state.
+
+Scope: reproduce the failing path with retained offline artifacts, inspect
+model/tool/worker/session evidence, and fix a demonstrated cause or the missing
+diagnostics needed to establish it. Do not simply relax the timeout or replay an
+unresolved turn. Intended files: normal runtime fixture, its focused tests and
+diagnostic retention if needed, testing guide and this tracker. Retain the failed
+CI result; it is not superseded by a passing local rerun. All provider/model
+responses remain authored fixtures; no live model or spending gate changes.
+
+Diagnostic checkpoint: the exact failed test passed locally in **8.49 seconds**
+with the original limits; report `/tmp/rh-runtime-timeout-repro-20260912.xml`,
+SHA-256 `962d67a3810839ef1d752cd418de07a2c929da6dc1028aebf6978c57950d2576`.
+The original hosted failure log remains at
+`/tmp/rh-pr17-runtime-failed-20260912.log`, SHA-256
+`58e35c62d18d146517322e363909ff7f5a5c243f0054b9a74da660ae32951d83`.
+Its cause is not established, and no production runtime limit, retry policy or
+assertion was relaxed.
+
+The fixture now writes a bounded `fixture-state.json` from its finalizer with
+phase/stage, request/response counts, the last action, observed job states and
+model errors. Failed subprocess exits include up to 16 KiB of that report in the
+test assertion. Complete original captures stay separate; the summary is a last
+observation and cannot prove an unresolved job stopped. Two added tests verify
+payload exclusion/error bounds and preservation of both diagnostics and the
+original timeout without a fabricated acceptance record. They pass in 0.70
+seconds; report `/tmp/rh-runtime-diagnostics-tests-20260912.xml`, SHA-256
+`14501596527287edba3482941717ebed75d69719770f3f01d2d5bb6806fa1a73`.
+
+~~~sh
+RH_TEST_REQUIRE_RUNTIME=1 \
+RH_TEST_STRATEGY_IMAGE=python@sha256:9d2e5553305c7c7b0097999bb17187c69b921ccd6bc9d40e4bb5ebe652c00285 \
+RH_TEST_OMNIGENT_PYTHON=/tmp/researchharness-omnigent-be042b39/.venv/bin/python \
+uv run --locked --extra mcp pytest --tb=short \
+  --basetemp=/tmp/rh-runtime-diagnostics-required-20260912 \
+  --junitxml=/tmp/rh-runtime-diagnostics-required-20260912.xml
+~~~
+
+The fresh full suite passes **1,446 tests, zero failures/errors/skips**, in
+300.90 seconds. JUnit SHA-256:
+`b4b77715ee4979ae37d341f263207dbdc07bbcaac88d236b3bd9b2abcbdbe6de`.
+The actual workflow's new report records 19 model requests/responses, zero model
+errors, both jobs succeeded and a completed final response in the reopened case;
+its SHA-256 is
+`5ee5bc04f5d96750ba89bbe03373fb23039b59912e8f2b9509791aa687149e23`.
+Lint/format checks pass for 117 files (including the fixture), all 109 local
+Markdown targets in changed documentation resolve, and the retention guard
+verifies 19 checkpoints with all 13 historical compressed hashes intact.
+
+Next action: inspect the hosted checks for this diagnostic follow-up in PR #17;
+use the retained state to investigate any recurrence. A passing rerun does not
+demonstrate a fix for the original timeout. Public release publication, human
+benchmark review, provider access and spending approval remain unanswered; no
+live model requests or release uploads occurred. The overall goal remains active.
+
 ### September 12, 2026 — Historical audit portability follow-up
 
 Owner: `/root`; bounded documentation/evidence check completed, continuing
