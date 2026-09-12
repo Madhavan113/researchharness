@@ -39,7 +39,7 @@ Use `queued`, `in_progress`, `blocked`, or `done`. Replace an owner only after a
 | M3 | Omnigent research agent bundle and runtime binding | done | `/root/omnigent_spike`, browser verification `/root` | Normal server/runner/MCP and browser chat save validated proposal/pipeline ids; synthetic model HTTP, frozen authored bundle |
 | M4 | Collection jobs, exports, case lookup, recovery | done | `/root` | Detached workers, cancellation, process termination, scoped data, exports, and full server/browser restart verified locally; local Postgres/MinIO tests and detached workflow/restart/export acceptance now verified |
 | M5 | Independent pilot evaluation and baseline comparison | blocked | `/root`, bounded agent work handed off | Twenty authored cases now discriminate in the offline policy comparison; independent evaluators, frozen controller and bound gateway usage verified through actual runtimes; budgeted dispatch and independent settlement verified through both actual runtimes; awaits human review, provider access and the pending spending decision |
-| M6 | Meta-Harness strategy optimization and isolated final evaluation | in_progress | `/root`, review follow-ups | RW-1/2/3/4/7/8/9/10/11/12/14 are published in PRs #2–#12, with PR #11 and #12 hosted checks passing. The bounded RW-15 admission/compatibility checkpoint is published in PR #13 and passes 1,341 required local tests with zero skips; its permissions and exploration items remain open. Measured search/final still awaits remaining review work, reviewed cases, provider access, spending approval and the measured baseline |
+| M6 | Meta-Harness strategy optimization and isolated final evaluation | in_progress | `/root`, review follow-ups | RW-1/2/3/4/7/8/9/10/11/12/14 are published in PRs #2–#12, with PR #11 and #12 hosted checks passing. The bounded RW-15 admission/compatibility checkpoint is published in PR #13. Copied-feedback privacy now passes 1,352 required local tests with zero skips; exploration limits remain conditional on measured-run evidence. Measured search/final still awaits remaining review work, reviewed cases, provider access, spending approval and the measured baseline |
 
 M0 and M1 can proceed independently against the agreed tool/service boundary. Evaluation case design can also proceed independently. Agree on ownership of shared schemas, CLI wiring, dependencies, migrations, and this tracker before concurrent edits.
 
@@ -77,6 +77,35 @@ For each active task, add a short entry with:
 Retain completed handoffs so another agent can distinguish implemented behavior from planned work. Avoid copying secrets, raw credentials, or held-out task contents into this shared tracker.
 
 ## Activity and handoffs
+
+### September 12, 2026 — RW-15 private feedback ownership
+
+Owner: `/root`; bounded RW-15 feedback-permission work `done` on `fix/private-proposer-feedback`, based on PR #13 head `dfb14ca10d333ebeeca465565789e44533820d60`. The previous goal turn made progress: it fixed admission/selection recovery, passed all 1,341 required tests and published PR #13. Its latest hosted run `34720051522` is confirmed pending at this task's first poll; an earlier push run is still active, so neither is restarted merely because the latest checks have not begun.
+
+Scope: copied feedback gets a private host parent from initial creation while the child bind mount remains readable by the unprivileged sandbox. Record the new layout durably, preserve recovery of legacy flat copies, reject unexpected ownership/layout changes and remove only the recorded owned paths after execution quiescence. Intended files: `optimization/workspace.py`, workspace/recovery/runtime tests, strategy documentation and shared trackers. Acceptance: private permissions before the first copied byte; real Docker reads complete feedback; interrupted parent/view/copy/removal recovery without replay; original feedback and foreign files preserved; legacy recovery still works. No changes to model/workspace budgets, benchmark content, historical evidence or spending authorization. The remaining exploration-limit item stays conditional on measured-run evidence.
+
+### September 12, 2026 — RW-15 private feedback handoff
+
+Owner: `/root`; the copied-feedback permissions item is complete and ready for publication on `fix/private-proposer-feedback`. New copies have a `0700` host parent before the first copied byte, with a readable child mounted read-only into Docker. The recorded layout distinguishes new copies from legacy flat copies. Tools check parent permissions and ownership; cleanup rejects symlinked parents, unexpected siblings and unknown layouts, and removes only the recorded child and empty parent after execution quiescence. Interrupted parent/view creation, copying and either deletion boundary recover without replay. Original source bytes/permissions and directly mounted source trees are preserved.
+
+Changed files: [workspace implementation](../../src/research_harness/optimization/workspace.py), [workspace tests](../../tests/test_optimization_workspace.py), [strategy guide](../strategy-optimization.md), this tracker and remaining work. Eleven new regression cases cover the privacy/recovery boundary. Existing actual-Docker checks now compare complete binary feedback and verify private-parent removal; the hard-exit fixture forces an owned copy and confirms cleanup after terminating the proposer process. Model settings, execution budgets, dependency versions and historical artifacts are unchanged.
+
+Final required verification:
+
+~~~sh
+RH_TEST_REQUIRE_RUNTIME=1 \
+RH_TEST_STRATEGY_IMAGE=python@sha256:9d2e5553305c7c7b0097999bb17187c69b921ccd6bc9d40e4bb5ebe652c00285 \
+RH_TEST_OMNIGENT_PYTHON=/tmp/researchharness-omnigent-be042b39/.venv/bin/python \
+uv run --locked --extra mcp pytest --tb=short \
+  --basetemp=/tmp/rh-rw15-private-required-20260912 \
+  --junitxml=/tmp/rh-rw15-private-required-20260912.xml
+~~~
+
+Result: **1,352 passed, zero failures/errors/skips**, 318.57 seconds, including all 66 workspace cases, actual Docker and pinned Omnigent. Report `/tmp/rh-rw15-private-required-20260912.xml` SHA-256 `85ac5c43b907d997a42d1cb4f45b235ca39eb70d8b6168dfbcbbbe92abfd6894`; console log has the same stem. The original implementation failed the privacy-before-copy regression under an explicitly shared temporary root (`/tmp/rh-rw15-private-before-v2-20260912.xml`, SHA-256 `661ea6c706ea01ce9c1cb2a58b7badde82e38c67fb80321315f3f0e6e82f6eb8`). The initial workspace run had 65 passes and one macOS read-only-directory rename failure in legacy-fixture setup; the fixture now enables the move and restores the original legacy permissions. Its targeted test and the final full suite pass, and the failed setup's recorded copy was recovered and removed. The original report remains `/tmp/rh-rw15-private-workspace-20260912.xml`, SHA-256 `1b896f85a850a1495b5993570787daa994e443349db1b9cd97192a521c2c0116`.
+
+Ruff lint/format pass for `src tests` (110 files); local Markdown targets and the diff are checked before publication. All local execution handles are terminal and Docker reports no running containers. PR #13's latest run `34720051522` has passed ordinary tests/lint; its required runtime job remains active at this handoff and has not been restarted. No live model-provider or paid calls were made.
+
+Next action: publish on top of PR #13 and check both checkpoints' hosted CI, then take remaining offline work from RW-13 and artifact handling. RW-15 remains open only for considering exploration tools/limits after measured runs exist. Independent benchmark review, provider access, the spending decision and measured baseline/search/final remain outstanding; this permissions checkpoint does not complete the full goal.
 
 ### September 12, 2026 — RW-15 admission and compatibility ownership
 

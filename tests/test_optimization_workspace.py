@@ -3,7 +3,9 @@ from __future__ import annotations
 import base64
 import json
 import os
+import stat
 import sys
+from pathlib import Path
 
 import pytest
 from filelock import FileLock, Timeout
@@ -34,6 +36,186 @@ def setup(tmp_path, settings=None):
 def write(workspace, path, code):
     result = workspace.call("write_file", {"path": path, "content": code})
     assert result["ok"], result
+
+
+def test_copied_feedback_is_private_before_first_byte_and_removed_on_close(tmp_path, monkeypatch):
+    public_temp = tmp_path / "shared-temp"
+    public_temp.mkdir(mode=0o755)
+    monkeypatch.setattr(module.tempfile, "gettempdir", lambda: str(public_temp))
+    original_open = Path.open
+    observed = []
+    output = tmp_path / "access"
+
+    def check_copy(path, mode="r", *args, **kwargs):
+        if mode == "xb" and path.name in {"full.bin", "private-mode.json"}:
+            state = json.loads((output / "workspace.json").read_bytes())
+            view = Path(state["feedback"])
+            assert stat.S_IMODE(view.parent.stat().st_mode) == 0o700
+            observed.append(path.name)
+        return original_open(path, mode, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "open", check_copy)
+    try:
+        workspace = setup(tmp_path)
+        parent = workspace.feedback.parent
+        assert set(observed) == {"full.bin", "private-mode.json"}
+        assert stat.S_IMODE(workspace.feedback.stat().st_mode) == 0o555
+        assert (workspace.feedback / "full.bin").read_bytes() == bytes(range(256)) * 1000
+        source = workspace.feedback_source / "nested/private-mode.json"
+        assert stat.S_IMODE(source.stat().st_mode) == 0o600
+        proof = workspace.close()
+        assert proof["snapshot_valid"] and proof["feedback_view_removed"]
+        assert not parent.exists() and source.read_text() == '{"entire":"feedback"}'
+    finally:
+        if (output / "workspace.json").exists():
+            ProposalWorkspace.recover(output, config())
+
+
+@pytest.mark.parametrize("point", ["parent", "view", "copy"])
+def test_interrupted_feedback_preparation_removes_only_owned_copy(tmp_path, monkeypatch, point):
+    original_mkdir, original_open = Path.mkdir, Path.open
+
+    def interrupt_mkdir(path, *args, **kwargs):
+        result = original_mkdir(path, *args, **kwargs)
+        if (point == "parent" and path.name.startswith(".rh-proposer-feedback-")) or (
+            point == "view"
+            and path.name == "feedback"
+            and path.parent.name.startswith(".rh-proposer-feedback-")
+        ):
+            raise OSError("Interrupted feedback preparation")
+        return result
+
+    def interrupt_copy(path, mode="r", *args, **kwargs):
+        if point == "copy" and mode == "xb" and path.name == "private-mode.json":
+            raise OSError("Interrupted feedback preparation")
+        return original_open(path, mode, *args, **kwargs)
+
+    with monkeypatch.context() as patch:
+        patch.setattr(Path, "mkdir", interrupt_mkdir)
+        patch.setattr(Path, "open", interrupt_copy)
+        with pytest.raises(OSError, match="Interrupted feedback"):
+            setup(tmp_path)
+    output = tmp_path / "access"
+    state = json.loads((output / "workspace.json").read_bytes())
+    parent = Path(state["feedback"]).parent
+    assert stat.S_IMODE(parent.stat().st_mode) == 0o700
+    assert state["status"] == "preparing" and not state["calls"]
+    proof = ProposalWorkspace.recover(output, config())
+    assert proof["closed"] and proof["quiescent"] and not proof["snapshot_valid"]
+    assert proof["feedback_view_removed"] and not parent.exists()
+    assert not list((output / "tools").iterdir())
+    source = tmp_path / "feedback/nested/private-mode.json"
+    assert source.read_text() == '{"entire":"feedback"}'
+    assert stat.S_IMODE(source.stat().st_mode) == 0o600
+    assert ProposalWorkspace.recover(output, config()) == proof
+
+
+def test_public_feedback_parent_stops_tools_and_is_cleaned_on_close(tmp_path):
+    workspace = setup(tmp_path)
+    parent = workspace.feedback.parent
+    assert parent.name.startswith(".rh-proposer-feedback-")
+    parent.chmod(0o755)
+    with pytest.raises(ValueError, match="private"):
+        workspace.call("read_file", {"path": "feedback/full.bin"})
+    assert not workspace._state["calls"]
+    proof = workspace.close()
+    assert proof["closed"] and proof["quiescent"] and not proof["snapshot_valid"]
+    assert proof["feedback_view_removed"] and not parent.exists()
+
+
+@pytest.mark.parametrize("damage", ["symlink", "extra-entry", "unknown-layout"])
+def test_feedback_cleanup_refuses_foreign_paths_and_unknown_layout(tmp_path, damage):
+    workspace = setup(tmp_path)
+    parent = workspace.feedback.parent
+    foreign = tmp_path / "foreign"
+    foreign.mkdir()
+    sentinel = foreign / "keep.txt"
+    sentinel.write_text("unrelated bytes")
+    backup = parent.with_name(parent.name + "-saved")
+    if damage == "symlink":
+        parent.rename(backup)
+        parent.symlink_to(foreign, target_is_directory=True)
+    elif damage == "extra-entry":
+        (parent / "unexpected.txt").write_text("preserve this too")
+    else:
+        workspace._state["feedback_view_layout"] = "future-layout"
+        workspace._save()
+    try:
+        proof = workspace.close()
+        assert proof["closed"] and not proof["quiescent"] and not proof["snapshot_valid"]
+        assert not proof["feedback_view_removed"]
+        assert sentinel.read_text() == "unrelated bytes"
+        if damage == "symlink":
+            assert parent.is_symlink() and (backup / "feedback/full.bin").is_file()
+        else:
+            assert (workspace.feedback / "full.bin").is_file()
+            if damage == "extra-entry":
+                assert (parent / "unexpected.txt").read_text() == "preserve this too"
+    finally:
+        if damage == "symlink":
+            parent.unlink()
+            backup.rename(parent)
+        elif damage == "extra-entry":
+            (parent / "unexpected.txt").unlink()
+        else:
+            workspace._state["feedback_view_layout"] = "private-parent-v1"
+            workspace._save()
+        recovered = ProposalWorkspace.recover(workspace.output, workspace.config)
+        assert recovered["quiescent"] and not recovered["snapshot_valid"]
+        assert not parent.exists() and sentinel.read_text() == "unrelated bytes"
+
+
+def test_legacy_flat_feedback_copy_recovers_without_rewriting_source(tmp_path):
+    workspace = setup(tmp_path)
+    parent = workspace.feedback.parent
+    staging = workspace.output / "legacy-staging"
+    # macOS requires write permission on a directory moved to another parent.
+    workspace.feedback.chmod(0o755)
+    workspace.feedback.rename(staging)
+    parent.rmdir()
+    staging.rename(parent)
+    parent.chmod(0o555)
+    workspace._state.pop("feedback_view_layout")
+    workspace._state["feedback"] = str(parent)
+    workspace._save()
+    proof = ProposalWorkspace.recover(workspace.output, workspace.config)
+    assert proof["snapshot_valid"] and proof["quiescent"] and proof["feedback_view_removed"]
+    assert not parent.exists()
+    source = workspace.feedback_source / "nested/private-mode.json"
+    assert source.read_text() == '{"entire":"feedback"}'
+    assert stat.S_IMODE(source.stat().st_mode) == 0o600
+    assert ProposalWorkspace.recover(workspace.output, workspace.config) == proof
+
+
+@pytest.mark.parametrize("point", ["view", "parent"])
+def test_feedback_removal_interruption_is_recoverable_without_replay(tmp_path, monkeypatch, point):
+    workspace = setup(tmp_path)
+    view, parent = workspace.feedback, workspace.feedback.parent
+    original_rmtree, original_rmdir = module.shutil.rmtree, Path.rmdir
+
+    def interrupt_view(path, *args, **kwargs):
+        result = original_rmtree(path, *args, **kwargs)
+        if point == "view" and path == view:
+            raise OSError("Interrupted after feedback removal")
+        return result
+
+    def interrupt_parent(path, *args, **kwargs):
+        result = original_rmdir(path, *args, **kwargs)
+        if point == "parent" and path == parent:
+            raise OSError("Interrupted after parent removal")
+        return result
+
+    with monkeypatch.context() as patch:
+        patch.setattr(module.shutil, "rmtree", interrupt_view)
+        patch.setattr(Path, "rmdir", interrupt_parent)
+        proof = workspace.close()
+    assert proof["closed"] and not proof["quiescent"] and not proof["feedback_view_removed"]
+    assert not view.exists() and parent.exists() == (point == "view")
+    recovered = ProposalWorkspace.recover(workspace.output, workspace.config)
+    assert recovered["closed"] and recovered["quiescent"] and not recovered["snapshot_valid"]
+    assert recovered["feedback_view_removed"] and not parent.exists()
+    assert not list((workspace.output / "tools").iterdir())
+    assert ProposalWorkspace.recover(workspace.output, workspace.config) == recovered
 
 
 def test_defaults_are_usable_and_impossible_protocol_bounds_rejected():
@@ -383,12 +565,14 @@ def execution(workspace):
 
 def test_actual_docker_full_feedback_edit_execute_and_resource_cleanup(tmp_path, monkeypatch):
     workspace = actual_workspace(tmp_path)
+    parent = workspace.feedback.parent
+    assert stat.S_IMODE(parent.stat().st_mode) == 0o700
     host = tmp_path / "heldout.txt"
     host.write_text("HELDOUT_PRIVATE_CANARY")
     monkeypatch.setenv("OPENAI_API_KEY", "HOST_CREDENTIAL_CANARY")
     code = f"""import pathlib, os, socket, hashlib, json, subprocess
 root = pathlib.Path('/workspace')
-assert len(pathlib.Path('/feedback/full.bin').read_bytes()) == 256000
+assert pathlib.Path('/feedback/full.bin').read_bytes() == bytes(range(256)) * 1000
 assert pathlib.Path('/feedback/nested/private-mode.json').read_text() == '{{"entire":"feedback"}}'
 assert 'OPENAI_API_KEY' not in os.environ
 assert not pathlib.Path({str(host)!r}).exists()
@@ -427,6 +611,7 @@ subprocess.Popen(['/usr/local/bin/python3', '-c', 'import time; time.sleep(30)']
     assert saved["status"] == "completed" and saved["cleanup"] == "removed"
     proof = workspace.close()
     assert proof["snapshot_valid"] and proof["quiescent"]
+    assert not parent.exists()
     assert host.read_text() == "HELDOUT_PRIVATE_CANARY"
     assert (
         workspace.snapshot_files(["workspace/result.bin"])["workspace/result.bin"]
@@ -453,6 +638,7 @@ def test_actual_failures_never_publish_edits(tmp_path, code):
     assert list(workspace.workspace.iterdir()) == [workspace.workspace / "task.py"]
     assert execution(workspace)["cleanup"] == "removed"
     assert workspace.close()["snapshot_valid"]
+    assert not workspace.feedback.parent.exists()
 
 
 def test_actual_timeout_is_cleaned_and_not_replayed(tmp_path):
@@ -550,6 +736,7 @@ def test_actual_hard_exit_recovery_terminates_owned_container_without_replay(tmp
     feedback = tmp_path / "feedback"
     feedback.mkdir()
     (feedback / "input.txt").write_text("full feedback")
+    (feedback / "input.txt").chmod(0o600)
     settings = WorkspaceConfig(sandbox=SandboxConfig(image=image, timeout_seconds=30))
     settings_path = tmp_path / "settings.json"
     settings_path.write_text(settings.model_dump_json())
@@ -592,6 +779,9 @@ workspace.call('run_python', {'path':'workspace/task.py'})
             proof = ProposalWorkspace.recover(output, settings)
     assert proof["closed"] and proof["quiescent"] and not proof["snapshot_valid"]
     assert proof["replayed"] is False
+    state = json.loads((output / "workspace.json").read_bytes())
+    assert state["feedback_view_owned"] and proof["feedback_view_removed"]
+    assert not Path(state["feedback"]).parent.exists()
     saved = json.loads(report_path.read_bytes())
     assert saved["status"] == "failed" and saved["cleanup"] == "removed"
     assert saved["recovery"]["replayed"] is False
