@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "id": "meta-harness-coding-pilot",
+  "question": "Can full agent-program search improve coding-task completion under a fixed model and budget?",
+  "plan": "plan.md",
+  "benchmark_repository": "https://github.com/harbor-framework/terminal-bench-2",
+  "benchmark_revision": "2fd12b88aafdd04a52c298e3940bcb189f9766d6",
+  "tasks": [
+    {"path": "cancel-async-tasks", "overlay": "overlays/cancel-async-tasks"}
+  ]
+}

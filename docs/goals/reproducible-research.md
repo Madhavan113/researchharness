@@ -2,6 +2,12 @@
 
 Accepted September 13, 2026. Status: in_progress. Owner: `/root`.
 
+The active thread goal now explicitly includes human-guided curation,
+coding and computer-use investigation, ideation/planning, and infrastructure
+planning for a research idea. The pilot below is the first increment toward that
+full workflow, not a replacement for it. Agents propose directions, evidence,
+experiment plans and resources; people curate the benchmark and accepted findings.
+
 **Take one AI research question through a runnable baseline, experiments and
 independent evaluation. Deliver code and a conclusion another person can check
 by rerunning the experiment. A negative result is a valid outcome.**
@@ -44,15 +50,20 @@ their own untouched tasks and an explicitly different protocol.
 
 | Step | Deliverable | Status | Owner |
 | --- | --- | --- | --- |
-| E1 | One versioned experiment package and a runnable baseline/evaluator | queued | unassigned |
+| E1 | One versioned experiment package and a runnable baseline/evaluator | in_progress | `/root` |
 | E2 | Omnigent delegation, isolated attempts and durable execution artifacts | queued | unassigned |
 | E3 | Candidate search, independent rerun and a reproducible finding | queued | unassigned |
 
-Next: select one baseline and a small task set, write their setup/run/score
-commands, and prove the evaluator distinguishes working and broken solutions.
-This defines the first execution contract; avoid designing a universal task
-framework before that example works. Record provider access and a spending budget
-before any paid model run, using the existing controls where applicable.
+After the pilot, connect investigation (including computer-use evidence),
+ideation and infrastructure proposals to the same human curation and experiment
+records. These capabilities remain required and unimplemented; completing E1–E3
+alone does not establish the full active thread goal.
+
+The [experiment guide](../experiments.md) now supplies a proposed task, setup/run
+commands and verified positive/negative benchmark controls. Next: connect human
+curator decisions and the planned agent baseline to execution through Omnigent.
+The research baseline itself remains unmeasured. Record provider access and a
+spending budget before any paid model run, using existing controls where applicable.
 
 ## Keep the scope small
 
@@ -64,12 +75,46 @@ and design stay in their repository.
 This is the current technical priority. The earlier
 [ingestion integration track](omnigent-integration.md) retains its historical
 evidence and unfinished measurements; those are not automatically the next tasks.
-This file records the accepted goal, not successful activation of the app's goal
-controller, which still holds the older paused, unfinished goal.
+The app goal controller now reports the user's research-workflow goal active.
+The earlier failed registration is historical; no old evaluation was marked complete.
 
 ## Current ownership
 
-September 13, `/root`: goal documentation complete. Files: this goal,
+September 13, `/root`, E1 in progress on `feat/curated-experiments`: implement one
+reviewable experiment package and benchmark validation using Harbor's existing
+task/runtime format. Scope: `src/research_harness/experiments/`, CLI integration,
+focused tests, an example package, experiment docs and this tracker. Inspect and
+pin the runtime; retain actual positive/negative-control results without claiming
+agent performance or human review. Preserve existing ingestion/optimization and
+private UI code. Acceptance: executable benchmark check, observable artifacts,
+honest curation state, meaningful failure-path tests and setup commands. Subsequent
+agent execution, computer-use investigation and human acceptance remain explicit
+follow-up work, not simulated completion.
+
+Checkpoint: `rh experiment prepare/check/status` now snapshots the Git-pinned
+task, plan, overlays and effective environment; runs Harbor 0.23.0 reference/no-op
+controls; and preserves raw outputs and verified terminal inventories. The proposed
+async-cancellation task is human-authored upstream. Actual local Docker verification
+passes all six assertions for the reference and fails five for no-op, with rewards
+1 and 0 and no runtime exceptions. Both verifiers are separate containers. Three
+earlier setup failures are retained; the [guide](../experiments.md) gives commands,
+hashes, infrastructure limits and the precise scope of that evidence.
+
+Validation: 20 new experiment tests; the complete ordinary MCP-enabled suite passes
+1,451 tests with 32 optional runtime skips in 261 seconds. Ruff check and formatting
+pass. Those skips are not runtime acceptance; the new Harbor checks were executed
+separately, while the older required Docker/Omnigent suite is left to hosted CI.
+Logs remain under `.researchharness/experiments/`; source and setup are reviewable
+without committing another large evidence archive. No paid model calls were made.
+
+E1 stays in progress: the proposed Terminus-2/model baseline needs integration and
+curation. Authenticated curator decisions, Omnigent delegation, computer-use
+investigation, agent planning and infrastructure-planning tools remain required.
+The plan currently records those choices for human review; it does not implement
+agents that make or execute them. The full goal remains active.
+
+Earlier checkpoint, before implementation: September 13, `/root`, goal
+documentation complete. Files: this goal,
 `AGENTS.md`, `README.md`, `docs/README.md` and the earlier tracker. All 341 local
 Markdown targets in the 29 root/documentation files resolve; `git diff --check`
 and a documentation-only scope check pass. The next implementation task is E1;

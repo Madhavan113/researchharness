@@ -46,6 +46,8 @@ record and collection code; there is no optional plugin loader yet.
 
 ## Evaluate research strategies
 
+- [Research experiments](experiments.md): prepare a proposed experiment and run
+  real Harbor benchmark controls for human review. Agent execution is still pending.
 - [Development evaluation](research-evaluation.md): case requirements and scoring.
 - [Controlled comparison](controlled-comparison.md): compare direct and Omnigent execution.
 - [Strategy optimization](strategy-optimization.md): candidate code, development
