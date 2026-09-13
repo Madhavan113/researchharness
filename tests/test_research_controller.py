@@ -335,6 +335,11 @@ def test_preparation_freezes_bytes_controls_and_candidate_task(prepared):
     }
     assert controls[0]["strategy_sha256"] == digest(b"Same semantic instructions.\n")
     assert controls[0]["budgets"]["search"] == 1
+    assert any(
+        "direct max_retries=0" in limitation and "max_retries=7" in limitation
+        for limitation in plan["limitations"]
+    )
+    assert any("rejects SDK retries" in limitation for limitation in plan["limitations"])
     assert plan["sources"]["src/research_harness/services/research.py"]
     assert (prepared / "implementation/src/research_harness/evaluation/controller.py").is_file()
     seen = []

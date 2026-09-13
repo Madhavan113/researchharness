@@ -29,6 +29,8 @@ Ten assertions cover JSON transport, malformed input, instruction delivery, tool
 
 The artifact directory contains tool schemas, raw model request/response fixtures, Omnigent events, actual subprocess call receipts, checks, version metadata, source hashes, and the generated runnable agent bundle. [Saved evidence](evidence/2026-09-08/metadata.json) and the [compatibility report](../../docs/omnigent-compatibility.md) explain the September 8 run.
 
+The normal-runtime archive retains three empty captured streams: `omnigent/runner.log` and the collection/export jobs' `worker.log` files. The budget-runtime archive retains one empty `omnigent/runner.log`. Their zero-byte contents match the original artifact indexes; they mean those streams emitted no output, not that the operations succeeded. The [normal acceptance record](evidence/normal-runtime-2026-09-08/acceptance.json) records collection/export and reopening, while the [budget acceptance record](evidence/budget-runtime-2026-09-08/acceptance.json) records denial of the next request. The original logs and hashes are preserved.
+
 ## Offline provider schema preflight
 
 Check the direct Responses request, structured proposal output, and all fourteen MCP input schemas without a provider key or network request:

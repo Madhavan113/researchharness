@@ -39,7 +39,7 @@ Use `queued`, `in_progress`, `blocked`, or `done`. Replace an owner only after a
 | M3 | Omnigent research agent bundle and runtime binding | done | `/root/omnigent_spike`, browser verification `/root` | Normal server/runner/MCP and browser chat save validated proposal/pipeline ids; synthetic model HTTP, frozen authored bundle |
 | M4 | Collection jobs, exports, case lookup, recovery | done | `/root` | Detached workers, cancellation, process termination, scoped data, exports, and full server/browser restart verified locally; local Postgres/MinIO tests and detached workflow/restart/export acceptance now verified |
 | M5 | Independent pilot evaluation and baseline comparison | blocked | `/root`, bounded agent work handed off | Twenty authored cases now discriminate in the offline policy comparison; independent evaluators, frozen controller and bound gateway usage verified through actual runtimes; budgeted dispatch and independent settlement verified through both actual runtimes; awaits human review, provider access and the pending spending decision |
-| M6 | Meta-Harness strategy optimization and isolated final evaluation | in_progress | `/root`, review follow-ups | RW-1/2/3/4/7/8/9/10/11/12/14 are published in PRs #2–#12, with PR #11's required hosted suite passing. RW-14 test maintenance passes 1,337 required local tests with zero skips, including isolated sandbox guards and real implementation-freeze checks. Measured search/final still awaits remaining review work, reviewed cases, provider access, spending approval and the measured baseline |
+| M6 | Meta-Harness strategy optimization and isolated final evaluation | in_progress | `/root`, review follow-ups | RW-1/2/3/4/7/8/9/10/11/12/14 are published in PRs #2–#12, with PR #11 and #12 hosted checks passing. The bounded RW-15 admission/compatibility checkpoint is published in PR #13 and passes 1,341 required local tests with zero skips; its permissions and exploration items remain open. Measured search/final still awaits remaining review work, reviewed cases, provider access, spending approval and the measured baseline |
 
 M0 and M1 can proceed independently against the agreed tool/service boundary. Evaluation case design can also proceed independently. Agree on ownership of shared schemas, CLI wiring, dependencies, migrations, and this tracker before concurrent edits.
 
@@ -77,6 +77,33 @@ For each active task, add a short entry with:
 Retain completed handoffs so another agent can distinguish implemented behavior from planned work. Avoid copying secrets, raw credentials, or held-out task contents into this shared tracker.
 
 ## Activity and handoffs
+
+### September 12, 2026 — RW-15 admission and compatibility ownership
+
+Owner: `/root`; bounded RW-15 admission/compatibility work complete on `fix/selection-admission-checks`, based on PR #12, head `9230c91`. The previous goal turn made progress: RW-14 was completed, verified by 1,337 required tests and published; PR #11's hosted checks also passed. PR #12 run `34719113011` was pending at this task's initial poll; it subsequently completed both ordinary tests/lint and the required Docker/Omnigent job successfully at head `9230c915333c4f5e31b0b64048d722fc981b92ec`. Its PR description now records that hosted result.
+
+Scope: prevent selection/finalization from omitting a completed but unadmitted proposal after a crash; record the built-in runtime's SDK-policy differences in frozen comparison limitations; declare the directly imported AnyIO dependency; document exact proposer model identity, empty archived logs and fresh-process audit provenance; replace stale current verification claims. Intended files: optimization controller and recovery tests, comparison plan/tests, package metadata/lock, strategy/research/Omnigent guides and shared trackers. Acceptance: reproduce the last-iteration admission crash, reject selection before revocation or private reads, resume admission without another proposer dispatch and retain every candidate; reject malformed older selection records; preserve locked package versions and runtime/budget controls. Temporary feedback permissions and exploration limits remain separately tracked RW-15 work, so this bounded checkpoint alone will not close the whole item. No live provider calls or spending decisions are part of this work.
+
+### September 12, 2026 — RW-15 admission and compatibility handoff
+
+Owner: `/root`; the bounded checkpoint is complete and published in [PR #13](https://github.com/Madhavan113/researchharness/pull/13), stacked on PR #12. The overall RW-15 item remains `in_progress`. Selection now checks completed/admitted proposals, explicit failed-proposal recovery, every reserved candidate slot and terminal candidate outcomes before revocation or freezing. The same guard applies when `select`, `step` or `run` reopens a saved selection and before `final` enters private evaluation. Refusal leaves the journal and proposer unchanged; resuming interrupted admission uses retained files without another proposer dispatch. Older incomplete selections are rejected, not rewritten or unfrozen. Final-recovery accounting remains available.
+
+Changed implementation: [search controller](../../src/research_harness/optimization/controller.py), [comparison plan](../../src/research_harness/evaluation/controller.py), their controller tests, `pyproject.toml` and `uv.lock`. New plans disclose direct `max_retries=0` / `min(90, deadline_seconds)` versus the pinned Omnigent `RetryPolicy` of seven retries / 120 seconds, together with the gateway's retry rejection and shared bounds. Runtime behavior is unchanged. AnyIO is declared directly under the MCP extra; `uv lock --offline` preserves all 60 locked package names/versions. The strategy, comparison, service and Omnigent guides document exact response-model identity, the four hash-verified empty log streams, same-project fresh-process audit provenance and current verification evidence. Historical archives remain unchanged.
+
+Final required verification:
+
+~~~sh
+RH_TEST_REQUIRE_RUNTIME=1 \
+RH_TEST_STRATEGY_IMAGE=python@sha256:9d2e5553305c7c7b0097999bb17187c69b921ccd6bc9d40e4bb5ebe652c00285 \
+RH_TEST_OMNIGENT_PYTHON=/tmp/researchharness-omnigent-be042b39/.venv/bin/python \
+uv run --locked --extra mcp pytest --tb=short \
+  --basetemp=/tmp/rh-rw15-required-20260912 \
+  --junitxml=/tmp/rh-rw15-required-20260912.xml
+~~~
+
+Result: **1,341 passed, zero failures/errors/skips**, 593.70 seconds, using actual Docker and the pinned separate Omnigent environment with authored model/source responses. Report `/tmp/rh-rw15-required-20260912.xml` SHA-256: `27da70ffdb0d5223684b56b0937b63096fafcc42ab49ad00e33a35ccb970d038`; console log has the same stem. The original implementation failed all four admission/older-selection regressions (`/tmp/rh-rw15-admission-before-20260912.xml`, SHA-256 `21ca156095f3ca58006a4884e1147cb897191d3d5cc22a44832985b911deb690`). The initial guard passed the 28-test controller module; the full run above additionally verifies `run` replay and the final dependency/plan changes. Ruff check and format check pass for `src tests` (110 files); local Markdown targets and `git diff --check` pass. All local execution handles are terminal, and Docker reports no running containers.
+
+Remaining dependencies: feedback-copy permissions still need a private host parent that preserves sandbox readability and durable cleanup/recovery; exploration tooling/limits need measured-run evidence before changing the design. RW-5/6 artifact handling, RW-13 repeated hashing, independent benchmark review, provider access and the pending spending decision remain open. No paid or live model calls were made. Publication: implementation/verification commit `cb63dfc525f40f6c8fadae75962a148b776bcef3` is pushed to `origin/fix/selection-admission-checks`; PR #13 is open and ready for review with base `test/reproducible-runtime-checks`. All earlier checkpoint commits are also on origin. PR #12 hosted validation passed; the new checkpoint's hosted checks are pending and are not claimed as passed. Next action: check PR #13 CI, then continue the remaining offline review work.
 
 ### September 12, 2026 — RW-14 test maintenance ownership
 

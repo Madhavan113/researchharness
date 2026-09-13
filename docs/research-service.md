@@ -95,11 +95,11 @@ Registered datasets are scoped by question id and pipeline name. Identically nam
 ## Verification and remaining work
 
 ~~~sh
-uv run --extra mcp pytest
-uv run --extra mcp ruff check src tests
-uv run --extra mcp ruff format --check src tests
+uv run --locked --extra mcp pytest
+uv run --locked --extra mcp ruff check src tests
+uv run --locked --extra mcp ruff format --check src tests
 ~~~
 
-The September 8 combined suite passed 260 tests, with one optional Omnigent process test skipped when its opt-in environment was unset. The focused backend/job/MCP acceptance run passed 34 tests, including a real detached worker, terminating an owned worker during HTTP collection, source-level cancellation, cross-question isolation, legacy access, and collection/export through an actual MCP protocol client. The Omnigent compatibility fixture separately passed ten recorded runtime assertions. Current standalone normal server/runner and budget fixtures passed in the pinned environment: the workflow saved a proposal, collected/exported data through real workers, restarted, and reopened the same case with synthetic model responses. The independent workflow evaluator also checks persisted collection/export state without performing recovery writes. Detailed validation is recorded in the shared tracker.
+Use [test configurations](testing.md) for the required Docker/Omnigent environment and skip policy, and the [shared tracker](goals/omnigent-integration.md) for current checkpoint commands, counts and results. The September 8 normal server/runner and budget fixtures saved a proposal, collected/exported data through real workers, restarted and reopened the same case with synthetic model responses. The workflow evaluator checks persisted collection/export state without performing recovery writes; [browser acceptance](omnigent-ui-acceptance.md) records the separate UI walkthrough.
 
-Postgres SQL and migration structure were reviewed, but Postgres/S3 execution was unavailable in this environment; optional shared-backend tests still require the documented test settings. Real model quality, complete cost accounting, controlled model benchmarks, and strategy optimization are not established by these tests. Browser acceptance is recorded separately. Omnigent's budget fixture verifies blocking the next turn after its threshold; the running turn can exceed that threshold.
+The RW-11 checkpoint subsequently verified local Postgres and MinIO execution, including backend parity tests and a detached collection/restart/export workflow; its commands and evidence are recorded in the shared tracker. These checks require their own backend services and do not run merely because the MCP extra is installed. Fixture results do not establish real-model quality, live provider billing or measured optimization improvement. Omnigent's native budget fixture verifies blocking the next turn after its threshold; the running turn can exceed that threshold.

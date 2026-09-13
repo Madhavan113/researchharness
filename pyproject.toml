@@ -21,7 +21,7 @@ dependencies = [
 rh = "research_harness.cli:main"
 
 [project.optional-dependencies]
-mcp = ["mcp>=1.28,<2"]
+mcp = ["anyio>=4.5,<5", "mcp>=1.28,<2"]
 
 [dependency-groups]
 dev = ["pytest>=8,<10", "ruff>=0.11,<1"]

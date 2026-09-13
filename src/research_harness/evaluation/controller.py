@@ -182,6 +182,11 @@ def prepare_comparison(
         "limitations": [
             "Shared semantic instructions are identical; assembled prompts and tool schemas differ.",
             "Model requests require a host gateway; native Omnigent drops some authored limits.",
+            "Built-in SDK policies differ: direct max_retries=0, "
+            "timeout=min(90, deadline_seconds); pinned Omnigent RetryPolicy "
+            "max_retries=7, timeout=120 seconds. Client error timing can differ.",
+            "The host gateway rejects SDK retries before provider dispatch "
+            "and enforces shared request and deadline limits.",
             "Source fixtures measure behavior on authored data, not live-source freshness.",
             "Generation and operation limits are not an exact provider billing cap.",
             "This directory is trusted controller state, not an M6 candidate sandbox.",

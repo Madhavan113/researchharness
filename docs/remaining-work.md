@@ -183,19 +183,21 @@ Completed September 10 by `/root`, branch `fix/split-leakage-audit`, based on PR
 
 Completed September 12 by `/root` on `test/reproducible-runtime-checks`, based on PR #11. The late-chunk deadline test uses a controlled clock/timer and a real HTTP connection. Shared observation-runner evidence moved to `conftest.py`; two new controller cases exercise the real fingerprint scanner against altered working/frozen implementation bytes before execution. Six lifecycle/leakage modules use four frozen cases with original content hashes; benchmark/workbook tests still inspect the actual development package. Sandbox tests now exercise each guard independently: the deadline case remains one second, while output/memory cases use the production default ten-second watchdog with unchanged 1,024-byte/64-MB caps and additional truncation/OOM assertions. The full required suite passes **1,337 tests with zero skips**; all three real-Docker guard checks also pass separately. The [testing guide](testing.md#stable-test-inputs-and-guard-coverage) and [tracker handoff](goals/omnigent-integration.md#september-12-2026--rw-14-test-maintenance-ownership) record the contracts and exact verification. No production limit changed.
 
-### RW-15 · Small items · `open`
+RW-14 is published in [PR #12](https://github.com/Madhavan113/researchharness/pull/12), stacked on PR #11. Its [hosted run 34719113011](https://github.com/Madhavan113/researchharness/actions/runs/34719113011) passed both ordinary tests/lint and the required Docker/Omnigent job at head `9230c91`. The remaining small items below are separate work.
 
-RW-14 is published in [PR #12](https://github.com/Madhavan113/researchharness/pull/12), stacked on PR #11. The remaining small items below are separate work.
+### RW-15 · Small items · `in_progress`
 
-- Declare `anyio` under the `mcp` extra; it is imported directly in `mcp/server.py`.
-- Remove or explain the four zero-byte `.log` files under `examples/omnigent/evidence/`.
-- `optimization/proposer.py` near line 455 requires `response["model"]` to equal the configured snapshot exactly; an alias fails at the first response. Document or normalize.
-- `optimization/controller.py` `_select` (lines 590–607) does not check `proposal["admitted"]`; a crash between the journal save and `_admit` can freeze a frontier missing the last iteration. Reachable only through the programmatic API.
-- Proposer exploration defaults (16 rounds in `execution.py`, 64 tool calls in `proposer.py`, 48 KB per read and 16 KB stdout in `workspace.py`) allow roughly 3 MB of reading against multi-thousand-file archives; the paper's proposer reads a median of 82 files with grep. Consider a `grep_files` tool or higher limits once measured runs exist.
-- Feedback copied to `tempfile.gettempdir()` is created 0o755/0o444; fine for a single-user machine, tighten before any shared host.
-- Direct arm pins `max_retries=0` and a 90 s timeout in `evaluation/runtime_executor.py`; the Omnigent arm uses SDK defaults. Record this under `plan["limitations"]` or pin both.
-- `docs/research-service.md` line 85 cites a stale "260 tests".
-- `independent-audit.json` is a same-author script that imports production verifiers; label it "fresh-process" rather than "independent".
+- [x] Declare directly imported `anyio` under the `mcp` extra; all 60 locked package versions are preserved.
+- [x] Explain the four zero-byte archived logs in the Omnigent example guide; preserve their original bytes and hashes.
+- [x] Document exact proposer `response.model` identity and rejection of aliases that resolve to a different name; no silent normalization of priced model bindings.
+- [x] Guard selection, saved-selection replay and finalization against completed but unadmitted proposals, unresolved proposals and missing/nonterminal reserved candidates. Recovery retains every slot without redispatching the proposer.
+- [x] Record the built-in SDK policies in new comparison-plan limitations: direct disables retries and uses `min(90, deadline_seconds)`; pinned Omnigent configures seven retries and 120 seconds. The gateway rejects retry dispatches and applies shared bounds; runtime behavior is unchanged.
+- [x] Replace stale service verification counts and the outdated claim that Postgres/S3 execution was unavailable with current tracker/testing references.
+- [x] Explicitly label the historical `independent-audit.json` results as same-project, same-author fresh-process checks using production verifiers, not external third-party review.
+- [ ] Consider proposer exploration tools/limits after measured runs exist. Current defaults remain 16 rounds, 64 workspace calls, 48 KB per read and 16 KB stdout; the paper reports a median of 82 files read with grep.
+- [ ] Tighten copied feedback permissions before any shared host. A private host parent must preserve the read-only sandbox mount and recorded cleanup/recovery ownership; simply changing the mounted files to owner-only permissions would break sandbox reads.
+
+The bounded admission/compatibility checkpoint was completed September 12 by `/root` and published in [PR #13](https://github.com/Madhavan113/researchharness/pull/13), branch `fix/selection-admission-checks`, based on PR #12. Four regressions reproduce the original omission/replay gap; the final required Docker/Omnigent suite passes **1,341 tests with zero failures/errors/skips**. Lint, formatting, locked versions, local links and the diff pass. Exact commands, report hashes and remaining dependencies are in the [tracker handoff](goals/omnigent-integration.md#september-12-2026--rw-15-admission-and-compatibility-handoff). The overall item remains open for the two unchecked tasks above.
 
 ## Blocked on external decisions
 
@@ -203,7 +205,7 @@ Unchanged from the tracker: provider access, the spending decision, human review
 
 ## Suggested order for a continuing agent
 
-1. Check the latest published checkpoint's required CI result. PR #11's hosted suite passed, and RW-14's complete required local suite now passes with isolated guard tests.
+1. Check PR #13's required CI result. PR #11 and #12 hosted checks passed; the bounded RW-15 checkpoint's complete required local suite also passes.
 2. RW-5 and RW-6: agree on artifact retention and path/hostname handling before the next evidence regeneration or public release.
 3. RW-13 and RW-15: remaining independent offline efficiency and maintenance work.
 4. Resolve the external decisions above, then perform live compatibility and the measured baseline before model-mode search. RW-10's offline acceptance does not replace that live compatibility gate.
