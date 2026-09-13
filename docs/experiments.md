@@ -218,6 +218,10 @@ The protocol is deliberately small:
 3. Execute tools locally, update state and repeat. Exit zero when finished;
    diagnostics go to stderr. The independent verifier determines the task score.
 
+Model requests on this pipe are served sequentially. Programs can maintain
+multiple contexts and coordinate local work, but this interface does not provide
+parallel provider calls or additional Omnigent worker sessions.
+
 The controller supplies model identity and response settings. Provider credentials,
 network access and evaluator files do not enter the candidate container. All
 program and orchestration calls share the same gateway budget/deadline. Programs
@@ -288,7 +292,58 @@ strategy or prove human presence. Abrupt termination may leave Docker/runtime
 resources; a `running` receipt is not a liveness check. Inspect the recorded IDs
 before taking recovery action. There is no automatic replay.
 
+## Hosted program controls, September 13, 2026
+
+[CI for implementation `5df696e`](https://github.com/Madhavan113/researchharness/actions/runs/34748564343)
+passes all 1,537 required runtime tests without skips. The ordinary job passes
+1,503 tests with 34 optional runtime skips. Both the older command interface and
+the new program interface pass their solution/forged-reward controls (rewards 1/0).
+Each program control makes two authored model calls inside the Python loop, plus
+seven supervisor/worker calls. Both stop the candidate container before grading.
+
+All four downloaded execution inventories verify intact. The program solution's
+inventory SHA-256 is
+`875c8dafae41cd1fefec90ef34a35f0a92cb5ca40defc135f17a8650a8a42bc2`;
+the program forged-reward control's is
+`f9dff634c0061abcfc0f3b83cf268bd84e8d9e4a761f77147b3cf2d61f1b1a9b`.
+The run retains its exported diagnostics for 14 days. Local downloaded copies are
+under `.researchharness/experiments/hosted-program-5df696e/`. These are scripted
+integration observations, not research performance measurements.
+
 ## Local verification, September 13, 2026
+
+The first editable-program control (`program-fixture-1`) completed delegation,
+two in-program model calls, container stop and separate grading, but its expected
+positive control **failed**: four assertions passed and two cancellation assertions
+failed, giving reward 0. The failing tests send SIGINT after 500 ms and observed
+zero started tasks. There was no Harbor runtime exception. Its trial ID is
+`1aad15bc-a165-45a4-84bc-41c2ce6bc80b`; all nine authored model calls and the failed
+verifier output remain under `.researchharness/experiments/program-fixture-1/`.
+
+The submitted file has SHA-256
+`c402f163deb3c42ff834cd1b714285ccf4333f95b77f75ef64a61031149ba29c`,
+identical to the earlier passing `omnigent-fixture-8` submission. Both use the same
+prepared fixture inputs, but fresh builds produced different image IDs. This is
+not evidence of a model-quality difference or a proven diagnosis of host load.
+Check baseline stability and retain runtime/dependency differences before using
+this task for candidate comparisons. Do not relax its assertions to make this
+control pass.
+
+`program-fixture-2`, the forged-reward attempt, failed during Docker image setup
+with a BuildKit server EOF; artifact collection also reported Docker API HTTP 500
+errors. It made zero model calls, never started the candidate and has no task
+score. Terminal evidence verification passes. After Docker became responsive,
+an inspection filtered to its exact Compose project found no remaining container;
+the receipt is `program-fixture-2/cleanup-inspection.json`. This attempt provides
+no successful adversarial-control evidence.
+
+After the ordinary suite finished and Docker became responsive, the separate
+`program-fixture-3` attempt completed its program, nine authored model calls and
+container stop. Verifier image setup then failed because Docker's ping endpoint
+returned HTTP 500. It has no score, and its terminal inventory verifies. Later
+inspections filtered to that trial's task/verifier projects found no remaining
+containers (`program-fixture-3/cleanup-inspection.json`). Local Docker reliability
+remains unresolved; no daemon restart or further retry was performed.
 
 The actual Harbor 0.23.0/Docker run completed both controls in separate verifier
 containers. The original six test assertions ran in each trial:
