@@ -8,8 +8,8 @@ feeds and market data, test whether those sources can be collected, then save a
 repeatable pipeline. Every exported record links back to the response it came from.
 
 **Status:** early-stage Python CLI and agent integration. Data collection works
-today. The broader financial, event and coding/ML research workflows are being
-built around it.
+today. The next milestone is a reproducible AI research experiment; that workflow
+is not implemented yet. See the [current goal](docs/goals/reproducible-research.md).
 
 ## What you can do today
 
@@ -70,17 +70,16 @@ for model settings and limits. For agent-driven use, follow the
 
 ## Where this is going
 
-The shared foundation supports investigations and optional data ingestion.
-Planned workflows have different outputs:
+The [goal](docs/goals/reproducible-research.md) is to turn one AI research question
+into a runnable baseline, experiments delegated through Omnigent, and an
+independently checked result. Start with a bounded Meta-Harness reproduction;
+preserve code, execution evidence and failed attempts so someone else can rerun it.
 
-| Workflow | Intended outputs |
-| --- | --- |
-| Financial research | Analyst work, diligence memos, financial models and DCF analysis |
-| Event research | Dated evidence, event timelines, competing scenarios and assessments |
-| Coding and ML research | Changes grounded in repository/design constraints, reproducible experiments and baseline comparisons |
-
-These are planned capabilities, not finished workflows. General investigations
-remain part of the scope; a task does not have to produce a pipeline.
+Finance/event products and a general software factory are deferred. Existing
+ingestion remains useful for supplying research data; an experiment does not have
+to produce a pipeline. The current strategy optimizer is a constrained
+source-discovery adaptation tested with fixtures, not a reproduction of the
+paper's measured results.
 
 ## Documentation and downloads
 

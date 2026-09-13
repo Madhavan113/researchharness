@@ -2,9 +2,16 @@
 
 ## Shared goal
 
-Read the [Omnigent goal and work tracker](docs/goals/omnigent-integration.md) at the start of work in this repository. It records the ingestion integration/evaluation track, not the whole product scope. For integration work, also read the [accepted implementation plan](docs/omnigent-integration-plan.md). The tracker records progress and ownership; the plan records architecture and acceptance criteria.
+Read the [current research goal and work tracker](docs/goals/reproducible-research.md)
+first: one AI research question, a runnable baseline, delegated experiments,
+independent evaluation and a reproducible conclusion. Start with the bounded
+Meta-Harness pilot. Prefer the smallest working experiment over a general framework.
 
-After the PR #1 checkpoint, also read the [checkpoint scope](docs/checkpoint-scope.md) and take follow-up items from [remaining work](docs/remaining-work.md); update an item's status there when you take or finish it.
+For existing ingestion/integration work, also read its
+[tracker](docs/goals/omnigent-integration.md), [plan](docs/omnigent-integration-plan.md),
+[historical checkpoint](docs/checkpoint-scope.md) and [remaining work](docs/remaining-work.md).
+Those records retain unfinished measurements; they do not override the current
+priority. Update the relevant tracker when taking or finishing work.
 
 Follow the current user's task and constraints. The shared goal supplies context; it does not expand an unrelated request or override later user instructions. Record accepted scope changes in the tracker and update the plan when the design changes.
 
@@ -29,6 +36,7 @@ These instructions coordinate agents using this repository checkout. Other check
 - Load source evidence from stored search, inspection, and probe receipts. Agent assertions are not proof of observation or successful validation.
 - Preserve immutable captures, publication cutoffs, writer locking, and retry/recovery semantics. Enforce operation limits in the service.
 - Keep evaluation requirements independent of generated proposals. Exclude held-out data and evaluator internals from optimization candidates and search feedback.
+- For experiments, keep authoritative scoring and result records outside candidate write access. Retain failed attempts, verify evaluator behavior against broken solutions, and link conclusions and reusable methods to reproducible evidence.
 - Use offline fixtures for work that does not require a live provider. Before model-backed comparisons, establish and record the provider configuration and run budget described in the plan.
 
 ## Verification
