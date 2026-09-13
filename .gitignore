@@ -15,3 +15,20 @@ output/playwright/
 dist/
 *.egg-info/
 .DS_Store
+# New evidence archives belong in release assets; tracked historical files remain.
+examples/evaluation/evidence/**/*.gz
+examples/evaluation/evidence/**/*.zip
+examples/evaluation/evidence/**/*.tar
+examples/evaluation/evidence/**/*.tgz
+examples/evaluation/evidence/**/*.xz
+examples/evaluation/evidence/**/*.bz2
+examples/evaluation/evidence/**/*.zst
+examples/evaluation/evidence/**/*.7z
+examples/omnigent/evidence/**/*.gz
+examples/omnigent/evidence/**/*.zip
+examples/omnigent/evidence/**/*.tar
+examples/omnigent/evidence/**/*.tgz
+examples/omnigent/evidence/**/*.xz
+examples/omnigent/evidence/**/*.bz2
+examples/omnigent/evidence/**/*.zst
+examples/omnigent/evidence/**/*.7z

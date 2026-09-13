@@ -91,7 +91,7 @@ test assertion. Required Docker/Omnigent checks remain separate from this fixtur
 
 The [Tests workflow](../.github/workflows/tests.yml) runs on pushes and pull requests and supports manual dispatch. Both jobs use Ubuntu 24.04, Python 3.13.12, uv 0.11.8 and the locked MCP extra:
 
-- **Ordinary tests and lint** runs Ruff and the suite with visible optional-runtime skips.
+- **Ordinary tests and lint** runs Ruff and the suite with visible optional-runtime skips. It also enforces the [evidence retention policy](evidence-retention.md): new checkpoint Git byte limits and exact historical compressed-archive hashes.
 - **Required Docker and Omnigent runtime tests** installs the frozen separate Omnigent environment, pulls the digest-pinned image and runs the whole suite with skips forbidden.
 
 Checkout/setup actions are pinned to commit hashes, and the workflow uses read-only repository permissions without model secrets. A setup failure fails the runtime job; it cannot downgrade to an ordinary run. GitHub retains the command output with each run. JUnit reports are written to the runner's temporary directory and are not committed or published as runtime archives. CI results and exact local verification counts are recorded in the tracker when a checkpoint is completed.
