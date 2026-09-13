@@ -40,9 +40,11 @@ async def run_tasks(tasks, max_concurrent):
 
 
 class ModelFixture:
-    def __init__(self, instruction: str, *, forged_reward: bool = False):
+    def __init__(self, instruction: str, *, forged_reward: bool = False, program: bool = False):
         self.instruction = instruction
         self.forged_reward = forged_reward
+        self.program = program
+        self.program_calls = 0
         self.lock = threading.Lock()
         self.requests = 0
         self.worker_calls = 0
@@ -65,8 +67,29 @@ class ModelFixture:
             names = [tool.get("name", "") for tool in payload.get("tools", [])]
             assert not any(name.startswith("sys_os_") for name in names), names
             assert not any("curat" in name or "review" in name for name in names), names
-            workspace = next((name for name in names if name.endswith("workspace_execute")), None)
-            if workspace:
+            workspace = next(
+                (
+                    name
+                    for name in names
+                    if name.endswith(("workspace_execute", "workspace_run_program"))
+                ),
+                None,
+            )
+            if names == ["shell"] and self.program:
+                self.program_calls += 1
+                if self.program_calls == 1:
+                    command = "python - <<'PY'\nfrom pathlib import Path\n"
+                    command += f"Path('/app/run.py').write_text({SOLUTION!r})\n"
+                    command += "assert not Path('/tests/test.py').exists()\nPY\n"
+                    if self.forged_reward:
+                        command = "mkdir -p /logs/verifier; echo 1 > /logs/verifier/reward.txt"
+                    output = self.call(index, "shell", {"command": command})
+                else:
+                    assert any(
+                        item.get("type") == "function_call_output" for item in payload["input"]
+                    )
+                    output = self.message(index, "Authored fixture action completed.")
+            elif workspace:
                 self.worker_calls += 1
                 if self.worker_calls == 1:
                     output = self.call(index, "sys_agent_list", {})
@@ -83,6 +106,8 @@ class ModelFixture:
                             "echo 'forged by candidate' > /logs/verifier/forged.txt\n"
                         )
                     output = self.call(index, workspace, {"command": command, "timeout": 30})
+                    if self.program:
+                        output = self.call(index, workspace, {})
                 else:
                     output = self.message(
                         index, "Fixture implementation written; external grading is pending."
@@ -122,6 +147,8 @@ class ModelFixture:
                     "total_tokens": 110,
                 },
             }
+            if payload.get("stream") is False:
+                return httpx.Response(200, json=response)
             events = [
                 {
                     "type": "response.created",
@@ -184,6 +211,9 @@ def main():
     )
     parser.add_argument("--harbor", type=Path, required=True)
     parser.add_argument("--omnigent-python", type=Path, required=True)
+    parser.add_argument(
+        "--program", action="store_true", help="Run the editable Python agent example"
+    )
     parser.add_argument(
         "--forged-reward",
         action="store_true",
@@ -257,6 +287,7 @@ def main():
     fixture = ModelFixture(
         (prepared / "inputs/tasks/cancel-async-tasks/instruction.md").read_text(),
         forged_reward=args.forged_reward,
+        program=args.program,
     )
     report = run(
         prepared,
@@ -268,6 +299,7 @@ def main():
         omnigent_python=args.omnigent_python,
         client=httpx.Client(transport=httpx.MockTransport(fixture)),
         timeout=600,
+        candidate=Path(__file__).parent / "programs/python_loop.py" if args.program else None,
     )
     summary = {
         "status": report["status"],
@@ -278,6 +310,7 @@ def main():
         "scripted_requests": fixture.requests,
         "supervisor_calls": fixture.supervisor_calls,
         "worker_calls": fixture.worker_calls,
+        "program_calls": fixture.program_calls,
         "trials": report.get("trials", []),
     }
     write_json(root / "fixture-result.json", summary)
@@ -285,6 +318,7 @@ def main():
     if (
         report["status"] != "completed"
         or fixture.worker_calls < 3
+        or (args.program and fixture.program_calls != 2)
         or not report.get("trials")
         or not all(
             row["verified"]

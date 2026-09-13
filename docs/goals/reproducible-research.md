@@ -61,10 +61,12 @@ alone does not establish the full active thread goal.
 
 The [experiment guide](../experiments.md) supplies a proposed task, benchmark
 controls, operator review and a real Omnigent/Docker execution fixture. Delegation
-now connects to the existing model budget and independent verifier. The authored
-fixture is not the planned Terminus-2 baseline or an editable agent program.
-Next: implement the full candidate-program interface and a runnable research
-baseline. Record provider access and a spending budget before any paid model run.
+now connects to the existing model budget and independent verifier. The editable
+Python-program interface adds a full model/tool loop inside the task container;
+its authored fixture is not the planned Terminus-2 baseline or a model measurement.
+Next: establish stable benchmark controls, provide the normal run entry point and
+integrate the planned research baseline before candidate search. Record provider
+access and a spending budget before any paid model run.
 
 ## Keep the scope small
 
@@ -80,6 +82,66 @@ The app goal controller now reports the user's research-workflow goal active.
 The earlier failed registration is historical; no old evaluation was marked complete.
 
 ## Current ownership
+
+September 13, `/root`, editable candidate-program interface implemented and
+fixture-validated on
+`feat/experiment-programs`. Intended files: `experiments/` execution, container
+program transport and Omnigent connector; focused tests, an executable example,
+the experiment guide and this tracker. A single Python candidate owns its full
+reasoning/tool loop inside the task container. Fixed-model requests cross a
+controller-owned transport; source, requests, failures and independent scores are
+retained. Validate with authored responses before paid runs. This establishes an
+editable execution interface, not the still-unmeasured Terminus-2 comparison or
+the complete research workflow.
+
+Implementation: `execution.run(candidate=Path(...))` freezes a single Python
+program, delegates its start through Omnigent and executes it inside the inspected
+Docker task container. A newline-delimited model transport retains requests and
+responses outside candidate access; fixed model settings and aggregate budget
+remain in the host gateway. Programs own local state/tools and stop the entire
+candidate container before the separate verifier copies its submission. Terminal
+validation binds the exact source and successful stop to the trial. The example
+loop uses two authored model calls in the integration fixture and is explicitly
+not Terminus-2. New CI controls exercise a working submission and a forged reward.
+Published implementation checkpoint `5df696e` as
+[PR #25](https://github.com/Madhavan113/researchharness/pull/25), stacked on #24.
+Focused validation: 38 tests pass with the pinned Omnigent environment. The full
+local ordinary suite passes 1,503 tests with 34 optional runtime skips in 609.72
+seconds (`.researchharness/experiments/pytest-program-ordinary.txt`). Ruff,
+formatting, changed-document local links and the evidence policy pass.
+
+Local `program-fixture-1` completed execution and separate grading, but failed the
+expected positive control: reward 0, four passing and two failing cancellation
+assertions. Its submitted bytes match the earlier passing `omnigent-fixture-8`;
+fresh image IDs differ. No causal claim about host load or agent quality follows.
+All nine scripted model calls have reconciled zero-cost accounting, and terminal
+inventory verification passes (SHA-256
+`b954e66d67c7cef4f8acec801a3d0c986dfc9fe8ff1e1f3422ec2fc9dd8b65be`).
+The [guide](../experiments.md#local-verification-september-13-2026) records the
+failure. The forged control (`program-fixture-2`) failed during Docker setup with
+a BuildKit server EOF and later Docker API HTTP 500 errors. It made zero model
+calls, never ran the candidate and has no score. Its terminal inventory verifies.
+After Docker became responsive, an exact-project inspection found no remaining
+container (`program-fixture-2/cleanup-inspection.json`). A separate positive
+control (`program-fixture-3`), after the ordinary suite finished and Docker became
+responsive, completed the program and its nine model calls but failed to build
+the verifier: Docker's ping endpoint returned HTTP 500. It has no score. Its
+terminal inventory verifies, and subsequent exact-project inspections found no
+remaining task or verifier container (`program-fixture-3/cleanup-inspection.json`).
+No Docker daemon restart, benchmark relaxation or further local retry was made.
+[CI for the source checkpoint](https://github.com/Madhavan113/researchharness/actions/runs/34748564343)
+passes: 1,503 ordinary tests with 34 explicit optional skips and all 1,537 required
+runtime tests with no skips. All four Omnigent/Docker controls pass: command and
+program solutions score 1, and their forged-reward controls score 0. Both program
+controls make two in-program model calls and stop the candidate container before
+grading. Downloaded CI artifacts pass terminal inventory verification for all four
+runs. Artifact `10314892455` is retained by GitHub for 14 days; local copies and the
+CI log are under `.researchharness/experiments/hosted-program-5df696e*`.
+Next: establish baseline stability, add the normal run entry point and preserve
+Terminus-2's terminal behavior/dependencies in the program interface before measured
+comparisons. Candidate search, independent reruns/findings and the broader
+investigation/planning workflow remain unfinished. The full goal and E1/E2 remain
+in progress. PR #25 is published and ready for review; it has not been merged.
 
 September 13, `/root`, E2 execution integration in progress on
 `feat/experiment-execution`. Intended files: `experiments/` runtime/service code,
@@ -145,7 +207,7 @@ Rerun/recovery records are under `.researchharness/experiments/pytest-execution-
 and `runtime-recovery*/`. Ruff, formatting, local documentation links and the
 evidence-retention policy pass. No paid provider calls have been made.
 
-Remaining scope: a normal research run entry point, editable full agent programs,
+Remaining scope at the E2 checkpoint: a normal research run entry point, editable full agent programs,
 the curated/measured baseline, candidate search, independent reruns and accepted
 findings. Computer-use investigation, ideation and infrastructure proposals still
 need to connect to the same curated records. This fixed coding fixture does not

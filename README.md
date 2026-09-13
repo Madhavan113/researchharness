@@ -25,8 +25,9 @@ research baseline and automated candidate search remain unfinished. See the
   benchmark controls, and record an operator's review decision. See the
   [experiment guide](docs/experiments.md).
 - **Test experiment execution:** run the included Omnigent/Docker integration
-  fixture, inspect worker actions and verify that a forged reward cannot alter
-  the independent score. This uses authored responses, not a live model.
+  fixture with an editable Python agent program, inspect worker actions and verify
+  that a forged reward cannot alter the independent score. This uses authored
+  responses, not a live model.
 
 Live model quality and strategy-optimization gains have not been measured yet.
 The integration tests use scripted model responses.

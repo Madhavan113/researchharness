@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import re
 from pathlib import Path
 
 from harbor.environments.docker.docker import DockerEnvironment
@@ -61,6 +62,7 @@ class ExperimentDocker(DockerEnvironment):
             if process.returncode:
                 raise RuntimeError(f"Cannot inspect experiment container: {stderr.decode()}")
             actual = json.loads(stdout)[0]
+            self.program_container_id = actual["Id"]
             record = {
                 "session_id": self.session_id,
                 "context_id": str(self.context_id),
@@ -82,3 +84,11 @@ class ExperimentDocker(DockerEnvironment):
         except BaseException:
             await asyncio.shield(self.stop(delete=True))
             raise
+
+    def program_argv(self, path: str) -> list[str]:
+        if not re.fullmatch(r"/tmp/rh-program-[0-9a-f]{32}\.py", path):
+            raise ValueError("Unexpected program entry point")
+        container = self.program_container_id
+        if not re.fullmatch(r"[0-9a-f]{64}", container):
+            raise ValueError("Expected the inspected Docker container identity")
+        return ["docker", "exec", "-i", container, "python", "-I", "-u", path]

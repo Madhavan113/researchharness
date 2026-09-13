@@ -18,6 +18,7 @@ from harbor.agents.base import BaseAgent
 
 from research_harness.experiments.bundle import build_bundle
 from research_harness.experiments.harbor_environment import ExperimentDocker
+from research_harness.experiments.program import run_program
 from research_harness.experiments.workspace import WorkspaceBridge
 from research_harness.util import write_json
 
@@ -30,6 +31,7 @@ class OmnigentAgent(BaseAgent):
         omnigent_python: str,
         max_commands: int = 20,
         execution_timeout: int = 300,
+        candidate: str | None = None,
         **kwargs,
     ):
         super().__init__(*args, **kwargs)
@@ -37,6 +39,7 @@ class OmnigentAgent(BaseAgent):
         self.omnigent_python = omnigent_python
         self.max_commands = max_commands
         self.execution_timeout = execution_timeout
+        self.candidate = Path(candidate) if candidate else None
         if self.controller_root.is_relative_to(self.logs_dir.resolve()):
             raise ValueError("Controller records must be outside candidate agent logs")
 
@@ -66,11 +69,23 @@ class OmnigentAgent(BaseAgent):
                 },
             },
         )
+
+        async def execute_program(remaining):
+            return await run_program(
+                environment,
+                self.candidate,
+                instruction,
+                self.model_name,
+                output / "program",
+                timeout=remaining,
+            )
+
         bridge = WorkspaceBridge(
             environment,
             output / "commands",
             max_commands=self.max_commands,
             timeout=self.execution_timeout,
+            program=execute_program if self.candidate else None,
         )
         process = None
         try:
@@ -80,12 +95,14 @@ class OmnigentAgent(BaseAgent):
                 output / "bundle",
                 name=f"experiment-{self.context_id}",
                 model=self.model_name,
+                program=bool(self.candidate),
             )
             config = {
                 "bundle": str(bundle),
                 "output": str(output / "runtime"),
                 "instruction": instruction,
                 "timeout": self.execution_timeout,
+                "program": bool(self.candidate),
             }
             write_json(output / "driver.json", config)
             allowed = {"PATH", "HOME", "TMPDIR", "LANG", "LC_ALL"}
@@ -126,6 +143,10 @@ class OmnigentAgent(BaseAgent):
             runtime = json.loads((output / "runtime/runtime.json").read_bytes())
             if process.returncode or runtime["status"] != "completed":
                 raise RuntimeError(f"Omnigent execution failed; inspect {output}")
+            if self.candidate:
+                program = json.loads((output / "program/program.json").read_bytes())
+                if program["status"] != "completed" or not program["container_stopped"]:
+                    raise RuntimeError(f"Candidate program failed; inspect {output}")
         finally:
             if process is not None and process.returncode is None:
                 os.killpg(process.pid, signal.SIGINT)

@@ -197,12 +197,60 @@ provider access, current pricing and spending authorization must be established
 separately. No provider is chosen implicitly. The reviewed provider policy does
 not yet cover Astra/max. There is no general `rh experiment run` command yet.
 
+## Edit the agent program
+
+Pass `candidate=Path("agent.py")` to the execution API to run a full Python agent
+program. Omnigent delegates to a worker whose only execution tool starts that
+frozen program once. The program runs in the task container and owns its prompts,
+conversation state, local retrieval, shell tools and control flow. It is never
+imported into the host controller. The
+[small coding agent](../examples/experiments/programs/python_loop.py) demonstrates
+a repeated model/tool loop using only Python's standard library. It is an example,
+not the proposed Terminus-2 baseline or a measured research result.
+
+The protocol is deliberately small:
+
+1. Read one JSON line from stdin: `protocol: 1`, the task `instruction` and fixed
+   `model` identity.
+2. Write a JSON model request followed by a newline to stdout and flush. Supply
+   `input`; optionally supply `instructions`, function `tools`, `tool_choice`
+   and `text`. Read one Responses JSON object back from stdin.
+3. Execute tools locally, update state and repeat. Exit zero when finished;
+   diagnostics go to stderr. The independent verifier determines the task score.
+
+Model requests on this pipe are served sequentially. Programs can maintain
+multiple contexts and coordinate local work, but this interface does not provide
+parallel provider calls or additional Omnigent worker sessions.
+
+The controller supplies model identity and response settings. Provider credentials,
+network access and evaluator files do not enter the candidate container. All
+program and orchestration calls share the same gateway budget/deadline. Programs
+cannot change these controls through a request. Local commands inside the program
+are subject to container resources and the program deadline, **not** the command
+count used by the older workspace-command interface. Candidate-authored command
+logs are observations, not a complete or tamper-proof system-call audit.
+
+Requests are limited to 1 MiB per line, responses to 8 MiB, the protocol transcript
+to 64 MiB and stderr to 1 MiB. Exceeding a limit fails the attempt. The controller
+stops the whole task container, including detached child processes, before Harbor
+copies the submission into the separate verifier. This currently relies on the
+pilot's single-file artifact transfer; additional task/collect-hook combinations
+need runtime validation. A failed or uncertain stop cannot produce a verified run.
+
+For an offline transport check, add `--program` to either fixture command above.
+Use a fresh output directory. Both variants run the same editable example; the
+authored responses either implement the task or attempt to forge its reward.
+Two model calls occur inside the program, separately from supervisor/worker calls.
+No live model performance is measured by this fixture.
+
 ## What a run retains and restricts
 
 | Evidence | Location inside an execution directory |
 | --- | --- |
 | Curated input/review binding, model settings, limits, score and usage | `execution.json`, `review.json` |
 | Frozen harness Python source, available project lockfiles and hashes | `source/`, `source-sha256.json` |
+| Frozen candidate source and its run identity | `candidate/agent.py`, `execution.json` |
+| Program source, observed model protocol, stderr, exit and stop records | `controller/<trial-id>/program/` |
 | Actual Python/package versions for controller, Harbor and Omnigent | `dependencies.json`, per-trial dependency records |
 | Supervisor/worker IDs, exported conversation items, events and tool policy | `controller/<trial-id>/runtime/` |
 | Container command inputs, timestamps, exit codes and bounded output | `controller/<trial-id>/commands/` |
@@ -214,7 +262,7 @@ not yet cover Astra/max. There is no general `rh experiment run` command yet.
 run. Source imports do not write bytecode into the frozen snapshot. Failed attempts
 remain separate. Runtime databases/configuration and the private loopback connection
 file are retained locally but excluded from exported evidence. Hosted runtime CI
-also runs both fixtures and keeps exported diagnostics for 14 days.
+also runs the command and program fixtures and keeps exported diagnostics for 14 days.
 
 The adapter removes **all host mounts** from both task and verifier containers.
 Harbor 0.23.0's default Docker environment mounts verifier output in the task
@@ -244,7 +292,58 @@ strategy or prove human presence. Abrupt termination may leave Docker/runtime
 resources; a `running` receipt is not a liveness check. Inspect the recorded IDs
 before taking recovery action. There is no automatic replay.
 
+## Hosted program controls, September 13, 2026
+
+[CI for implementation `5df696e`](https://github.com/Madhavan113/researchharness/actions/runs/34748564343)
+passes all 1,537 required runtime tests without skips. The ordinary job passes
+1,503 tests with 34 optional runtime skips. Both the older command interface and
+the new program interface pass their solution/forged-reward controls (rewards 1/0).
+Each program control makes two authored model calls inside the Python loop, plus
+seven supervisor/worker calls. Both stop the candidate container before grading.
+
+All four downloaded execution inventories verify intact. The program solution's
+inventory SHA-256 is
+`875c8dafae41cd1fefec90ef34a35f0a92cb5ca40defc135f17a8650a8a42bc2`;
+the program forged-reward control's is
+`f9dff634c0061abcfc0f3b83cf268bd84e8d9e4a761f77147b3cf2d61f1b1a9b`.
+The run retains its exported diagnostics for 14 days. Local downloaded copies are
+under `.researchharness/experiments/hosted-program-5df696e/`. These are scripted
+integration observations, not research performance measurements.
+
 ## Local verification, September 13, 2026
+
+The first editable-program control (`program-fixture-1`) completed delegation,
+two in-program model calls, container stop and separate grading, but its expected
+positive control **failed**: four assertions passed and two cancellation assertions
+failed, giving reward 0. The failing tests send SIGINT after 500 ms and observed
+zero started tasks. There was no Harbor runtime exception. Its trial ID is
+`1aad15bc-a165-45a4-84bc-41c2ce6bc80b`; all nine authored model calls and the failed
+verifier output remain under `.researchharness/experiments/program-fixture-1/`.
+
+The submitted file has SHA-256
+`c402f163deb3c42ff834cd1b714285ccf4333f95b77f75ef64a61031149ba29c`,
+identical to the earlier passing `omnigent-fixture-8` submission. Both use the same
+prepared fixture inputs, but fresh builds produced different image IDs. This is
+not evidence of a model-quality difference or a proven diagnosis of host load.
+Check baseline stability and retain runtime/dependency differences before using
+this task for candidate comparisons. Do not relax its assertions to make this
+control pass.
+
+`program-fixture-2`, the forged-reward attempt, failed during Docker image setup
+with a BuildKit server EOF; artifact collection also reported Docker API HTTP 500
+errors. It made zero model calls, never started the candidate and has no task
+score. Terminal evidence verification passes. After Docker became responsive,
+an inspection filtered to its exact Compose project found no remaining container;
+the receipt is `program-fixture-2/cleanup-inspection.json`. This attempt provides
+no successful adversarial-control evidence.
+
+After the ordinary suite finished and Docker became responsive, the separate
+`program-fixture-3` attempt completed its program, nine authored model calls and
+container stop. Verifier image setup then failed because Docker's ping endpoint
+returned HTTP 500. It has no score, and its terminal inventory verifies. Later
+inspections filtered to that trial's task/verifier projects found no remaining
+containers (`program-fixture-3/cleanup-inspection.json`). Local Docker reliability
+remains unresolved; no daemon restart or further retry was performed.
 
 The actual Harbor 0.23.0/Docker run completed both controls in separate verifier
 containers. The original six test assertions ran in each trial:

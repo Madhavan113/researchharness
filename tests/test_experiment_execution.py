@@ -172,6 +172,38 @@ def test_completed_execution_can_be_a_failed_task_without_claiming_success(revie
     assert rows[0]["runtime_session_id"] == "fixture-session"
 
 
+def test_program_result_requires_exact_source_success_and_stopped_container(reviewable, tmp_path):
+    prepared, _, _ = reviewable
+    output = tmp_path / "execution"
+    trial = result_fixture(prepared, output)
+    trial_id = json.loads((trial / "result.json").read_bytes())["id"]
+    controller = output / "controller" / trial_id
+    write_json(
+        controller / "runtime/tool-policy.json", {"submitted": execution.tool_policy(program=True)}
+    )
+    record = {
+        "status": "completed",
+        "exit_code": 0,
+        "source_sha256": "a" * 64,
+        "container_stopped": True,
+        "context_id": trial_id,
+        "environment_session_id": trial.name + "__env",
+    }
+    path = controller / "program/program.json"
+    assert not execution.collect(prepared, output, "fixture-model", "a" * 64)[0]["verified"]
+    write_json(path, record)
+    assert execution.collect(prepared, output, "fixture-model", "a" * 64)[0]["verified"]
+    for mutation in (
+        {"source_sha256": "b" * 64},
+        {"exit_code": 1},
+        {"status": "error"},
+        {"container_stopped": False},
+        {"context_id": "other"},
+    ):
+        write_json(path, {**record, **mutation})
+        assert not execution.collect(prepared, output, "fixture-model", "a" * 64)[0]["verified"]
+
+
 @pytest.mark.parametrize(
     "change",
     [

@@ -16,6 +16,7 @@ from research_harness.evaluation.dispatch_budget import DispatchBudget
 from research_harness.experiments.bundle import tool_policy
 from research_harness.experiments.curation import CuratorStore
 from research_harness.experiments.package import HARBOR_VERSION, files, load_prepared
+from research_harness.experiments.program import read_program
 from research_harness.integrations.model_gateway import ResponsesGateway
 from research_harness.integrations.omnigent import check_runtime
 from research_harness.util import digest, timestamp, write_json
@@ -50,13 +51,13 @@ def inventory(output: Path) -> dict[str, str]:
         if path.is_file():
             result[path.relative_to(output).as_posix()] = digest(path.read_bytes())
 
-    roots = [output / name for name in ("source", "gateway", "jobs")]
+    roots = [output / name for name in ("source", "gateway", "jobs", "candidate")]
     if (output / "controller").is_symlink():
         raise ValueError("Experiment evidence must not contain symlinks")
     for child in (output / "controller").glob("*"):
         add(child)
         if child.is_dir():
-            roots.extend(child / name for name in ("commands", "runtime", "bundle"))
+            roots.extend(child / name for name in ("commands", "runtime", "bundle", "program"))
             for name in (
                 "command.json",
                 "driver.json",
@@ -95,7 +96,9 @@ def status(output: Path) -> dict:
     return report
 
 
-def collect(prepared: Path, output: Path, model: str) -> list[dict]:
+def collect(
+    prepared: Path, output: Path, model: str, candidate_sha256: str | None = None
+) -> list[dict]:
     expected = {
         str((prepared / "inputs/tasks" / path).resolve())
         for path in load_prepared(prepared)["tasks"]
@@ -123,6 +126,16 @@ def collect(prepared: Path, output: Path, model: str) -> list[dict]:
             runtime = json.loads(runtime_path.read_bytes()) if runtime_path.is_file() else {}
             policy_path = controller / "runtime/tool-policy.json"
             policy = json.loads(policy_path.read_bytes()) if policy_path.is_file() else {}
+            program_path = controller / "program/program.json"
+            program = json.loads(program_path.read_bytes()) if program_path.is_file() else {}
+            program_verified = candidate_sha256 is None or (
+                program.get("status") == "completed"
+                and program.get("exit_code") == 0
+                and program.get("source_sha256") == candidate_sha256
+                and program.get("container_stopped") is True
+                and program.get("context_id") == raw["id"]
+                and program.get("environment_session_id") == path.parent.name + "__env"
+            )
             attestations = [
                 value
                 for evidence_path in (output / "controller").glob("environment-*.json")
@@ -159,7 +172,8 @@ def collect(prepared: Path, output: Path, model: str) -> list[dict]:
                     and raw["verifier_environment_mode"] == "separate"
                     and runtime.get("status") == "completed"
                     and runtime.get("delegation_observed") is True
-                    and policy.get("submitted") == tool_policy()
+                    and policy.get("submitted") == tool_policy(program=candidate_sha256 is not None)
+                    and program_verified
                     and isolation_verified
                 ),
             )
@@ -182,6 +196,7 @@ def run(
     timeout: int = 1800,
     provider_api_key: str | None = None,
     client: httpx.Client | None = None,
+    candidate: Path | None = None,
 ) -> dict:
     """Trusted operator API. Provider access/budget authorization precedes this call.
 
@@ -206,6 +221,7 @@ def run(
         raise ValueError("Choose between 1 and 100 workspace commands per task")
     if type(timeout) is not int or not 1 <= timeout <= 86400:
         raise ValueError("Choose an execution timeout between 1 and 86400 seconds")
+    candidate_source = read_program(candidate) if candidate is not None else None
     runtime = check_runtime(omnigent_python)
     version = subprocess.run(
         [str(harbor), "--version"], capture_output=True, text=True, check=True, timeout=30
@@ -213,6 +229,11 @@ def run(
     if version.stdout.strip() != HARBOR_VERSION:
         raise ValueError(f"Experiment execution requires Harbor {HARBOR_VERSION}")
     output.mkdir(parents=True, exist_ok=False)
+    candidate_sha256 = None
+    if candidate_source is not None:
+        (output / "candidate").mkdir()
+        (output / "candidate/agent.py").write_bytes(candidate_source)
+        candidate_sha256 = digest(candidate_source)
     write_json(output / "review.json", review)
     source_root = output / "source"
     source_hashes = snapshot_source(source_root)
@@ -242,9 +263,12 @@ def run(
         "omnigent": runtime,
         "harbor_version": HARBOR_VERSION,
         "runtime_network_override": "none (task and verifier); image builds may use networking",
-        "max_commands_per_task": max_commands,
+        "execution_interface": "python_program_v1" if candidate_sha256 else "workspace_commands",
+        "max_commands_per_task": None if candidate_sha256 else max_commands,
+        "max_program_starts_per_task": 1 if candidate_sha256 else None,
         "timeout_seconds": timeout,
         "finding_accepted": False,
+        "candidate_sha256": candidate_sha256,
     }
     write_json(output / "execution.json", report)
     config = {
@@ -269,6 +293,7 @@ def run(
                     "controller_root": str(output / "controller"),
                     "omnigent_python": str(omnigent_python.absolute()),
                     "max_commands": max_commands,
+                    "candidate": str(output / "candidate/agent.py") if candidate_sha256 else None,
                     "execution_timeout": min(budget.settings.deadline_seconds, 3600),
                 },
             }
@@ -338,7 +363,12 @@ def run(
         load_prepared(prepared)
         if files(source_root) != source_hashes:
             raise ValueError("The frozen execution adapter changed during the run")
-        report["trials"] = collect(prepared, output, budget.policy.model)
+        if (
+            candidate_sha256
+            and digest((output / "candidate/agent.py").read_bytes()) != candidate_sha256
+        ):
+            raise ValueError("The frozen candidate program changed during the run")
+        report["trials"] = collect(prepared, output, budget.policy.model, candidate_sha256)
         report["status"] = (
             "completed"
             if report["exit_code"] == 0 and all(r["verified"] for r in report["trials"])
