@@ -13,6 +13,7 @@ from research_harness.services.search import (
     SearchProviderError,
     parse_search_response,
 )
+from research_harness.util import canonical_json, digest
 
 
 class FixtureSearch:
@@ -95,6 +96,89 @@ def test_invalid_operation_id_never_starts_search(tmp_path, operation_id):
     with pytest.raises(ValueError, match="Operation id"):
         service.search("official policy", provider=provider, operation_id=operation_id)
     assert not provider.calls
+
+
+@pytest.mark.parametrize(
+    "filters",
+    [
+        {"max_results": 0},
+        {"max_results": 11},
+        {"snippet_max_length": 179},
+        {"site": "x" * 254},
+        {"prompt": "unexpected"},
+        [],
+    ],
+)
+def test_invalid_filters_do_not_admit_an_operation_or_consume_its_id(tmp_path, filters):
+    service = ResearchService(tmp_path / "discovery", backend=Backend.local(tmp_path / "backend"))
+    service.begin("Official policy", model="fixture", limits={"search": 1})
+    provider = FixtureSearch()
+    with pytest.raises(ValueError):
+        service.search("policy", provider=provider, filters=filters, operation_id="repairable")
+    context = service.get_context()
+    assert context["counts"] == {} and context["operations"] == []
+    assert context["remaining"]["search"] == 1
+    assert provider.calls == []
+    receipt = service.search("policy", provider=provider, operation_id="repairable")
+    assert receipt["results"] and len(provider.calls) == 1
+    assert service.get_remaining()["search"] == 0
+
+
+@pytest.mark.parametrize("filters", [None, {}, {"site": "source.example"}])
+def test_search_validation_preserves_legacy_request_hashes_and_replays(tmp_path, filters):
+    service = ResearchService(tmp_path / "discovery", backend=Backend.local(tmp_path / "backend"))
+    service.begin("Official policy", model="fixture")
+    provider = FixtureSearch()
+    receipt = service.search("policy", provider=provider, filters=filters, operation_id="saved")
+    original_request = {"provider": provider.name, "query": "policy", "filters": filters or {}}
+    with service.backend.open_registry() as store:
+        row = store.query_one(
+            "SELECT request_json, request_hash FROM discovery_operations WHERE discovery_id=? AND operation_id=?",
+            (service.discovery_id, "saved"),
+        )
+    assert json.loads(row["request_json"]) == original_request
+    assert row["request_hash"] == digest(
+        canonical_json({"kind": "search", "request": original_request})
+    )
+    resumed = ResearchService(tmp_path / "other", backend=service.backend)
+    resumed.resume(service.discovery_id)
+    assert (
+        resumed.search("policy", provider=provider, filters=filters, operation_id="saved")
+        == receipt
+    )
+    assert len(provider.calls) == 1
+
+
+def test_remaining_reads_current_cross_host_counts_without_loading_context(tmp_path, monkeypatch):
+    backend = Backend.local(tmp_path / "backend")
+    service = ResearchService(tmp_path / "discovery", backend=backend)
+    assert service.get_remaining() is None
+    service.begin("Official policy", model="fixture", limits={"search": 2})
+    resumed = ResearchService(tmp_path / "other", backend=backend)
+    resumed.resume(service.discovery_id)
+
+    def unavailable_context(*args, **kwargs):
+        raise AssertionError("Remaining budgets must not require evidence or pipeline data")
+
+    monkeypatch.setattr(service, "get_context", unavailable_context)
+    monkeypatch.setattr(service, "_receipts", unavailable_context)
+    monkeypatch.setattr(backend, "pipeline_store", unavailable_context)
+    assert service.get_remaining() == {"search": 2, "inspection": 16, "probe": 12}
+    provider = FixtureSearch()
+    resumed.search("policy", provider=provider, operation_id="other-host")
+    assert service.get_remaining()["search"] == 1
+    with pytest.raises(SearchProviderError):
+        resumed.search("policy", provider=FixtureSearch(fail=True), operation_id="failed")
+    assert service.get_remaining()["search"] == 0
+    resumed.search("policy", provider=provider, operation_id="other-host")
+    assert service.get_remaining()["search"] == 0 and len(provider.calls) == 1
+
+    def registry_failure():
+        raise OSError("Registry connection failed")
+
+    monkeypatch.setattr(backend, "open_registry", registry_failure)
+    with pytest.raises(OSError, match="Registry connection failed"):
+        service.get_remaining()
 
 
 def test_parses_captured_live_keenable_response_and_ignores_snippet_urls():

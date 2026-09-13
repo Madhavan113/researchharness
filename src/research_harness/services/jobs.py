@@ -21,6 +21,7 @@ from research_harness.backend import Backend
 from research_harness.config import PipelineSpec
 from research_harness.engine import export_dataset, run_pipeline
 from research_harness.http import OperationCancelled
+from research_harness.services.errors import ResearchError
 from research_harness.services.research import ResearchService
 from research_harness.store import Store, WriterBusy
 from research_harness.util import (
@@ -86,14 +87,18 @@ class JobService:
             (job_id, context["question_id"]),
         )
         if not row:
-            raise ValueError("Job does not belong to this research question")
+            raise ResearchError(
+                "evidence_not_found", "Job does not belong to this research question"
+            )
         return row
 
     def _pipeline(self, store: Store, pipeline_id: str) -> tuple[dict[str, Any], PipelineSpec]:
         context = self._context(store)
         row, spec = registry.pipeline_spec(store, pipeline_id)
         if row["question_id"] != context["question_id"]:
-            raise ValueError("Pipeline does not belong to this research question")
+            raise ResearchError(
+                "evidence_not_found", "Pipeline does not belong to this research question"
+            )
         return row, spec
 
     def _directory(self, job_id: str) -> Path:
@@ -164,10 +169,16 @@ class JobService:
                     (context["id"], operation_id),
                 )
                 if operation and (not existing or operation["request_hash"] != hashed):
-                    raise ValueError("Operation id was already used with different arguments")
+                    raise ResearchError(
+                        "operation_conflict",
+                        "Operation id was already used with different arguments",
+                    )
                 if existing:
                     if existing["request_hash"] != hashed:
-                        raise ValueError("Operation id was already used with different arguments")
+                        raise ResearchError(
+                            "operation_conflict",
+                            "Operation id was already used with different arguments",
+                        )
                     job_id = existing["id"]
                 else:
                     pending = store.scalar(

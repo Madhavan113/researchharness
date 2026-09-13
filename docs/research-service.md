@@ -20,6 +20,8 @@ This command serves MCP over stdio; an MCP client supplies the tool requests. St
 
 The first begin_research call creates the question, discovery, and context.json. Launching the same command again resumes that context. Alternatively, pass --discovery with the service-issued id. The stored model and runtime binding must match explicitly supplied settings on reconnect. Use a new directory for a new discovery; a different brief cannot silently replace the old question.
 
+Omitting `--model` uses `gpt-5.4-mini` for a new case and the saved model when resuming. Omitted session settings also inherit the saved binding. Explicit conflicting model, adapter or session settings are rejected; reconnecting does not replace the recorded configuration.
+
 Host configuration selects the backend using the existing [backend settings](backend.md). The local pilot binds each server process to one discovery. Tools do not accept an arbitrary discovery id, model setting, usage claim, or agent-written list of observed URLs. This process boundary is local context binding; authenticated remote workspace access has not been implemented.
 
 ## Tool sequence and results
@@ -42,6 +44,12 @@ Host configuration selects the backend using the existing [backend settings](bac
 
 Search, inspection, probe, proposal, collection, and export tools require an operation_id. Reuse it for an identical retry; use a new id for a changed request or a deliberate fresh observation. The result envelope contains operation_id, status, data, evidence_refs, error, and remaining. The error object includes code, message, and retryable. Failed probes preserve their report and evidence references. A successful lookup of a failed case or job still returns a successful lookup envelope with its actual status in data.
 
+Error codes come from exception types and host-assigned domain codes. Source URLs and provider messages cannot impersonate budget exhaustion, context conflicts or writer contention. Actual `WriterBusy` errors produce retryable `operation_busy`; replaying a recorded terminal failure produces nonretryable `operation_failed` and does not dispatch again.
+
+`remaining` reads the bound discovery's limits and operation counts directly from the registry, without loading receipts or opening pipeline stores. Each envelope reads current counts, including operations admitted by another resumed host. An unbound case reports `null`. A failed budget read instead reports `budget_state_unavailable`, sets the envelope status to `error`, and retains any completed result and evidence references. If an operation also failed, its original error code/message remain and `error.remaining_error` describes the budget failure. Automatic retry is disabled until the backend is repaired; an identical completed-operation replay then returns its saved receipt without repeating work.
+
+`get_research_context`, `get_job` and `list_jobs` can persist reconciled job status, so their MCP annotations set `readOnlyHint=false`, `idempotentHint=true` and `openWorldHint=false`. Evidence and artifact reads remain read-only. These annotations describe effects; they do not authorize an action.
+
 FastMCP returns matching JSON text and structured content, because the tested Omnigent formatter reads the text representation. Unexpected tool arguments are rejected. The integration stays on the MCP Python SDK 1.x line with a less-than-2 constraint; Omnigent uses its independently locked environment. [Official SDK version guidance](https://github.com/modelcontextprotocol/python-sdk).
 
 ## Evidence, retries, and limits
@@ -49,6 +57,8 @@ FastMCP returns matching JSON text and structured content, because the tested Om
 Schema migration 3 adds discovery_contexts, discovery_operations, and discovery_receipts to the existing SQLite/Postgres schema. The operation ledger stores the request hash, attempt status, and result. Receipts belong to one discovery and link back to the operation that produced them. Proposal, pipeline registration, and completed submission result commit atomically, including nested registry calls.
 
 The initial limits are 8 search attempts, 16 inspections, 12 probes, and a ten-minute deadline. Failed attempts consume their operation budget; replaying a completed or failed operation does not make another request. Completed receipts remain readable after the deadline. Native direct-CLI search availability and its per-response call limit are reduced before the next model request; failed native searches are recorded and can be repaired using remaining budget or previous evidence.
+
+Search queries and filters are validated before an operation is admitted in both the direct and MCP paths. Invalid filters consume neither budget nor the operation id, so corrected arguments can use that id. Once admitted, a provider failure consumes an attempt. Validation preserves the stored request shape and hash, including omitted filter defaults, so previously completed requests still replay.
 
 An interrupted operation is not automatically rerun with the same id. The service acquires the discovery's exclusive lock before reconciling an abandoned operation; an active owner keeps the retry from executing. Independent local discoveries use separate service locks. Existing collection writer locks and publication behavior remain in the ingestion layer.
 

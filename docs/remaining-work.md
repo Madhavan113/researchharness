@@ -123,15 +123,17 @@ Acceptance: unit tests for case collision, surrogate arguments and a failing `do
 
 Completed September 10 by `/root`, branch `fix/proposer-workspace-recovery`, based on PR #6. Reproduced both a case-alias write overwriting the original on the local filesystem and an unpaired surrogate escaping the tool handler. Implemented alias/type checks before writes, including empty directories; recorded, repairable Unicode errors; and durable recognition of the CLI's missing-image/unknown-flag rejections. All other unacknowledged create failures retain conservative cleanup. The [strategy guide](strategy-optimization.md#coding-proposer-and-search-controller) records the upstream evidence for that distinction. The full required suite passes 1,238 tests with zero skips, including actual proposer error repair/submission, subprocess failure stubs and actual Docker rejection/recovery; the shared tracker records the exact command and report hash.
 
-### RW-9 · Close MCP and CLI parity gaps · `open` · confirmed
+### RW-9 · Close MCP and CLI parity gaps · `done` · confirmed
 
-Files: `src/research_harness/mcp/server.py` (`_failure` at line 63, `search_sources` near lines 274–301, `_remaining` near lines 30–34, read-only annotations near lines 188, 265, 374, 379), `src/research_harness/cli.py` (`rh mcp serve --model` near lines 79–81), `src/research_harness/services/research.py` (`get_context` near lines 199–204).
+Files: `src/research_harness/mcp/server.py`, `src/research_harness/cli.py`, `src/research_harness/services/research.py`, `src/research_harness/services/jobs.py` and `src/research_harness/services/errors.py`.
 
 Problem: MCP validates `SearchFilters` after `_operate` inserts the running row, so an invalid request consumes search budget while the CLI consumes nothing. `_failure` classifies by substring, so a source hostname containing "writer" is reported as retryable `operation_busy`, and replaying the same operation id repeats the misclassification. The serve command's model default conflicts with any case begun under another model. Three tools marked `readOnlyHint` write job status through reconciliation. Every envelope's `remaining` opens a registry connection plus one store per pipeline, and `_remaining` swallows all exceptions.
 
-Fix direction: validate filters before `_operate`; classify by exception type (`WriterBusy`); default `--model` to `None` like `--session-id`; fix annotations or make reconciliation explicit; cache `remaining`.
+Fix: validate filters before `_operate` without changing stored request hashes; classify by exception type (`WriterBusy` and host-assigned research errors); default `--model` to `None` and inherit the saved binding; mark reconciliation as mutating. Read remaining budgets directly from the registry on each response, preserving freshness across resumed hosts, and report backend failures explicitly instead of caching or hiding them.
 
 Acceptance: tests for invalid filters not consuming budget, a 404 from a "writer" hostname classified non-retryable, and resume without `--model`.
+
+Completed September 10 by `/root`, branch `fix/mcp-cli-parity`, [PR #8](https://github.com/Madhavan113/researchharness/pull/8), based on PR #7. The full required suite passes 1,264 tests with zero skips, including 26 added cases for service/direct/MCP admission, failure classification and replay, actual writer locks, fresh budgets and failure reporting, and custom-model CLI stdio resumption. Reconciliation annotations and frozen binding rejection are also verified. The [service guide](research-service.md) documents the behavior and the shared tracker records the command and report hash. The original documentation-only checkpoint has been followed by the implemented fixes.
 
 ### RW-10 · Preflight strict tool schemas against the live provider · `open` · plausible
 

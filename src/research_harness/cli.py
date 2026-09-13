@@ -77,7 +77,7 @@ def parser() -> argparse.ArgumentParser:
     )
     serve.add_argument("--discovery", help="Resume this service-issued discovery id")
     serve.add_argument(
-        "--model", default="gpt-5.4-mini", help="Host-selected model recorded with the case"
+        "--model", help="Host model (new case: gpt-5.4-mini; resume: the saved model)"
     )
     serve.add_argument("--session-id", help="Host session identifier recorded with the case")
     serve.add_argument("--search-endpoint", default="https://api.keenable.ai/mcp")
