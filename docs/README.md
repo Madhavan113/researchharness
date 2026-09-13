@@ -57,14 +57,20 @@ live model quality or optimization gains; those measurements remain unfinished.
 
 ## Understand the project direction
 
+- [Current goal](goals/reproducible-research.md): one reproducible AI research
+  experiment, starting with a bounded Meta-Harness pilot. Includes completion
+  criteria, the next task and shared ownership.
+
+Earlier domain proposals are deferred:
+
 - [Analyst workflow examples](product-workflows.md), [analyst needs](analyst-needs.md)
   and [financial research design](research-design.md).
 - [Archived prediction-market exploration](prediction-markets.md), September 2026.
 - [Research sources](research-sources.md), [market landscape](market-landscape.md)
   and [analyst pilot](analyst-pilot.md).
 
-These are design research and proposals, not implemented end-to-end workflows.
-They describe possible applications of the shared data and execution foundation.
+These earlier documents describe possible applications, not the active roadmap
+or implemented end-to-end workflows.
 
 ## Contribute or inspect the evidence
 

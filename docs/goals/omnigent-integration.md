@@ -6,6 +6,12 @@ Status: in_progress; local software and artifact delivery verified; live provide
 
 Accepted: September 8, 2026. Last updated: September 13, 2026
 
+Current priority: the user has accepted the
+[reproducible AI research goal](reproducible-research.md), beginning with a bounded
+Meta-Harness pilot on coding tasks. Use that tracker for new experiment work.
+This earlier ingestion track retains its unfinished measurements and historical
+statuses; it is deferred as the default work queue, not marked complete.
+
 This technical track integrates an interactive source-discovery workflow using
 Omnigent for agent execution and the pilot interface, with Research Harness
 providing verified evidence, pipeline proposals, collection and durable state.
@@ -92,6 +98,26 @@ For each active task, add a short entry with:
 Retain completed handoffs so another agent can distinguish implemented behavior from planned work. Avoid copying secrets, raw credentials, or held-out task contents into this shared tracker.
 
 ## Activity and handoffs
+
+### September 13, 2026 — Adopt the reproducible research goal
+
+Owner: `/root`; status: documentation complete; branch `docs/reproducible-research-goal`.
+The user accepted a simpler goal: carry one AI research question through a
+baseline, delegated experiments, independent evaluation and a reproducible
+conclusion. Record the new active technical goal in
+`docs/goals/reproducible-research.md`; align `AGENTS.md`, `README.md`, the
+documentation index and this track's priority notice. Preserve runtime code,
+frozen experiments and historical completion evidence. Acceptance: consistent
+scope/status, valid Markdown links, clean diff and a reviewable checkpoint.
+The existing app goal is paused and unfinished; `create_goal` rejected replacing
+it. Repository documentation must not claim automatic goal activation.
+
+Handoff: the new goal has three implementation steps, with the baseline/evaluator
+next. Both README entry points and shared agent instructions use it; old domain
+proposals are deferred. All 341 local Markdown targets in 29 root/documentation
+files resolve, the diff passes whitespace checks, and only Markdown files changed.
+Runtime tests were not rerun for this documentation-only task. Existing source,
+fixtures and historical evidence are unchanged.
 
 ### September 13, 2026 — Archive exploratory market snapshot and explain code layout
 
