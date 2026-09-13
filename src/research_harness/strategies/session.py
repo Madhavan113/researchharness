@@ -27,6 +27,7 @@ from research_harness.strategies.projection import (
 )
 from research_harness.strategies.sandbox import DockerStrategyRunner, _json_object
 from research_harness.util import canonical_json, digest, timestamp, write_json
+from research_harness.verification import VerificationMemo
 
 
 class StrategySessionError(RuntimeError):
@@ -147,7 +148,10 @@ def _validate(bundle: StrategyBundle, event: dict, decision: dict) -> dict:
 
 
 def _verify_session(
-    root: Path, bundle: StrategyBundle, expected_session_id: str | None
+    root: Path,
+    bundle: StrategyBundle,
+    expected_session_id: str | None,
+    memo: VerificationMemo | None = None,
 ) -> tuple[dict, StrategyBundle]:
     journal = _read(root / "session.json")
     identity = journal.get("session_id")
@@ -174,7 +178,15 @@ def _verify_session(
         if directory.parent != root / "events" or not entry["directory"].startswith("event-"):
             raise ValueError("Invalid strategy event directory")
         if entry["status"] == "completed":
-            proof = verify_event(directory, frozen)
+            proof = (
+                verify_event(directory, frozen)
+                if memo is None
+                else memo.verify(
+                    ("strategy-event", frozen.sha256),
+                    [directory],
+                    lambda target=directory: verify_event(target, frozen),
+                )
+            )
             if (
                 proof["record_sha256"] != entry["record_sha256"]
                 or proof["input"]["state"] != state
@@ -215,6 +227,7 @@ class StrategySession:
 
     def __init__(self, root: Path, bundle: StrategyBundle, *, create: bool = True):
         self.root = _path(root)
+        self._verification = VerificationMemo()
         self.lock = FileLock(
             str(self.root) + ".lock", timeout=bundle.config.sandbox.timeout_seconds + 90
         )
@@ -247,7 +260,9 @@ class StrategySession:
         return self._session_id
 
     def _load(self) -> dict:
-        journal, frozen = _verify_session(self.root, self.bundle, self._session_id)
+        journal, frozen = _verify_session(
+            self.root, self.bundle, self._session_id, self._verification
+        )
         self.bundle = frozen
         return journal
 

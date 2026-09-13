@@ -27,7 +27,11 @@ from research_harness.evaluation.controller import (
 from research_harness.evaluation.controller import (
     _load as load_comparison,
 )
-from research_harness.evaluation.dispatch_budget import DispatchBudget, DispatchPolicy
+from research_harness.evaluation.dispatch_budget import (
+    _BUDGET_VERIFICATION,
+    DispatchBudget,
+    DispatchPolicy,
+)
 from research_harness.evaluation.pilot import (
     BudgetedRuntimeExecutor,
     PilotConfig,
@@ -182,6 +186,7 @@ def _comparisons(output, journal):
             files = _inventory(
                 private,
                 ArchiveConfig.model_validate(_read(output / "search.json")["archive_config"]),
+                memo=_BUDGET_VERIFICATION,
             )
             files.pop("final-archive.json", None)
             if (

@@ -27,7 +27,18 @@ from research_harness.evaluation.budget import (
     ProviderAccountingSettlement,
 )
 from research_harness.execution import DiscoverySettings, GatewayBinding
-from research_harness.util import canonical_json
+from research_harness.util import canonical_json, digest
+from research_harness.verification import VerificationMemo
+
+_BUDGET_VERIFICATION = VerificationMemo()
+
+
+def budget_evidence_hash(path: Path) -> str:
+    """Reuse settled artifact digests; callers still compare their current expected hashes."""
+    return _BUDGET_VERIFICATION.verify(
+        "budget-evidence-hash", [path], lambda: digest(path.read_bytes())
+    )
+
 
 STANDARD_MODEL = "gpt-5.4-mini-2026-03-17"
 STANDARD_CONTEXT = 400_000
@@ -629,7 +640,20 @@ class DispatchBudget:
         with this snapshot. It does not mean all requests have known usage, nor
         does it establish that a snapshot remains current after this call.
         """
-        verified = self._verify_archive(archive_path)
+        path = Path(archive_path)
+        verified = _BUDGET_VERIFICATION.verify(
+            (
+                "budget-gateway",
+                str(path.absolute()),
+                self._policy_json,
+                self._binding_json,
+                self._settings_json,
+                canonical_json(self._metadata),
+            ),
+            [path if path.is_dir() else path.parent],
+            lambda: self._verify_archive(archive_path),
+            cache_if=lambda result: result.get("status") != "invalid",
+        )
         return self._archive_consistency(
             verified, self.ledger.snapshot() if snapshot is None else snapshot
         )

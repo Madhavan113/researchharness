@@ -77,6 +77,24 @@ def pytest_runtest_makereport(item, call):
     return report
 
 
+@pytest.fixture
+def settled_verification(monkeypatch):
+    """Advance only cache eligibility; actual file metadata and validators stay real."""
+    import time
+
+    used = []
+
+    def settle(memo):
+        memo.clear()
+        monkeypatch.setattr(memo, "_clock_ns", lambda: time.time_ns() + 10_000_000_000)
+        used.append(memo)
+        return memo
+
+    yield settle
+    for memo in used:
+        memo.clear()
+
+
 class Clock:
     def __init__(self) -> None:
         self.value = datetime(2026, 9, 7, 12, 0, tzinfo=UTC)

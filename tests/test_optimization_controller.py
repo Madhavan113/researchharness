@@ -197,6 +197,42 @@ def test_three_iterations_two_candidates_preserve_experience_and_close_search(se
         reopened.archive.feedback_path()
 
 
+@pytest.mark.parametrize("which", ["proposal", "candidate"])
+def test_status_reuses_settled_artifacts_and_rejects_restored_mtime_tampering(
+    search, monkeypatch, settled_verification, which
+):
+    import os
+
+    result = search.run(executor=Executor(), proposer=Proposer(search))
+    if which == "proposal":
+        path = (
+            search.root / result["proposals"]["iteration-0001"]["output"] / "raw-proposal-turn.json"
+        )
+    else:
+        path = search.root / "archive/candidates/baseline/development/evidence.json"
+    assert path.is_file()
+    path.chmod(0o644)
+    settled_verification(search._verification)
+    search.status()
+    observed, original = [], Path.read_bytes
+
+    def read_bytes(file):
+        if file == path:
+            observed.append(file)
+        return original(file)
+
+    monkeypatch.setattr(Path, "read_bytes", read_bytes)
+    search.status()
+    search.status()
+    assert not observed
+    before, raw = path.stat(), original(path)
+    path.write_bytes(b"!" + raw[1:])
+    os.utime(path, ns=(before.st_atime_ns, before.st_mtime_ns))
+    with pytest.raises(ValueError, match="Immutable"):
+        search.status()
+    assert observed
+
+
 def test_invalid_candidate_is_retained_and_does_not_trigger_evaluation(search):
     executor, proposer = Executor(), Proposer(search, invalid=True)
     result = search.run(executor=executor, proposer=proposer)
