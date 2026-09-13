@@ -40,10 +40,18 @@ async def run_tasks(tasks, max_concurrent):
 
 
 class ModelFixture:
-    def __init__(self, instruction: str, *, forged_reward: bool = False, program: bool = False):
+    def __init__(
+        self,
+        instruction: str,
+        *,
+        forged_reward: bool = False,
+        program: bool = False,
+        terminus: bool = False,
+    ):
         self.instruction = instruction
         self.forged_reward = forged_reward
         self.program = program
+        self.terminus = terminus
         self.program_calls = 0
         self.lock = threading.Lock()
         self.requests = 0
@@ -75,7 +83,37 @@ class ModelFixture:
                 ),
                 None,
             )
-            if names == ["shell"] and self.program:
+            if self.terminus and not names:
+                self.program_calls += 1
+                if self.program_calls == 1:
+                    assert "batches of shell commands" in payload["input"][-1]["content"]
+                    command = "export RH_TERMINUS_STATE=fixture_retained_state\nmkdir -p /tmp/rh-terminal-state\ncd /tmp/rh-terminal-state\n"
+                    command += "python - <<'PY'\nfrom pathlib import Path\n"
+                    command += f"Path('/app/run.py').write_text({SOLUTION!r})\n"
+                    command += "assert not Path('/tests/test.py').exists()\nPY\n"
+                    if self.forged_reward:
+                        command = "export RH_TERMINUS_STATE=fixture_retained_state\nmkdir -p /tmp/rh-terminal-state /logs/verifier\ncd /tmp/rh-terminal-state\necho 1 > /logs/verifier/reward.txt\n"
+                elif self.program_calls == 2:
+                    command = "printf 'RH_NATIVE_STATE=%s\\n' \"$RH_TERMINUS_STATE\"\nprintf 'RH_NATIVE_PWD=%s\\n' \"$PWD\"\n"
+                else:
+                    assert self.program_calls == 3
+                    observed = payload["input"][-1]["content"]
+                    assert "RH_NATIVE_STATE=fixture_retained_state" in observed
+                    assert "RH_NATIVE_PWD=/tmp/rh-terminal-state" in observed
+                    assert "Are you sure you want to mark the task as complete?" in observed
+                    command = None
+                output = self.message(
+                    index,
+                    json.dumps(
+                        {
+                            "analysis": "Authored transport fixture; no model-quality claim.",
+                            "plan": "Exercise the native terminal loop and completion confirmation.",
+                            "commands": [{"keystrokes": command, "duration": 1}] if command else [],
+                            "task_complete": self.program_calls >= 2,
+                        }
+                    ),
+                )
+            elif names == ["shell"] and self.program:
                 self.program_calls += 1
                 if self.program_calls == 1:
                     command = "python - <<'PY'\nfrom pathlib import Path\n"
@@ -215,30 +253,41 @@ def main():
         "--program", action="store_true", help="Run the editable Python agent example"
     )
     parser.add_argument(
+        "--terminus", action="store_true", help="Run the pinned Terminus-2 baseline"
+    )
+    parser.add_argument(
         "--forged-reward",
         action="store_true",
         help="Attempt to forge a score inside the candidate container; the verifier must score 0",
     )
     args = parser.parse_args()
+    if args.program and args.terminus:
+        parser.error("Choose either --program or --terminus")
     if not args.checkout and not args.fixture_inputs:
         parser.error("Provide --checkout for a new fixture or --fixture-inputs for checked inputs")
     root = args.out.resolve()
     root.mkdir(parents=True, exist_ok=False)
     (root / "fixture-source.py").write_bytes(Path(__file__).read_bytes())
+    baseline = None
+    if args.terminus:
+        from terminus_baseline import prepare_baseline
+
+        baseline = prepare_baseline(root / "baseline", args.harbor.absolute().parent / "python")
+    fixture_id = "omnigent-terminus-fixture" if args.terminus else "omnigent-execution-fixture"
     inputs = args.fixture_inputs.resolve() if args.fixture_inputs else root
     prepared = inputs / "prepared"
     curator = CuratorStore(inputs / "test-operator/curation.sqlite3")
     if args.fixture_inputs:
         package = load_prepared(prepared)
         spec = package["experiment"]
-        if spec["id"] != "omnigent-execution-fixture":
+        if spec["id"] != fixture_id:
             raise ValueError("Only explicit integration fixture inputs can be reused here")
     else:
         proposal = root / "proposal"
-        shutil.copytree(Path(__file__).parent / "meta-harness", proposal)
+        shutil.copytree(baseline or Path(__file__).parent / "meta-harness", proposal)
         spec = json.loads((proposal / "experiment.json").read_bytes())
         spec.update(
-            id="omnigent-execution-fixture",
+            id=fixture_id,
             question="Does delegated execution stay in its isolated task environment?",
         )
         write_json(proposal / "experiment.json", spec)
@@ -282,12 +331,15 @@ def main():
             phase="workflow",
             task_sha256=package["input_sha256"],
         ),
-        settings=DiscoverySettings(max_rounds=10, deadline_seconds=300, service_tier="default"),
+        settings=DiscoverySettings(
+            max_rounds=12 if args.terminus else 10, deadline_seconds=300, service_tier="default"
+        ),
     )
     fixture = ModelFixture(
         (prepared / "inputs/tasks/cancel-async-tasks/instruction.md").read_text(),
         forged_reward=args.forged_reward,
-        program=args.program,
+        program=args.program or args.terminus,
+        terminus=args.terminus,
     )
     report = run(
         prepared,
@@ -299,7 +351,13 @@ def main():
         omnigent_python=args.omnigent_python,
         client=httpx.Client(transport=httpx.MockTransport(fixture)),
         timeout=600,
-        candidate=Path(__file__).parent / "programs/python_loop.py" if args.program else None,
+        candidate=(
+            root / "baseline/candidate/agent.py"
+            if args.terminus
+            else Path(__file__).parent / "programs/python_loop.py"
+            if args.program
+            else None
+        ),
     )
     summary = {
         "status": report["status"],
@@ -311,6 +369,7 @@ def main():
         "supervisor_calls": fixture.supervisor_calls,
         "worker_calls": fixture.worker_calls,
         "program_calls": fixture.program_calls,
+        "agent_program": "terminus-2" if args.terminus else "python-loop" if args.program else None,
         "trials": report.get("trials", []),
     }
     write_json(root / "fixture-result.json", summary)
@@ -319,6 +378,7 @@ def main():
         report["status"] != "completed"
         or fixture.worker_calls < 3
         or (args.program and fixture.program_calls != 2)
+        or (args.terminus and fixture.program_calls != 3)
         or not report.get("trials")
         or not all(
             row["verified"]

@@ -73,9 +73,21 @@ def test_full_program_controls_repeated_model_and_tool_loop(tmp_path, monkeypatc
     monkeypatch.setattr(program, "model_response", model)
     environment = LocalFixtureEnvironment(tmp_path / "child.py")
     output = tmp_path / "evidence"
+    contract = {
+        "input_admission_tokens": 10000,
+        "max_output_tokens": 1000,
+        "input_usd_per_million": "0",
+        "output_usd_per_million": "0",
+    }
     result = asyncio.run(
         program.run_program(
-            environment, candidate, "write a file", "fixed-model", output, timeout=10
+            environment,
+            candidate,
+            "write a file",
+            "fixed-model",
+            output,
+            timeout=10,
+            model_contract=contract,
         )
     )
     assert result["status"] == "completed"
@@ -85,6 +97,7 @@ def test_full_program_controls_repeated_model_and_tool_loop(tmp_path, monkeypatc
     trace = [json.loads(line) for line in (output / "protocol.jsonl").read_text().splitlines()]
     assert len(trace) == 5
     assert trace[0]["payload"]["instruction"] == "write a file"
+    assert trace[0]["payload"]["model_contract"] == contract
     assert "shell:" in (output / "stderr.txt").read_text()
 
 

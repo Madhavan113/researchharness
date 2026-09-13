@@ -63,9 +63,10 @@ The [experiment guide](../experiments.md) supplies a proposed task, benchmark
 controls, operator review and a real Omnigent/Docker execution fixture. Delegation
 now connects to the existing model budget and independent verifier. The editable
 Python-program interface adds a full model/tool loop inside the task container;
-its authored fixture is not the planned Terminus-2 baseline or a model measurement.
-Next: establish stable benchmark controls, provide the normal run entry point and
-integrate the planned research baseline before candidate search. Record provider
+its original example is not the planned Terminus-2 baseline or a model measurement.
+A pinned Terminus-2 exporter and runtime adapter are now under validation.
+Next: validate that baseline, establish stable benchmark controls and provide the
+normal run entry point before candidate search. Record provider
 access and a spending budget before any paid model run.
 
 ## Keep the scope small
@@ -82,6 +83,28 @@ The app goal controller now reports the user's research-workflow goal active.
 The earlier failed registration is historical; no old evaluation was marked complete.
 
 ## Current ownership
+
+September 13, `/root`, Terminus-2 baseline integration in progress on
+`feat/terminus-baseline`. Intended files: a pinned baseline exporter/runtime
+adapter, experiment program transport metadata where needed, an executable
+baseline example and environment recipe, focused/runtime tests and the experiment
+guide/plan. Preserve the upstream terminal loop, parsing, prompts and context
+management; isolate the editable source inside the task container. Only model
+transport and environment access cross the existing controlled boundary. Record
+version/protocol departures and use authored responses for validation. This does
+not establish measured baseline quality, benchmark stability, search or the full
+investigation/planning workflow. Existing ingestion and private UI stay outside
+this task.
+
+Checkpoint: the exporter checks upstream source/prompt hashes, retains their
+original code and emits one editable program with Apache-2.0 license/provenance.
+The task recipe pins Python dependencies and direct terminal packages; the proposed
+plan binds export hashes. The runtime receives the controller's public model limits
+and rates, uses full explicit history and retains native terminal/recording behavior.
+`ruff check src tests examples/experiments` and focused tests pass (46 tests with
+the separate Harbor/Omnigent interpreters). Hosted native-loop/forged-reward controls
+are still pending; no real model has run. Next: inspect those runtime outcomes,
+retain failures and fix integration defects before publishing a validated baseline.
 
 September 13, `/root`, editable candidate-program interface implemented and
 fixture-validated on
