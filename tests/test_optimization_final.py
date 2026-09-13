@@ -51,9 +51,15 @@ def package(path, cases, *, split, reviewed=False):
         if split == "heldout":
             value["brief"] += f" [{CANARY}]"
             value["manual_checks"].append(CANARY)
+            value = json.loads(json.dumps(value).replace(".fixture.example", ".heldout.example"))
         fixture = path / case.fixtures.path
         fixture.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(DEVELOPMENT / case.fixtures.path, fixture)
+        if split == "heldout":
+            fixture.write_bytes(
+                fixture.read_bytes().replace(b".fixture.example", b".heldout.example")
+            )
+            value["fixtures"]["sha256"] = digest(fixture.read_bytes())
         target = path / "cases" / f"{name}.json"
         write_json(target, value)
         references.append(FileRef(path=f"cases/{name}.json", sha256=digest(target.read_bytes())))
@@ -494,7 +500,9 @@ def test_unsafe_private_paths_fail_before_case_execution(prepared, tmp_path, pat
     assert not (tmp_path / "feedback/private-final").exists()
 
 
-@pytest.mark.parametrize("change", ["model", "budget", "runtime", "split", "overlap"])
+@pytest.mark.parametrize(
+    "change", ["model", "budget", "runtime", "split", "overlap", "domain_overlap"]
+)
 def test_final_rejects_unmatched_controls_or_leaking_splits_before_provider(
     prepared, tmp_path, change
 ):
@@ -512,8 +520,17 @@ def test_final_rejects_unmatched_controls_or_leaking_splits_before_provider(
         value = read(heldout)
         value["split"] = "development"
         write_json(heldout, value)
-    else:
+    elif change == "overlap":
         heldout = package(tmp_path / "overlap", ["export-notices"], split="heldout")
+    else:
+        manifest = read(heldout)
+        reference = manifest["cases"][0]
+        path = heldout.parent / reference["path"]
+        value = read(path)
+        value["sources"][0]["url"] = "https://sibling.fixture.example/private"
+        write_json(path, value)
+        reference["sha256"] = digest(path.read_bytes())
+        write_json(heldout, manifest)
     with pytest.raises(ValueError):
         final.evaluate_final(
             archive,

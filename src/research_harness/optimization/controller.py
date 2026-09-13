@@ -47,6 +47,7 @@ from research_harness.optimization.evaluator import (
     _model_evidence,
     export_development,
 )
+from research_harness.optimization.leakage import audit_candidate, audit_inputs
 from research_harness.optimization.proposer import ProposalTask, ProposerConfig, proposal_binding
 from research_harness.optimization.workspace import WorkspaceConfig
 from research_harness.strategies.config import StrategyBundle
@@ -55,6 +56,17 @@ from research_harness.strategies.session import StrategySession
 from research_harness.util import canonical_json, digest, timestamp
 
 TERMINAL_CANDIDATES = {"evaluated", "evaluation_failed", "invalid", "proposal_failed"}
+
+
+def _record_audit(root: Path, identity: str, inputs: dict, raw: bytes, instructions: bytes) -> dict:
+    report = audit_candidate(inputs, source=raw, instructions=instructions)
+    relative = f"candidate-audits/{identity}.json"
+    _save(root / relative, report)
+    return {
+        "leak_suspect": report["status"] == "leak_suspect",
+        "leakage_audit": relative,
+        "leakage_audit_sha256": digest((root / relative).read_bytes()),
+    }
 
 
 class SearchConfig(StrictModel):
@@ -157,6 +169,7 @@ class SearchController:
             raise ValueError("Model search requires frozen proposer budget controls")
         if not instructions.strip():
             raise ValueError("Baseline instructions must not be empty")
+        leakage_inputs = audit_inputs(benchmark)
         baseline = StrategyBundle.load(baseline.manifest_path)
         _disjoint(root, baseline.manifest_path.parent)
         _disjoint(root, _absolute(development_manifest).parent)
@@ -165,6 +178,10 @@ class SearchController:
         root.mkdir(parents=True)
         frozen = baseline.freeze(root / "seed")
         _write_file(root / "seed/instructions.md", instructions.encode())
+        _save(root / "leakage-audit-inputs.json", leakage_inputs)
+        baseline_audit = _record_audit(
+            root, "baseline", leakage_inputs, frozen.source.read_bytes(), instructions.encode()
+        )
         comparison = root / "comparisons/baseline"
         prepare_comparison(
             development_manifest,
@@ -202,6 +219,9 @@ class SearchController:
             "config": config.model_dump(mode="json"),
             "archive_config": archive_config.model_dump(mode="json"),
             "benchmark_sha256": benchmark.sha256,
+            "leakage_audit_inputs_sha256": digest(
+                (root / "leakage-audit-inputs.json").read_bytes()
+            ),
             "seed_files": _inventory(root / "seed", archive_config),
             "strategy_contract": _contract(frozen),
         }
@@ -215,6 +235,7 @@ class SearchController:
                 "proposals": {},
                 "candidates": {
                     "baseline": {
+                        **baseline_audit,
                         "status": "prepared",
                         "source": "seed",
                         "manifest": "seed/strategy.json",
@@ -253,7 +274,19 @@ class SearchController:
                     != proposal[files_key]
                 ):
                     raise ValueError("Immutable proposal input or output changed")
+        if (
+            "leakage_audit_inputs_sha256" in plan
+            and digest((self.root / "leakage-audit-inputs.json").read_bytes())
+            != plan["leakage_audit_inputs_sha256"]
+        ):
+            raise ValueError("Frozen leakage audit inputs changed")
         for candidate in journal["candidates"].values():
+            if (
+                "leakage_audit" in candidate
+                and digest((self.root / _relative(candidate["leakage_audit"])).read_bytes())
+                != candidate["leakage_audit_sha256"]
+            ):
+                raise ValueError("Candidate leakage audit changed")
             if (
                 "attempt_files" in candidate
                 and _inventory(self.root / _relative(candidate["attempt"]), limits)
@@ -355,6 +388,9 @@ class SearchController:
                 limits,
             )
         for identity, candidate in journal["candidates"].items():
+            if "leakage_audit" in candidate:
+                relative = _relative(candidate["leakage_audit"])
+                _write_file(target / relative, (self.root / relative).read_bytes())
             if "attempt_files" in candidate:
                 _copy(
                     self.root / candidate["attempt"],
@@ -537,6 +573,16 @@ class SearchController:
                 manifest.update(source="strategy.py", source_sha256=digest(raw))
                 _save(source / "strategy.json", manifest)
                 StrategyBundle.load(source / "strategy.json")
+                if "leakage_audit_inputs_sha256" in _read(self.root / "search.json"):
+                    candidate.update(
+                        _record_audit(
+                            self.root,
+                            identity,
+                            _read(self.root / "leakage-audit-inputs.json"),
+                            raw,
+                            instructions,
+                        )
+                    )
                 ast.parse(raw)
                 candidate.update(
                     status="prepared",

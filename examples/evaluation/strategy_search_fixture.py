@@ -334,6 +334,29 @@ def run(output: Path, *, omnigent_python: Path, image: str) -> dict:
         assert len(execution_rows) == 7
         assert selected["proposer_revocation"]["revoked"] is True
         assert source_fingerprints() == frozen_source
+        audit_inputs = read(controller.root / "leakage-audit-inputs.json")
+        for row in selected["candidates"].values():
+            path = controller.root / row["leakage_audit"]
+            audit = read(path)
+            assert digest(path.read_bytes()) == row["leakage_audit_sha256"]
+            assert audit["inputs_sha256"] == digest(canonical_json(audit_inputs))
+            assert audit["file_sha256"] == {
+                "strategy.py": digest(
+                    StrategyBundle.load(controller.root / row["manifest"]).source.read_bytes()
+                ),
+                "instructions.md": digest((controller.root / row["instructions"]).read_bytes()),
+            }
+        audit_snapshot_counts = []
+        for task in tasks:
+            reports = list((task.feedback_dir / "candidate-audits").glob("*.json"))
+            audit_snapshot_counts.append(len(reports))
+            assert not list(task.feedback_dir.rglob("leakage-audit-inputs.json"))
+            for path in reports:
+                assert (
+                    path.read_bytes()
+                    == (controller.root / "candidate-audits" / path.name).read_bytes()
+                )
+        assert audit_snapshot_counts == [1, 3, 5]
         # A revoked proposer must reject access before any new dispatch.
         try:
             proposer.propose(tasks[-1])
@@ -399,6 +422,9 @@ def run(output: Path, *, omnigent_python: Path, image: str) -> dict:
             "proposer_revoked_before_final": True,
             "final_retries_did_not_execute": True,
             "private_final_absent_from_proposer_files": True,
+            "candidate_audits_verified": len(selected["candidates"]),
+            "candidate_audits_per_proposer_snapshot": audit_snapshot_counts,
+            "full_audit_catalog_absent_from_proposer_files": True,
             "source_fingerprints": frozen_source,
             "limitations": [
                 "Authored source/model fixtures establish combined software behavior, not model quality or optimization gains.",

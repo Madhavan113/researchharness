@@ -157,15 +157,17 @@ Acceptance: a migration test from `main`'s schema; a test that inspection leaves
 
 Completed September 10 by `/root`, branch `fix/storage-parity`, based on PR #8. The required Docker/Omnigent suite passes 1,285 tests with zero skips. Separate disposable PostgreSQL/MinIO acceptance passes 166 tests (59 Postgres/S3) and the detached workflow/restart/export checks, including native conditional-upload corruption rejection. The [backend guide](backend.md) documents the contracts; the shared tracker records exact commands, report hashes and cleanup evidence. These are local fixture/runtime checks, not remote deployment or measured-model results.
 
-### RW-12 · Tighten split checks and add a leakage audit · `open` · plausible
+### RW-12 · Tighten split checks and add a leakage audit · `done` · confirmed
 
-Files: `src/research_harness/evaluation/benchmark.py` (`_source_hosts` and the split check, lines 129–161), `src/research_harness/optimization/controller.py` (admission near lines 523–539), `docs/strategy-optimization.md`.
+Files: benchmark split validation, optimization controller and new `optimization/leakage.py`; dependency pins, focused benchmark/controller/final/audit tests, synthetic runtime helpers and strategy/evaluation documentation.
 
 Problem: disjointness is checked by case id, topic group, free-text family label, brief hash, fixture hash and exact hostname, so a held-out case on a sibling subdomain passes. Admission is `ast.parse` plus size only; the paper's regex and manual audit for task-specific string leakage into evolved harnesses has no equivalent.
 
-Fix direction: compare registrable domains rather than exact hostnames; scan candidate `strategy.py` and `instructions.md` for dev-case URLs, hosts, ids and brief phrases at admission and record hits as `leak_suspect` in the journal without auto-rejecting.
+Fix: compare canonical registrable domains with the pinned offline PSL snapshot, including private hosting boundaries, gap alternatives and public fixture URLs. Freeze a development-only audit catalog from public task ids/briefs and source-fixture URLs; scan baseline/candidate code and instructions, bind bounded reports to exact inputs/bytes, and record advisory `leak_suspect` flags in the journal. Reports enter subsequent proposer snapshots; the full catalog, expected answers and evaluator predicates do not. Manual review remains separate, and a no-match result is not proof against overfitting.
 
 Acceptance: tests for a sibling-subdomain overlap and for a candidate containing a dev-case URL.
+
+Completed September 10 by `/root`, branch `fix/split-leakage-audit`, based on PR #9. Final required Docker/Omnigent tests pass **1,315 cases with zero skips**, including 30 added cases and stronger existing assertions. The complete synthetic runtime workflow passes three proposer iterations, seven development and seven isolated final evaluations; all seven audit reports match their files/catalog and subsequent snapshots contain 1/3/5 reports without the full catalog. A fresh-process check reproduces every audit and verifies finalized state. Historical archives and the private held-out draft remain unchanged. Exact commands and evidence hashes are in the [shared tracker](goals/omnigent-integration.md#september-10-2026--rw-12-split-isolation-and-leakage-audit-ownership).
 
 ## P2: quality and efficiency
 

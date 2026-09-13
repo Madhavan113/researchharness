@@ -5,11 +5,14 @@ from __future__ import annotations
 import argparse
 import json
 from dataclasses import dataclass
+from ipaddress import ip_address
 from pathlib import Path
 from typing import Any, Literal
 from urllib.parse import urlsplit
 
+import idna
 from pydantic import Field, StrictInt, model_serializer, model_validator
+from tldextract import TLDExtract
 
 from research_harness.config import SourceSpec, StrictModel
 from research_harness.evaluation.discovery import score, validate_requirements
@@ -18,6 +21,8 @@ from research_harness.execution import GatewayBinding
 from research_harness.util import canonical_json, digest, write_json
 
 SHA256 = r"^[0-9a-f]{64}$"
+# Use only the snapshot in the pinned package, without HTTP or a mutable user cache.
+_SUFFIXES = TLDExtract(cache_dir=None, suffix_list_urls=(), include_psl_private_domains=True)
 
 
 class FileRef(StrictModel):
@@ -126,17 +131,63 @@ def load_benchmark(path: Path) -> LoadedBenchmark:
     )
 
 
-def _source_hosts(benchmark: LoadedBenchmark) -> set[str | None]:
+def fixture_urls(benchmark: LoadedBenchmark, case: BenchmarkCase) -> set[str]:
+    """Public source inputs only; never derive audit terms from scoring predicates."""
+    fixture = json.loads(_checked_file(benchmark.path.parent, case.fixtures))
+    return {
+        item["url"]
+        for key in ("search_results", "responses")
+        for item in fixture.get(key, [])
+        if isinstance(item, dict) and isinstance(item.get("url"), str)
+    }
+
+
+def source_host(url: str) -> str:
+    """Canonical host for comparison, including IP literals and IDNA aliases."""
+    try:
+        host = urlsplit(url).hostname
+        if not host:
+            raise ValueError("Missing source host")
+        host = host.removesuffix(".")
+        try:
+            return ip_address(host).compressed.lower()
+        except ValueError:
+            return (
+                idna.encode(host, uts46=True, std3_rules=True)
+                .decode("ascii")
+                .lower()
+                .removesuffix(".")
+            )
+    except (ValueError, idna.IDNAError):
+        # Split failures must never include private source values.
+        raise ValueError("Invalid benchmark source host") from None
+
+
+def source_domain(url: str) -> str:
+    host = source_host(url)
+    try:
+        return ip_address(host).compressed
+    except ValueError:
+        extracted = _SUFFIXES(host)
+        if extracted.suffix:
+            return extracted.top_domain_under_public_suffix or host
+        # PSL's implicit wildcard rule, also used for synthetic .example/.test URLs.
+        return ".".join(host.split(".")[-2:])
+
+
+def _source_domains(benchmark: LoadedBenchmark) -> set[str]:
     urls = set()
     for case in benchmark.cases.values():
         urls.update(source.url for source in case.sources)
         urls.update(choice.url for choice in case.fixture_plan.unsupported)
+        urls.update(fixture_urls(benchmark, case))
         urls.update(
             alternative["url"]
             for requirement in case.specification["requirements"]
-            for alternative in requirement["any_of"]
+            for key in ("any_of", "gap_any_of")
+            for alternative in requirement.get(key, [])
         )
-    return {urlsplit(url).hostname for url in urls}
+    return {source_domain(url) for url in urls}
 
 
 def validate_splits(development: LoadedBenchmark, heldout: LoadedBenchmark) -> dict[str, int]:
@@ -153,7 +204,7 @@ def validate_splits(development: LoadedBenchmark, heldout: LoadedBenchmark) -> d
             digest(" ".join(case.brief.lower().split())) for case in benchmark.cases.values()
         },
         "fixture": lambda benchmark: {case.fixtures.sha256 for case in benchmark.cases.values()},
-        "source host": _source_hosts,
+        "source domain": _source_domains,
     }
     for dimension, values in dimensions.items():
         if values(development) & values(heldout):
