@@ -1,0 +1,48 @@
+{
+  "authorization": {
+    "actor": "user in this session",
+    "instruction": "publish it",
+    "scope": "complete reviewed archive and inventory under the recorded release tag"
+  },
+  "download_command": "gh release download evidence-historical-review-all-2026-09-12 --repo Madhavan113/researchharness --pattern artifacts.tar.gz --pattern files.json.gz --dir /tmp/rh-rw5-complete-release-download-20260912",
+  "download_report_sha256": "ba57073d9b7ea6d1f34baf934adf90973dce8117fea797be77e15ef0ca378fdb",
+  "download_verification": {
+    "bytes": 140767556,
+    "file_count": 15397,
+    "verified": true
+  },
+  "executed_archived_code": false,
+  "kind": "research-harness-release-publication-v1",
+  "new_model_run": false,
+  "original_asset_bytes_preserved": true,
+  "prepared_index_sha256": "4841800a17965e82b73f64257e31bdb1fa99b424e43f69fdadb5aada22f8770b",
+  "release": {
+    "assets": [
+      {
+        "browser_download_url": "https://github.com/Madhavan113/researchharness/releases/download/evidence-historical-review-all-2026-09-12/artifacts.tar.gz",
+        "digest": "sha256:68f005af1e2107dbcc1ee3a7666cf01262ed82451c7dd29be8970617fee040f0",
+        "id": 560138798,
+        "name": "artifacts.tar.gz",
+        "size": 24371182,
+        "state": "uploaded"
+      },
+      {
+        "browser_download_url": "https://github.com/Madhavan113/researchharness/releases/download/evidence-historical-review-all-2026-09-12/files.json.gz",
+        "digest": "sha256:1a541a21ee8d86bc6d55229410850ea9342ca7e34cb57675590af99ea6011c3a",
+        "id": 560138799,
+        "name": "files.json.gz",
+        "size": 603906,
+        "state": "uploaded"
+      }
+    ],
+    "draft": false,
+    "html_url": "https://github.com/Madhavan113/researchharness/releases/tag/evidence-historical-review-all-2026-09-12",
+    "id": 387735562,
+    "prerelease": false,
+    "published_at": "2026-09-12T23:32:45Z",
+    "tag_name": "evidence-historical-review-all-2026-09-12",
+    "target_commitish": "48a3564555987ef0205f12f1c75e3f38875db616"
+  },
+  "tag_commit_verified": "48a3564555987ef0205f12f1c75e3f38875db616",
+  "verification_command": "uv run --locked --extra mcp python -m research_harness.evaluation.evidence_assets verify examples/evaluation/evidence/historical-review-all-2026-09-12/index.json /tmp/rh-rw5-complete-release-download-20260912/artifacts.tar.gz /tmp/rh-rw5-complete-release-download-20260912/files.json.gz"
+}

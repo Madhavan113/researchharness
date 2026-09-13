@@ -4,7 +4,7 @@ A Python harness that turns a research question into a proposed data pipeline. A
 
 **Status:** working local CLI and Omnigent integration. Public-source ingestion has been exercised against Polymarket, Kalshi, and OFAC. The Omnigent browser workflow has saved proposals, collected/exported data, and reopened the same case after restarting, using synthetic model responses and real local workers. A controlled fixture comparison now exercises both actual runtimes through shared request controls. Live model quality and comparisons using real model responses remain unverified. Model-driven discovery requires an `OPENAI_API_KEY`; forecasting and a background scheduler remain future work.
 
-**Shared development goal:** build the Omnigent integration, then add independently evaluated strategy optimization. See the [goal and milestone tracker](docs/goals/omnigent-integration.md), [accepted implementation plan](docs/omnigent-integration-plan.md), and [agent coordination instructions](AGENTS.md). Offline review follow-ups are in progress; measured evaluation still requires independent benchmark review, provider access and the pending spending decision. The tracker records ownership and completion evidence. The [checkpoint scope](docs/checkpoint-scope.md) records what PR #1 delivers, its boundaries and how to reproduce its evidence; [remaining work](docs/remaining-work.md) lists reviewed follow-up items in priority order.
+**Shared development goal:** build the Omnigent integration, then add independently evaluated strategy optimization. See the [goal and milestone tracker](docs/goals/omnigent-integration.md), [accepted implementation plan](docs/omnigent-integration-plan.md), and [agent coordination instructions](AGENTS.md). The local software and evidence release are verified; measured evaluation requires independent benchmark review, provider access and an approved spending budget. The tracker records ownership and completion evidence. The [checkpoint scope](docs/checkpoint-scope.md) records what PR #1 delivers, its boundaries and how to reproduce its evidence; [remaining work](docs/remaining-work.md) lists reviewed follow-up items in priority order.
 
 The [durable research service and fourteen local MCP tools](docs/research-service.md) share validation with the direct CLI. Follow the [Omnigent setup and fixture walkthrough](examples/omnigent/README.md), inspect the [browser acceptance evidence](docs/omnigent-ui-acceptance.md), or run the [independent development evaluation](docs/research-evaluation.md). The [controlled comparison runner](docs/controlled-comparison.md) freezes shared settings, inputs and failure records for both runtimes and independently verifies gateway usage. The [budgeted pilot](docs/pilot-budget.md) adds shared reservations before provider dispatch, evidence-backed settlement and interruption recovery; its proposed spending decision remains pending. Local Postgres/MinIO acceptance now covers restart, detached jobs and scoped exports. The [strategy integration](docs/strategy-optimization.md) adds isolated Python execution, observation/context selection, verified-stop finalization, complete development archives, a bounded coding proposer, a durable search controller, advisory development-string audits and private final evaluation with registrable-domain split checks. A [complete runtime fixture](examples/evaluation/evidence/combined-strategy-search-2026-09-09/acceptance.json) now verifies three search iterations and isolated final evaluation through the actual coding proposer, Docker and normal Omnigent runtime. Responses are synthetic; reviewed cases and measured model optimization remain unfinished.
 
@@ -107,8 +107,12 @@ The [portable evidence guide](docs/portable-evidence.md) explains derived review
 copies with path placeholders and original/exported hashes. Historical originals
 remain unchanged in their pinned Git revision; the
 [restoration command](docs/evidence-retention.md#restore-exact-historical-originals)
-retrieves them into a private directory with exact hash checks. Prepared release
-assets are not yet published.
+retrieves them into a private directory with exact hash checks. The
+[complete review release](https://github.com/Madhavan113/researchharness/releases/tag/evidence-historical-review-all-2026-09-12)
+is published, and all 15,397 downloaded members pass verification.
+The [complete historical review checkpoint](examples/evaluation/evidence/historical-review-all-2026-09-12/README.md)
+verifies all baseline evidence, including nested Omnigent snapshots, and provides
+a reproducible recipe, a hash-bound index and the publication/download receipt.
 
 ## Product research
 

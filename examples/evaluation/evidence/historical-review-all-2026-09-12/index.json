@@ -1,0 +1,21 @@
+{
+  "archive": {
+    "bytes": 24371182,
+    "name": "artifacts.tar.gz",
+    "sha256": "68f005af1e2107dbcc1ee3a7666cf01262ed82451c7dd29be8970617fee040f0",
+    "url": "https://github.com/Madhavan113/researchharness/releases/download/evidence-historical-review-all-2026-09-12/artifacts.tar.gz"
+  },
+  "availability": "download_verified",
+  "file_count": 15397,
+  "inventory": {
+    "bytes": 603906,
+    "name": "files.json.gz",
+    "sha256": "1a541a21ee8d86bc6d55229410850ea9342ca7e34cb57675590af99ea6011c3a",
+    "url": "https://github.com/Madhavan113/researchharness/releases/download/evidence-historical-review-all-2026-09-12/files.json.gz"
+  },
+  "kind": "research-harness-evidence-release-v1",
+  "release_tag": "evidence-historical-review-all-2026-09-12",
+  "repository": "Madhavan113/researchharness",
+  "source_commit": "c5efe824742bd6f9550b4e07d021d2831a005656",
+  "uncompressed_bytes": 140767556
+}

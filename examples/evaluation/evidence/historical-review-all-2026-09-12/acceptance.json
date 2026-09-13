@@ -1,0 +1,19 @@
+{
+  "all_original_and_member_hashes_verified": true,
+  "changed_review_files": 124,
+  "complete_baseline_coverage": true,
+  "fresh_extraction_identity_matches": 0,
+  "fresh_extraction_nonempty_junit_hostnames": 0,
+  "input_leaf_files": 15395,
+  "measured_research_result": false,
+  "nested_containers": 544,
+  "original_git_files": 150,
+  "package_members_with_review_manifest": 15397,
+  "review_files_with_provenance": 15396,
+  "role": "derived_review_only",
+  "source_bound_transforms_verified": true,
+  "top_containers": 13,
+  "top_tar_members": 14576,
+  "unchanged_review_files": 15272,
+  "uploaded": false
+}
