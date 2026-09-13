@@ -312,7 +312,7 @@ class ProposalWorkspace:
             )
         view_parent = Path(tempfile.gettempdir()).resolve()
         if not readable:
-            self.feedback = view_parent / f".rh-proposer-feedback-{identity}"
+            self.feedback = view_parent / f".rh-proposer-feedback-{identity}" / "feedback"
         self._state = {
             "schema_version": 1,
             "workspace_id": identity,
@@ -323,6 +323,7 @@ class ProposalWorkspace:
             "feedback_source": str(self.feedback_source),
             "feedback_view_owned": not readable,
             "feedback_view_parent": str(view_parent),
+            "feedback_view_layout": "source" if readable else "private-parent-v1",
             "feedback_view_removed": False,
             "feedback_inventory": inventory,
             "workspace_inventory": {},
@@ -331,6 +332,10 @@ class ProposalWorkspace:
         }
         self._save()
         if not readable:
+            # Record ownership before creation, and restrict host traversal before
+            # copying any bytes. Only the readable child is mounted into Docker.
+            self.feedback.parent.mkdir(mode=0o700)
+            self.feedback.parent.chmod(0o700)
             self.feedback.mkdir(mode=0o755)
             for name, row in inventory.items():
                 target = self.feedback / name
@@ -381,6 +386,10 @@ class ProposalWorkspace:
         self._state = value
 
     def _check_trees(self) -> dict:
+        if self._state["feedback_view_owned"] and not self._state["feedback_view_removed"]:
+            root, private = self._owned_feedback_root()
+            if private and stat.S_IMODE(root.stat().st_mode) != 0o700:
+                raise ValueError("Temporary feedback parent must remain private (0700)")
         if _inventory(self.feedback_source, self.config, feedback=True) != self._state[
             "feedback_inventory"
         ] or (
@@ -893,17 +902,46 @@ class ProposalWorkspace:
         if errors:
             write_json(self.output / "cleanup-errors.json", errors)
 
+    def _owned_feedback_root(self) -> tuple[Path, bool]:
+        """Validate the recorded layout, including legacy flat copies, without deleting."""
+        parent = Path(self._state["feedback_view_parent"])
+        identity = self._state["workspace_id"]
+        if (
+            not parent.is_absolute()
+            or parent.resolve() != parent
+            or len(identity) != 32
+            or any(char not in "0123456789abcdef" for char in identity)
+        ):
+            raise ValueError("Temporary feedback ownership does not match")
+        layout = self._state.get("feedback_view_layout", "legacy-flat")
+        if layout not in {"legacy-flat", "private-parent-v1"}:
+            raise ValueError("Unknown temporary feedback layout")
+        root = parent / f".rh-proposer-feedback-{identity}"
+        private = layout == "private-parent-v1"
+        expected = root / "feedback" if private else root
+        if self.feedback != expected or self.feedback.is_symlink():
+            raise ValueError("Temporary feedback ownership does not match")
+        try:
+            info = root.lstat()
+        except FileNotFoundError:
+            return root, private
+        if not stat.S_ISDIR(info.st_mode) or (hasattr(os, "getuid") and info.st_uid != os.getuid()):
+            raise ValueError("Temporary feedback ownership does not match")
+        if private and any(child.name != "feedback" for child in root.iterdir()):
+            raise ValueError("Unexpected files in temporary feedback ownership directory")
+        return root, private
+
     def _remove_feedback_view(self) -> None:
         if not self._state["feedback_view_owned"] or self._state["feedback_view_removed"]:
             return
-        expected = (
-            Path(self._state["feedback_view_parent"])
-            / f".rh-proposer-feedback-{self._state['workspace_id']}"
-        )
-        if self.feedback != expected or self.feedback.is_symlink():
-            raise ValueError("Temporary feedback ownership does not match")
+        root, private = self._owned_feedback_root()
+        if private and root.exists():
+            root.chmod(0o700)
         if self.feedback.exists():
             for parent, _dirs, _files in os.walk(self.feedback, followlinks=False):
                 Path(parent).chmod(0o755)
             shutil.rmtree(self.feedback)
+        if private and root.exists():
+            # Never recursively remove the parent: unexpected contents are not ours.
+            root.rmdir()
         self._state["feedback_view_removed"] = True

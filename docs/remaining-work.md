@@ -195,9 +195,11 @@ RW-14 is published in [PR #12](https://github.com/Madhavan113/researchharness/pu
 - [x] Replace stale service verification counts and the outdated claim that Postgres/S3 execution was unavailable with current tracker/testing references.
 - [x] Explicitly label the historical `independent-audit.json` results as same-project, same-author fresh-process checks using production verifiers, not external third-party review.
 - [ ] Consider proposer exploration tools/limits after measured runs exist. Current defaults remain 16 rounds, 64 workspace calls, 48 KB per read and 16 KB stdout; the paper reports a median of 82 files read with grep.
-- [ ] Tighten copied feedback permissions before any shared host. A private host parent must preserve the read-only sandbox mount and recorded cleanup/recovery ownership; simply changing the mounted files to owner-only permissions would break sandbox reads.
+- [x] Give copied feedback a private `0700` host parent before writing bytes, with a readable child mounted read-only into Docker. Recorded-layout and ownership checks preserve legacy recovery and safe cleanup after interruption; original sources and unrelated paths are preserved.
 
-The bounded admission/compatibility checkpoint was completed September 12 by `/root` and published in [PR #13](https://github.com/Madhavan113/researchharness/pull/13), branch `fix/selection-admission-checks`, based on PR #12. Four regressions reproduce the original omission/replay gap; the final required Docker/Omnigent suite passes **1,341 tests with zero failures/errors/skips**. Lint, formatting, locked versions, local links and the diff pass. Exact commands, report hashes and remaining dependencies are in the [tracker handoff](goals/omnigent-integration.md#september-12-2026--rw-15-admission-and-compatibility-handoff). The overall item remains open for the two unchecked tasks above.
+The bounded admission/compatibility checkpoint was completed September 12 by `/root` and published in [PR #13](https://github.com/Madhavan113/researchharness/pull/13), branch `fix/selection-admission-checks`, based on PR #12. Four regressions reproduce the original omission/replay gap; the final required Docker/Omnigent suite passes **1,341 tests with zero failures/errors/skips**. Lint, formatting, locked versions, local links and the diff pass. Exact commands, report hashes and remaining dependencies are in the [tracker handoff](goals/omnigent-integration.md#september-12-2026--rw-15-admission-and-compatibility-handoff). The feedback-permissions item was completed in the subsequent checkpoint below; exploration is the only unchecked task above.
+
+The private-feedback checkpoint was completed September 12 by `/root` and published in [PR #14](https://github.com/Madhavan113/researchharness/pull/14), branch `fix/private-proposer-feedback`, based on PR #13. The final required Docker/Omnigent suite passes **1,352 tests with zero failures/errors/skips**, including all 66 workspace cases. The [private-feedback handoff](goals/omnigent-integration.md#september-12-2026--rw-15-private-feedback-handoff) records exact commands, hashes, the corrected legacy-fixture setup and the remaining external dependencies.
 
 ## Blocked on external decisions
 
@@ -205,7 +207,7 @@ Unchanged from the tracker: provider access, the spending decision, human review
 
 ## Suggested order for a continuing agent
 
-1. Check PR #13's required CI result. PR #11 and #12 hosted checks passed; the bounded RW-15 checkpoint's complete required local suite also passes.
+1. Check PR #14 required CI. PR #13 ordinary tests/lint and required runtime CI both passed; the final private-feedback required local suite also passes.
 2. RW-5 and RW-6: agree on artifact retention and path/hostname handling before the next evidence regeneration or public release.
 3. RW-13 and RW-15: remaining independent offline efficiency and maintenance work.
 4. Resolve the external decisions above, then perform live compatibility and the measured baseline before model-mode search. RW-10's offline acceptance does not replace that live compatibility gate.
