@@ -1,6 +1,15 @@
 # Research Harness with Omnigent: implementation plan
 
-Accepted plan: September 8, 2026. Scope: build an interactive research agent on the existing Research Harness backend, using Omnigent for execution and the interface, followed by independently evaluated strategy optimization. Software follow-ups from the September 10 review have offline verification, and the evidence release has passed download verification. Measured evaluation still requires independent benchmark review, provider access and the pending spending decision. The local workflow has fixture and browser acceptance, while live evaluation and optimization remain outstanding; the full scope and acceptance criteria are unchanged.
+Accepted plan: September 8, 2026. Scope: build an interactive source-discovery agent on the existing Research Harness backend, using Omnigent for execution and the pilot interface, followed by independently evaluated strategy optimization. Software follow-ups from the September 10 review have offline verification, and the evidence release has passed download verification. Measured evaluation still requires independent benchmark review, provider access and the pending spending decision. The local workflow has fixture and browser acceptance, while live evaluation and optimization remain outstanding; this technical track's completion criteria remain unchanged.
+
+Scope clarification, September 13: the product is a broader investigation and
+automated ingestion harness. This document covers its existing ingestion specialist
+and evaluation track. Its brief-to-proposal path, native runtime UI and optimization
+sequence are not universal product requirements. A research task may have another
+artifact as its outcome and may need no pipeline or agent session. General
+task/artifact contracts remain future work; preserve the existing discovery
+contracts and frozen agent bundles for the workflows they implement. Measured
+optimization is not a prerequisite for developing other workflow areas.
 
 Track milestone status, ownership, validation evidence, and agent handoffs in the [shared goal](goals/omnigent-integration.md). All development agents should follow the repository's [coordination instructions](../AGENTS.md).
 
@@ -19,7 +28,10 @@ measured evaluation remain unfinished.
 
 The first deliverable is one complete workflow: a user supplies a research brief, the agent discovers and tests sources, the backend produces a validated pipeline proposal, and the user can request collection, inspect the evidence, and return to the case later.
 
-Use source discovery as the initial task because its tools, storage, and validation already exist. Company analysis, forecasting, workbook editing, and specialist agents can build on this foundation after the first workflow works.
+Source discovery was selected for this pilot because its tools, storage and
+validation already existed. Other workflow areas can reuse that foundation while
+defining their own artifacts and acceptance checks; their product priority is not
+set by this integration plan.
 
 ## 1. Architecture and ownership
 

@@ -4,9 +4,20 @@ Goal id: `omnigent-research-harness`
 
 Status: in_progress; local software and artifact delivery verified; live provider acceptance and measured evaluation still require independent benchmark review, provider access and an approved spending budget
 
-Accepted: September 8, 2026. Last updated: September 12, 2026
+Accepted: September 8, 2026. Last updated: September 13, 2026
 
-Build an interactive research harness using Omnigent for agent execution and the interface, with Research Harness providing verified evidence, pipeline proposals, collection, and durable state. After measuring the working integration, add the Meta-Harness paper's strategy optimization process with independent evaluation.
+This technical track integrates an interactive source-discovery workflow using
+Omnigent for agent execution and the pilot interface, with Research Harness
+providing verified evidence, pipeline proposals, collection and durable state.
+After measuring the integration, evaluate the Meta-Harness paper's strategy
+optimization process independently.
+
+September 13 scope correction: the broader product supports investigation and
+automated ingestion. This tracker does not define every research task as a
+pipeline proposal or require Omnigent's native UI. General task/artifact contracts
+and other workflow areas need their own work and acceptance. The measured
+optimization phase retains its completion gates but is not a prerequisite for
+that product work. Historical evidence and unfinished evaluations are unchanged.
 
 The [accepted implementation plan](../omnigent-integration-plan.md) defines the design and detailed acceptance criteria. [AGENTS.md](../../AGENTS.md) defines how agents coordinate. This file is the shared progress record; update it as work happens.
 
@@ -24,7 +35,10 @@ The goal is complete when there is recorded evidence for all of the following:
 - Strategy optimization records the baseline, candidate code, complete available traces, scores, and usage. Selection uses development results; held-out evaluation remains isolated from search and candidate access.
 - Reproducible setup instructions, an example walkthrough, and validation evidence are available in this repository.
 
-Authenticated shared deployment, a custom dashboard, forecasting, and specialist research agents are later product work. Multiple development agents may collaborate on this goal now; a product with multiple specialist agents is a separate increment.
+Authenticated shared deployment, product interfaces, analytical workflows and
+specialist agents are outside this technical track. Their priority is governed by
+current product work, not the milestone sequence here. Multiple development agents
+may collaborate when assigned; a fixed product agent team is not implied.
 
 ## Milestones and ownership
 
@@ -57,7 +71,7 @@ M0 and M1 can proceed independently against the agreed tool/service boundary. Ev
 
 ## Next tasks
 
-The [remaining work](../remaining-work.md) list records completed pre-measure software follow-ups and artifact delivery. Its only conditional follow-up is reconsidering proposer exploration limits after measured runs provide evidence. The remaining critical path is live compatibility, independent case review, the measured baseline and then optimization/final evaluation:
+The [remaining work](../remaining-work.md) list records completed pre-measure software follow-ups and artifact delivery. Its only conditional follow-up is reconsidering proposer exploration limits after measured runs provide evidence. The remaining critical path **for this integration/evaluation track** is live compatibility, independent case review, the measured baseline and then optimization/final evaluation. Broader product work proceeds under its own scope; these are not automatic next tasks for every agent:
 
 1. Resolve provider access and the pending spending decision before a live compatibility case. The budgeted dispatcher and pilot runner are implemented and verified with actual runtime fixtures; the checked-in configuration remains draft. Recheck the priced snapshot/endpoint/tier/rates when recording the live configuration, and reuse the shared ledger and registered pilot directories across revisions.
 2. Finish M0's live provider/model checks once access and the pending budget choice are recorded. Validate live nested tool-schema acceptance and freeze the actual provider/model configuration before running a measured baseline.
@@ -78,6 +92,90 @@ For each active task, add a short entry with:
 Retain completed handoffs so another agent can distinguish implemented behavior from planned work. Avoid copying secrets, raw credentials, or held-out task contents into this shared tracker.
 
 ## Activity and handoffs
+
+### September 13, 2026 — Archive exploratory market snapshot and explain code layout
+
+Owner: `/root`; status: done; branch `docs/research-foundation-scope`, PR #20.
+The user identified `research/prediction-markets/` as an unnecessary top-level
+directory while asking for a codebase explanation. It contains one dated JSON
+research result, referenced only by two documentation links. Move that file
+unchanged to `docs/archive/prediction-markets/`, update those links and label the
+notes historical. Add a source map to `docs/README.md`. Preserve the working
+market connectors and their tests; an optional connector add-on is a design
+direction, not an implemented plugin system. Acceptance: identical snapshot
+bytes, no runtime references, valid documentation links and clean diff.
+
+Handoff: Git records a 100% content-preserving move into the documentation archive.
+The two note links now resolve there and the note title explicitly says archived.
+The documentation index explains the executable modules, examples, tests and
+research artifacts, including the current lack of a general task layer or plugin
+loader. Snapshot SHA-256 is unchanged; all 402 local Markdown targets resolve
+across 60 documents, and `git diff --check HEAD` passes. No runtime code, agent
+instructions or tests changed. Connector extraction remains a separate proposed
+refactor; this cleanup does not remove working market ingestion support.
+
+### September 13, 2026 — README and release presentation cleanup
+
+Owner: `/root`; status: implemented, release presentation published;
+branch `docs/research-foundation-scope`, review in PR #20.
+The user asked to fix the public README and releases after feedback that both
+were hard to understand. Scope: rewrite `README.md` for new readers, add a small
+documentation index and a single-source quickstart configuration, and edit the
+existing GitHub release title/notes/classification and asset display labels.
+Store the release copy in `docs/releases/evidence-archive-2026-09-12.md` and
+align the repository's short description with the plain-language introduction.
+Keep release tags, downloadable filenames, bytes and historical receipts intact.
+No product binary or measured result is being released. Update the existing PR
+against current `main`; preserve all runtime code and other agents' work.
+
+Acceptance: run the documented key-free quickstart in isolated local storage,
+check documentation links and diff, verify release metadata and unchanged asset
+hashes/IDs, and keep the README's current/planned distinction explicit.
+
+Handoff: the README is 553 words, down from 1,280 on `main`; it now starts with
+the purpose, available capabilities and a key-free example. Internal evaluation
+and contributor material is linked through `docs/README.md`. `uv sync --locked`
+and the documented validate/run/export commands pass with isolated local storage
+and no model credentials. The live OFAC feed yielded 10 records; the JSONL count
+and SHA-256 match its companion manifest. Raw responses and verification logs
+remain in ignored local storage; this is a collection check, not a model test.
+All 387 local Markdown targets resolve across 60 documents; diff checks pass.
+
+The GitHub release is now titled "Historical test evidence (September 2026)",
+marked as a prerelease, and no longer marked Latest. Its notes describe the
+audience and downloads in plain language; both assets have readable display
+labels. API verification confirms the original release ID, tag, target, publish
+date, asset IDs, filenames, download URLs, sizes and digests are unchanged.
+Historical publication receipts retain the original metadata. The repository
+description now matches the README's purpose. The README/configuration changes
+are delivered through PR #20 against `main`; no PR merge is performed here.
+
+### September 13, 2026 — Shared foundation scope clarification
+
+Owner: `/root`; status: implemented and published for review; branch `docs/research-foundation-scope`,
+separate worktree `researchharness-scope-cleanup`. The user clarified that the
+product is a broad investigation and automated data-ingestion harness. This
+tracker covers the existing ingestion integration and measured optimization
+track; its proposal workflow is not the required outcome of every investigation.
+
+Bounded task: clarify that boundary in `README.md`, `AGENTS.md`, this tracker,
+`docs/omnigent-integration-plan.md` and `docs/remaining-work.md`. Preserve all
+runtime code, frozen agent instructions, evaluation criteria and historical
+evidence. Private application design and detailed product plans stay outside
+this public repository. Acceptance: local Markdown links, consistent scope and
+`git diff --check`; no runtime or model-performance claim from documentation.
+
+Handoff: the five owned documents now distinguish the shared research/ingestion
+foundation from the existing source-discovery and measured-evaluation track.
+Checkpoint `2eb5898` is published in
+[PR #20](https://github.com/Madhavan113/researchharness/pull/20), stacked on PR #19;
+hosted-check status is recorded on the PR. No merge is implied.
+All 386 local Markdown targets resolve across 58 documents; `git diff --check`
+passes. The diff is limited to those five files. Runtime code, frozen bundles,
+evaluation criteria, evidence and release assets are unchanged. The full runtime
+suite was not rerun locally for this documentation-only change. Product work
+can proceed independently; live compatibility and measured evaluation still need
+their previously recorded external decisions and acceptance.
 
 ### September 12, 2026 — Complete review release publication ownership
 

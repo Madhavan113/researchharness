@@ -2,7 +2,7 @@
 
 ## Shared goal
 
-Read the [Omnigent goal and work tracker](docs/goals/omnigent-integration.md) at the start of work in this repository. For integration work, also read the [accepted implementation plan](docs/omnigent-integration-plan.md). The tracker records progress and ownership; the plan records architecture and acceptance criteria.
+Read the [Omnigent goal and work tracker](docs/goals/omnigent-integration.md) at the start of work in this repository. It records the ingestion integration/evaluation track, not the whole product scope. For integration work, also read the [accepted implementation plan](docs/omnigent-integration-plan.md). The tracker records progress and ownership; the plan records architecture and acceptance criteria.
 
 After the PR #1 checkpoint, also read the [checkpoint scope](docs/checkpoint-scope.md) and take follow-up items from [remaining work](docs/remaining-work.md); update an item's status there when you take or finish it.
 
@@ -22,7 +22,9 @@ These instructions coordinate agents using this repository checkout. Other check
 
 ## Implementation constraints
 
-- Keep Research Harness authoritative for evidence, proposal validation, pipelines, and collection state. Omnigent owns the conversational loop and interface.
+- Keep Research Harness authoritative for evidence, proposal validation, pipelines, and collection state. Omnigent supplies the conversational execution loop and runtime session state; its native UI is the integration pilot's interface, not a requirement for every product workflow.
+- Treat the existing discovery agent and ProposalDraft contract as ingestion-specific. Do not require every research task to produce a pipeline or infer task completion from a runtime session. A general task/artifact abstraction still needs implementation; do not describe it as already shipped.
+- Keep private application code, detailed product plans and design assets out of this public repository. Product scope corrections do not erase historical runtime evidence or complete unfinished evaluation gates.
 - Keep the direct discovery CLI working through the same domain service as the MCP path. Use a separate environment for Omnigent.
 - Load source evidence from stored search, inspection, and probe receipts. Agent assertions are not proof of observation or successful validation.
 - Preserve immutable captures, publication cutoffs, writer locking, and retry/recovery semantics. Enforce operation limits in the service.

@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "name": "quickstart",
+  "description": "Collect the public OFAC site feed and preserve the original response. This includes sanctions-program pages, not only new sanctions actions.",
+  "data_dir": "../.researchharness/quickstart",
+  "sources": [
+    {
+      "id": "ofac-site-feed",
+      "name": "OFAC public site feed",
+      "connector": "rss",
+      "url": "https://ofac.treasury.gov/rss.xml",
+      "poll_interval_seconds": 3600
+    }
+  ]
+}
