@@ -29,9 +29,25 @@ Ten assertions cover JSON transport, malformed input, instruction delivery, tool
 
 The artifact directory contains tool schemas, raw model request/response fixtures, Omnigent events, actual subprocess call receipts, checks, version metadata, source hashes, and the generated runnable agent bundle. [Saved evidence](evidence/2026-09-08/metadata.json) and the [compatibility report](../../docs/omnigent-compatibility.md) explain the September 8 run.
 
+## Offline provider schema preflight
+
+Check the direct Responses request, structured proposal output, and all fourteen MCP input schemas without a provider key or network request:
+
+~~~sh
+uv run --locked --extra mcp python examples/omnigent/provider_schema_preflight.py \
+  --out /tmp/researchharness-provider-schema-new-run \
+  --omnigent-python /tmp/researchharness-omnigent-be042b39/.venv/bin/python
+~~~
+
+Use a new output directory. The optional `--omnigent-python` argument uses the separate pinned environment installed above to check all fourteen tools with the actual Agents SDK's strict converter. Without it, the direct SDK and in-memory MCP checks still run. The command does not launch Omnigent or contact a model endpoint.
+
+The script captures `openai-sdk-request.json`, `wire-response.json`, `parsed-proposal.json`, `mcp-tools.json`, optional `agents-sdk-tools.json`, and a hashed `report.json`. It checks closed objects, required properties, absence of schema default annotations, valid nullable inputs and restoration of host defaults by the real SDK parser. The authored proposal is schema evidence only, with no verified source or saved research pipeline. See the [service contract](../../docs/research-service.md#provider-schemas-and-host-defaults).
+
+These checks establish serialization and conversion behavior, not live API acceptance. The separate converter check does not establish which strict flag the native Omnigent runner selects; the required runtime tests independently inspect the actual emitted schemas through that runner. Model quality and live compatibility remain outstanding.
+
 ## Search provider preflight
 
-This separate command makes real network requests to Keenable's public keyless MCP endpoint. It records the negotiated server/protocol and tool schemas; it does not query search by default:
+This separate command makes real network requests to Keenable's public keyless MCP endpoint. It records the negotiated server/protocol and tool schemas; it does not query search by default or test OpenAI schema acceptance:
 
 ~~~sh
 /tmp/researchharness-omnigent-be042b39/.venv/bin/python examples/omnigent/search_preflight.py --out /tmp/researchharness-search-schema.json

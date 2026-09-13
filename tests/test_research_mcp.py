@@ -134,6 +134,9 @@ def test_protocol_tools_have_typed_schemas_and_no_agent_control_of_runtime_or_co
                 "read_export",
             }
             for tool in tools.values():
+                from test_provider_schema import assert_strict_schema
+
+                assert_strict_schema(tool.inputSchema)
                 assert tool.inputSchema["additionalProperties"] is False
                 assert tool.outputSchema["type"] == "object"
                 assert "discovery_id" not in tool.inputSchema["properties"]
@@ -152,7 +155,11 @@ def test_protocol_tools_have_typed_schemas_and_no_agent_control_of_runtime_or_co
                 .inputSchema["properties"]["draft"]["$ref"]
                 .endswith("/ProposalDraft")
             )
-            assert set(tools["search_sources"].inputSchema["required"]) == {"query", "operation_id"}
+            assert set(tools["search_sources"].inputSchema["required"]) == {
+                "query",
+                "operation_id",
+                "filters",
+            }
             assert tools["get_evidence"].annotations.readOnlyHint is True
             for name in ("get_research_context", "get_job", "list_jobs"):
                 annotations = tools[name].annotations
@@ -169,6 +176,89 @@ def test_protocol_tools_have_typed_schemas_and_no_agent_control_of_runtime_or_co
             assert service.discovery_id is None
             started = await call(client, "begin_research", {"brief": "Policy"})
             assert started["data"]["model"] == "gpt-5.4-mini"
+
+    anyio.run(scenario)
+
+
+@pytest.mark.parametrize("filters", [{}, {"site": None}, {"max_results": "2"}])
+def test_provider_null_defaults_preserve_legacy_filter_receipts_and_raw_values(setup, filters):
+    service, provider, _ = setup
+    server = create_server(service, provider)
+
+    async def scenario():
+        async with memory.create_connected_server_and_client_session(server) as client:
+            await call(client, "begin_research", {"brief": "Collect official policy evidence"})
+            saved = service.search(
+                "policy", provider=provider, filters=filters, operation_id="legacy"
+            )
+            assert provider.calls == [("policy", filters)]
+            for replay_filters in (
+                filters,
+                {"max_results": None, "snippet_max_length": None, **filters},
+            ):
+                replay = await call(
+                    client,
+                    "search_sources",
+                    {"query": "policy", "filters": replay_filters, "operation_id": "legacy"},
+                )
+                assert replay["status"] == "ok" and replay["data"] == saved
+            assert len(provider.calls) == 1
+
+    anyio.run(scenario)
+
+
+def test_mcp_nullable_source_defaults_keep_probe_identity_and_saved_proposal(setup, source):
+    from test_provider_schema import source_with_null_defaults
+
+    service, provider, requests = setup
+    server = create_server(service, provider)
+
+    async def scenario():
+        async with memory.create_connected_server_and_client_session(server) as client:
+            await begin_and_search(client)
+            null_source = source_with_null_defaults(source)
+            proof = await call(
+                client, "probe_source", {"source": null_source, "operation_id": "probe"}
+            )
+            assert proof["status"] == "ok"
+            replay = await call(
+                client,
+                "probe_source",
+                {"source": source.model_dump(mode="json"), "operation_id": "probe"},
+            )
+            assert replay["data"] == proof["data"] and len(requests) == 1
+            proposal = draft(source, proof["data"]["probe_id"])
+            proposal["candidates"][0]["source"] = null_source
+            saved = await call(
+                client, "submit_proposal", {"draft": proposal, "operation_id": "proposal"}
+            )
+            assert saved["status"] == "ok" and saved["data"]["registry"]["pipeline_version_id"]
+            repeated = await call(
+                client,
+                "submit_proposal",
+                {"draft": draft(source, proof["data"]["probe_id"]), "operation_id": "proposal"},
+            )
+            assert repeated["data"] == saved["data"]
+            assert len(requests) == 1
+
+    anyio.run(scenario)
+
+
+def test_mcp_required_null_is_rejected_before_operation_admission(setup):
+    service, provider, _ = setup
+    server = create_server(service, provider)
+
+    async def scenario():
+        async with memory.create_connected_server_and_client_session(server) as client:
+            await call(client, "begin_research", {"brief": "Collect official policy evidence"})
+            before = service.get_remaining()
+            result = await call(
+                client,
+                "search_sources",
+                {"query": None, "filters": None, "operation_id": "invalid-null"},
+            )
+            assert result["error"]["code"] == "invalid_argument"
+            assert service.get_remaining() == before and provider.calls == []
 
     anyio.run(scenario)
 

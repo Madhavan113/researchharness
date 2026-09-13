@@ -130,6 +130,8 @@ Proposed first executor: openai-agents with the research project's existing gpt-
 
 Measure how the selected adapter delivers instructions, restores history, reports usage, and emits tool events. Save available request inputs and runtime metadata; do not claim access to hidden model reasoning or unexposed internal prompts. Omnigent explicitly represents adapter differences in its capability model. [Capabilities](https://github.com/omnigent-ai/omnigent/blob/main/omnigent/harness_capabilities.py).
 
+The RW-10 provider adapter now emits closed, required, default-free schemas for direct discovery and all fourteen MCP tools. Newly nullable inputs request defaults from the unchanged domain validators, including nested source configurations; explicit values and operation replay remain compatible. The [offline preflight](../examples/omnigent/README.md#offline-provider-schema-preflight) captures actual SDK serialization, nullable proposal parsing and separate Agents SDK strict conversion. Required runtime tests also inspect schemas from the normal Omnigent runner. These checks satisfy RW-10's unit-test acceptance option; milestone 0 still requires live provider/model acceptance after the pending access and spending decisions.
+
 ### Milestones 1–2: establish the domain boundary
 
 Move ProposalDraft and its related models into a provider-neutral module. Extract inspection, probing, evidence lookup, proposal compilation, and persistence into a service. Keep the existing direct model loop as one client of that service.

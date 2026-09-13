@@ -100,7 +100,12 @@ def api_response(output, number):
 
 
 @pytest.mark.parametrize("repair_first", [False, True])
-def test_actual_sdk_tool_loop_probes_and_compiles_a_pipeline(tmp_path, rss, repair_first):
+@pytest.mark.parametrize("null_defaults", [False, True])
+def test_actual_sdk_tool_loop_probes_and_compiles_a_pipeline(
+    tmp_path, rss, repair_first, null_defaults
+):
+    from test_provider_schema import source_with_null_defaults
+
     source = SourceSpec(
         id="official-policy",
         name="Official policy feed",
@@ -108,12 +113,18 @@ def test_actual_sdk_tool_loop_probes_and_compiles_a_pipeline(tmp_path, rss, repa
         url="https://source.example/feed",
     )
     requests = []
+    source_json = (
+        json.dumps(source_with_null_defaults(source)) if null_defaults else source.model_dump_json()
+    )
 
     def model_handler(request):
+        from test_provider_schema import assert_strict_schema
+
         data = json.loads(request.content)
         requests.append(data)
         assert data["store"] is False
         assert data["text"]["format"]["strict"] is True
+        assert_strict_schema(data["text"]["format"]["schema"])
         for entry in data["input"]:
             assert "parsed_arguments" not in entry
             if isinstance(entry.get("content"), list):
@@ -171,7 +182,7 @@ def test_actual_sdk_tool_loop_probes_and_compiles_a_pipeline(tmp_path, rss, repa
                             "name": "probe_source",
                             "call_id": "call_1",
                             "status": "completed",
-                            "arguments": json.dumps({"source_json": source.model_dump_json()}),
+                            "arguments": json.dumps({"source_json": source_json}),
                         },
                     ],
                     1,
@@ -193,7 +204,7 @@ def test_actual_sdk_tool_loop_probes_and_compiles_a_pipeline(tmp_path, rss, repa
                             "name": "probe_source",
                             "call_id": "call_1",
                             "status": "completed",
-                            "arguments": json.dumps({"source_json": source.model_dump_json()}),
+                            "arguments": json.dumps({"source_json": source_json}),
                         }
                     ],
                     2,
@@ -455,6 +466,9 @@ def test_actual_sdk_and_mcp_search_share_receipts_and_idempotent_calls(
         assert_wrapped_request(data)
         number = len(requests)
         search_tool = next(tool for tool in data["tools"] if tool.get("name") == "search_sources")
+        from test_provider_schema import assert_strict_schema
+
+        assert_strict_schema(search_tool["parameters"])
         schema = search_tool["parameters"]
         assert search_tool["strict"] and schema["additionalProperties"] is False
         assert set(schema["required"]) == {"query", "filters"}
@@ -462,7 +476,9 @@ def test_actual_sdk_and_mcp_search_share_receipts_and_idempotent_calls(
         filters = schema["$defs"]["SearchFilters"]
         assert filters["additionalProperties"] is False
         assert set(filters["required"]) == set(filters["properties"])
-        assert filters["properties"]["max_results"]["maximum"] == 10
+        maximum = filters["properties"]["max_results"]
+        assert maximum["anyOf"][0]["maximum"] == 10
+        assert maximum["anyOf"][1] == {"type": "null"}
         if number in {1, 2, 3}:
             args = search_args if number < 3 else {**search_args, "query": "different query"}
             output = [function_call("search_sources", args, number, call_id="same-search")]

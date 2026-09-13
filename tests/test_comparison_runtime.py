@@ -788,8 +788,15 @@ def test_controlled_strategy_uses_real_docker_and_both_runtime_paths(tmp_path, f
         requests = []
 
         def upstream(request):
+            from test_provider_schema import assert_strict_schema
+
             payload = json.loads(request.content)
             requests.append(payload)
+            for tool in payload["tools"]:
+                if tool["type"] == "function":
+                    assert_strict_schema(tool["parameters"])
+            if payload.get("text", {}).get("format", {}).get("type") == "json_schema":
+                assert_strict_schema(payload["text"]["format"]["schema"])
             if task.arm == "direct":
                 return httpx.Response(200, json=policy.respond(payload))
             return httpx.Response(

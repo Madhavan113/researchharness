@@ -17,9 +17,14 @@ from pydantic import Field
 
 from research_harness.config import SourceSpec
 from research_harness.discovery_models import ProposalDraft
+from research_harness.integrations.provider_schema import (
+    apply_provider_defaults,
+    strict_provider_schema,
+)
 from research_harness.services.errors import ResearchError
 from research_harness.services.jobs import JobService
 from research_harness.services.research import DEFAULT_LIMITS, ResearchService
+from research_harness.services.search import SearchFilters
 from research_harness.store import WriterBusy
 from research_harness.strategies.session import StrategySession, StrategySessionError
 from research_harness.strategies.stopping import ResearchFinalizing
@@ -106,23 +111,41 @@ class _ResearchMCP(FastMCP):
             log_level="WARNING",
         )
 
-    async def list_tools(self):
+    async def _domain_tools(self):
         tools = await super().list_tools()
         for tool in tools:
-            tool.inputSchema = {**tool.inputSchema, "additionalProperties": False}
+            tool.inputSchema = {**deepcopy(tool.inputSchema), "additionalProperties": False}
+            if tool.name == "search_sources":
+                # Keep raw filter values at invocation for legacy operation hashes;
+                # advertise their actual service validation instead of an open dict.
+                tool.inputSchema.setdefault("$defs", {})["SearchFilters"] = (
+                    SearchFilters.model_json_schema()
+                )
+                tool.inputSchema["properties"]["filters"] = {
+                    "anyOf": [{"$ref": "#/$defs/SearchFilters"}, {"type": "null"}],
+                    "default": None,
+                }
+        return tools
+
+    async def list_tools(self):
+        tools = await self._domain_tools()
+        for tool in tools:
+            tool.inputSchema = strict_provider_schema(tool.inputSchema)
         return tools
 
     async def call_tool(self, name: str, arguments: dict[str, Any]):
         operation_id = arguments.get("operation_id")
         operation_id = operation_id if isinstance(operation_id, str) else None
         try:
-            tool = next((tool for tool in await self.list_tools() if tool.name == name), None)
+            tool = next((tool for tool in await self._domain_tools() if tool.name == name), None)
             if tool is None:
                 raise ValueError(f"Unknown research tool: {name}")
             unexpected = set(arguments) - set(tool.inputSchema.get("properties", {}))
             if unexpected:
                 raise ValueError(f"Unexpected arguments for {name}: {sorted(unexpected)}")
-            return await super().call_tool(name, arguments)
+            return await super().call_tool(
+                name, apply_provider_defaults(arguments, tool.inputSchema)
+            )
         except Exception as exc:
             return _failure(self.research_service, exc, operation_id)
 

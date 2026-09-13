@@ -52,6 +52,14 @@ Error codes come from exception types and host-assigned domain codes. Source URL
 
 FastMCP returns matching JSON text and structured content, because the tested Omnigent formatter reads the text representation. Unexpected tool arguments are rejected. The integration stays on the MCP Python SDK 1.x line with a less-than-2 constraint; Omnigent uses its independently locked environment. [Official SDK version guidance](https://github.com/modelcontextprotocol/python-sdk).
 
+## Provider schemas and host defaults
+
+Direct discovery and the fourteen MCP tools share a provider-schema adapter. Model-facing object schemas are closed, list every property as required, and contain no `default` annotations. Previously optional, nonnullable inputs accept `null` to request their existing host defaults. For example, `max_results: null` uses six results and a source's `poll_interval_seconds: null` uses 900 seconds. Fields that already accepted null keep that meaning; required values remain required. This follows the documented [strict function schema contract](https://developers.openai.com/api/docs/guides/function-calling#strict-mode).
+
+Normalization happens before domain validation. It preserves explicit values, meaningful nulls, numeric/array bounds, and rejection of unknown fields. Domain configuration schemas and saved proposals keep their existing defaults. Older clients can still omit optional fields; clients following the advertised strict schemas supply them, using null where appropriate. The same source normalization applies to direct discovery's `source_json` probe input and its structured proposal output, as well as MCP probes and submissions, so equivalent configurations retain their probe identity.
+
+Search advertises the closed `SearchFilters` schema while retaining the original explicit filter values for invocation. It removes only newly nullable defaults before service admission, preserving existing operation hashes for omitted defaults, explicit nulls and legacy accepted values. Completed requests still replay without another provider call. The [offline provider schema preflight](../examples/omnigent/README.md#offline-provider-schema-preflight) records actual SDK serialization and MCP/Agents conversion checks. Live provider acceptance remains a separate milestone 0 check.
+
 ## Evidence, retries, and limits
 
 Schema migration 3 adds discovery_contexts, discovery_operations, and discovery_receipts to the existing SQLite/Postgres schema. The operation ledger stores the request hash, attempt status, and result. Receipts belong to one discovery and link back to the operation that produced them. Proposal, pipeline registration, and completed submission result commit atomically, including nested registry calls.

@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any
 
 import httpx
-from openai import OpenAI, pydantic_function_tool
+from openai import OpenAI
 from pydantic import Field
 
 from research_harness.backend import Backend
@@ -16,8 +16,13 @@ from research_harness.config import SourceSpec, StrictModel
 from research_harness.connectors import CONNECTOR_CATALOG
 from research_harness.discovery_models import Candidate as Candidate
 from research_harness.discovery_models import DataNeed as DataNeed
-from research_harness.discovery_models import ProposalDraft
+from research_harness.discovery_models import ProposalDraft as ProposalDraft
 from research_harness.execution import DiscoverySettings
+from research_harness.integrations.provider_schema import (
+    ProviderProposalDraft,
+    apply_provider_defaults,
+    strict_provider_schema,
+)
 from research_harness.services.proposals import compile_proposal as compile_proposal
 from research_harness.services.proposals import render_proposal as render_proposal
 from research_harness.services.research import ResearchService
@@ -62,7 +67,7 @@ TOOLS = [
     {
         "type": "function",
         "name": "probe_source",
-        "description": "Validate an exact SourceSpec JSON string against one real response using the ingestion normalizer. Save evidence and return a probe_id; this does not publish a dataset.",
+        "description": "Validate an exact SourceSpec JSON string against one real response using the ingestion normalizer. Defaulted options may be null to use host defaults. Save evidence and return a probe_id; this does not publish a dataset.",
         "strict": True,
         "parameters": {
             "type": "object",
@@ -81,11 +86,10 @@ class SearchArguments(StrictModel):
 
 SEARCH_TOOL = {
     "type": "function",
-    **pydantic_function_tool(
-        SearchArguments,
-        name="search_sources",
-        description="Search the configured provider with bounded filters and save its actual response as source evidence. Use filters=null for the default six results.",
-    )["function"],
+    "name": "search_sources",
+    "description": "Search the configured provider with bounded filters and save its actual response as source evidence. Use filters=null for the default six results.",
+    "strict": True,
+    "parameters": strict_provider_schema(SearchArguments.model_json_schema()),
 }
 
 
@@ -306,7 +310,9 @@ class Discovery:
             if self.strategy is not None:
                 self.strategy.admit_observation(name, self.service.discovery_id, operation_id)
             if name == "search_sources" and self.search_provider is not None:
-                search = SearchArguments.model_validate(args)
+                search = SearchArguments.model_validate(
+                    apply_provider_defaults(args, SearchArguments.model_json_schema())
+                )
                 result = self.service.search(
                     search.query,
                     provider=self.search_provider,
@@ -319,7 +325,11 @@ class Discovery:
                 result = self.service.inspect(args["url"], operation_id=operation_id)
             elif name == "probe_source":
                 result = self.service.probe(
-                    SourceSpec.model_validate_json(args["source_json"]),
+                    SourceSpec.model_validate(
+                        apply_provider_defaults(
+                            json.loads(args["source_json"]), SourceSpec.model_json_schema()
+                        )
+                    ),
                     operation_id=operation_id,
                 )
             else:
@@ -424,14 +434,14 @@ class Discovery:
                             if "tool_choice" in model_request
                             else {}
                         ),
-                        "response_schema": ProposalDraft.model_json_schema(),
+                        "response_schema": ProviderProposalDraft.model_json_schema(),
                         "model_settings": model_settings,
                         "omitted_model_settings": self.execution_config["omitted_model_settings"],
                         "instructions_sha256": self.execution_config["instructions_sha256"],
                     }
                 )
                 response = self.client.responses.parse(
-                    text_format=ProposalDraft,
+                    text_format=ProviderProposalDraft,
                     **model_request,
                 )
                 if response.usage:
