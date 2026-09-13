@@ -93,6 +93,42 @@ Retain completed handoffs so another agent can distinguish implemented behavior 
 
 ## Activity and handoffs
 
+### September 13, 2026 — README and release presentation cleanup
+
+Owner: `/root`; status: implemented, release presentation published;
+branch `docs/research-foundation-scope`, review in PR #20.
+The user asked to fix the public README and releases after feedback that both
+were hard to understand. Scope: rewrite `README.md` for new readers, add a small
+documentation index and a single-source quickstart configuration, and edit the
+existing GitHub release title/notes/classification and asset display labels.
+Store the release copy in `docs/releases/evidence-archive-2026-09-12.md` and
+align the repository's short description with the plain-language introduction.
+Keep release tags, downloadable filenames, bytes and historical receipts intact.
+No product binary or measured result is being released. Update the existing PR
+against current `main`; preserve all runtime code and other agents' work.
+
+Acceptance: run the documented key-free quickstart in isolated local storage,
+check documentation links and diff, verify release metadata and unchanged asset
+hashes/IDs, and keep the README's current/planned distinction explicit.
+
+Handoff: the README is 553 words, down from 1,280 on `main`; it now starts with
+the purpose, available capabilities and a key-free example. Internal evaluation
+and contributor material is linked through `docs/README.md`. `uv sync --locked`
+and the documented validate/run/export commands pass with isolated local storage
+and no model credentials. The live OFAC feed yielded 10 records; the JSONL count
+and SHA-256 match its companion manifest. Raw responses and verification logs
+remain in ignored local storage; this is a collection check, not a model test.
+All 387 local Markdown targets resolve across 60 documents; diff checks pass.
+
+The GitHub release is now titled "Historical test evidence (September 2026)",
+marked as a prerelease, and no longer marked Latest. Its notes describe the
+audience and downloads in plain language; both assets have readable display
+labels. API verification confirms the original release ID, tag, target, publish
+date, asset IDs, filenames, download URLs, sizes and digests are unchanged.
+Historical publication receipts retain the original metadata. The repository
+description now matches the README's purpose. The README/configuration changes
+are delivered through PR #20 against `main`; no PR merge is performed here.
+
 ### September 13, 2026 — Shared foundation scope clarification
 
 Owner: `/root`; status: implemented and published for review; branch `docs/research-foundation-scope`,

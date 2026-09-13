@@ -1,39 +1,59 @@
 # Research Harness
 
-A Python foundation for research investigations and automated data ingestion.
-The implemented workflow focuses on source discovery: an agent inspects sources,
-tests connector configurations, and produces a source assessment plus a runnable
-pipeline definition when supported. Collectors preserve original responses,
-revisions and timestamps for later analysis. This ingestion workflow is one
-specialist capability; a pipeline proposal is not the required output of every
-research task.
+Tools for finding data sources, collecting them repeatedly, and keeping research
+inputs traceable.
 
-**Status:** working local CLI and Omnigent integration. Public-source ingestion has been exercised against Polymarket, Kalshi, and OFAC. The Omnigent browser workflow has saved proposals, collected/exported data, and reopened the same case after restarting, using synthetic model responses and real local workers. A controlled fixture comparison now exercises both actual runtimes through shared request controls. Live model quality and comparisons using real model responses remain unverified. Model-driven discovery requires an `OPENAI_API_KEY`; forecasting and a background scheduler remain future work.
+For example: start with a question about trade policy, find relevant government
+feeds and market data, test whether those sources can be collected, then save a
+repeatable pipeline. Every exported record links back to the response it came from.
 
-**Integration/evaluation track:** the Omnigent source-discovery integration and independently evaluated strategy optimization have their own [goal and milestone tracker](docs/goals/omnigent-integration.md), [accepted implementation plan](docs/omnigent-integration-plan.md), and [agent coordination instructions](AGENTS.md). The local software and evidence release are verified; measured evaluation requires independent benchmark review, provider access and an approved spending budget. These completion gates apply to this technical track; they do not define the whole product or make optimization a prerequisite for other workflows. The [checkpoint scope](docs/checkpoint-scope.md) records what PR #1 delivers, its boundaries and how to reproduce its evidence; [remaining work](docs/remaining-work.md) lists that checkpoint's reviewed follow-ups.
+**Status:** early-stage Python CLI and agent integration. Data collection works
+today. The broader financial, event and coding/ML research workflows are being
+built around it.
 
-General task/artifact state and workflow-specific analytical outputs are not yet
-provided by the discovery service. A runtime session is an execution record, a
-pipeline is a reusable ingestion definition, and a collection job executes that
-definition. Future research tasks should bind these records explicitly and define
-their own deliverables. Existing analyst-design documents describe one workflow
-area and remain design hypotheses, not shipped analytical capabilities.
+## What you can do today
 
-The [durable research service and fourteen local MCP tools](docs/research-service.md) share validation with the direct CLI. Follow the [Omnigent setup and fixture walkthrough](examples/omnigent/README.md), inspect the [browser acceptance evidence](docs/omnigent-ui-acceptance.md), or run the [independent development evaluation](docs/research-evaluation.md). The [controlled comparison runner](docs/controlled-comparison.md) freezes shared settings, inputs and failure records for both runtimes and independently verifies gateway usage. The [budgeted pilot](docs/pilot-budget.md) adds shared reservations before provider dispatch, evidence-backed settlement and interruption recovery; its proposed spending decision remains pending. Local Postgres/MinIO acceptance now covers restart, detached jobs and scoped exports. The [strategy integration](docs/strategy-optimization.md) adds isolated Python execution, observation/context selection, verified-stop finalization, complete development archives, a bounded coding proposer, a durable search controller, advisory development-string audits and private final evaluation with registrable-domain split checks. A [complete runtime fixture](examples/evaluation/evidence/combined-strategy-search-2026-09-09/acceptance.json) now verifies three search iterations and isolated final evaluation through the actual coding proposer, Docker and normal Omnigent runtime. Responses are synthetic; reviewed cases and measured model optimization remain unfinished.
+- **Find sources:** give an agent a research brief and get a source assessment,
+  coverage gaps, and a pipeline definition when supported sources are found.
+- **Collect data:** use RSS/Atom feeds, JSON APIs, HTML pages, and Polymarket or
+  Kalshi market data. Save original responses, timestamps and revisions.
+- **Export and inspect:** write JSONL datasets, trace records to their sources,
+  and reprocess saved responses without fetching them again.
+- **Connect agents:** use the CLI directly or let Omnigent call the same research
+  and ingestion operations through MCP.
 
-The [budgeted strategy runner](docs/strategy-optimization.md#run-search-with-the-shared-model-budget) now shares the pilot ledger across research, coding proposals and private final evaluation. Its [acceptance record](examples/evaluation/evidence/budgeted-strategy-search-2026-09-09/acceptance.json) verifies 125 reserved and settled synthetic requests through actual Omnigent/Docker execution. The September 9 checkpoint records 1,004 passing tests; current follow-up verification is recorded in the tracker. Human review and measured model evaluation remain outstanding.
+Live model quality and strategy-optimization gains have not been measured yet.
+The integration tests use scripted model responses.
 
-Direct discovery and MCP now emit strict provider schemas with host-owned defaults. The [offline schema preflight](examples/omnigent/README.md#offline-provider-schema-preflight) captures SDK serialization and conversion without a provider call; live acceptance remains outstanding.
+## Try it without an API key
 
-## Start with a research question
-
-Requires Python 3.11+ and [uv](https://docs.astral.sh/uv/). The lockfile pins dependencies.
+Requires Python 3.11+ and [uv](https://docs.astral.sh/uv/getting-started/installation/).
+This example fetches a public government RSS feed; no model or paid service is used.
 
 ```sh
-uv sync
+git clone https://github.com/Madhavan113/researchharness.git
+cd researchharness
+uv sync --locked
+
+uv run rh validate examples/quickstart.pipeline.json
+uv run rh run examples/quickstart.pipeline.json
+uv run rh export examples/quickstart.pipeline.json --out artifacts/quickstart.jsonl
 ```
 
-Set `OPENAI_API_KEY` in your shell, then run:
+Open `artifacts/quickstart.jsonl` for the collected records and
+`artifacts/quickstart.jsonl.manifest.json` for the record count, checksum and source
+health. Local history and raw responses are saved under `.researchharness/quickstart/`.
+The example collects the OFAC site feed, which includes sanctions-program pages;
+it is not a complete list of new sanctions actions. Results depend on the live feed.
+
+Edit the [example configuration](examples/quickstart.pipeline.json) to use your
+own sources. See the [pipeline guide](docs/data-pipeline.md) for connector formats,
+repeated collection, exports and recovery. Scheduling is currently external;
+`rh run --due` checks which sources are ready to collect when invoked.
+
+## Start from a research question
+
+Set `OPENAI_API_KEY` in your shell, then run the included brief:
 
 ```sh
 uv run rh discover \
@@ -41,100 +61,33 @@ uv run rh discover \
   --out artifacts/trade-policy
 ```
 
-The example brief asks for sources useful to U.S.–China trade and export-policy research. You can also pass a question directly. `--model` or `OPENAI_MODEL` selects the discovery model; the default is `gpt-5.4-mini`. The `.env.example` file documents variables and is not automatically loaded.
+This calls a model and incurs provider charges. It writes a readable `proposal.md`,
+source evidence and, when supported sources pass their checks, `pipeline.json`.
+Collection is a separate step; review the proposal before running that pipeline.
+See [discovery options](docs/data-pipeline.md#discovery-and-proposal-generation)
+for model settings and limits. For agent-driven use, follow the
+[Omnigent setup guide](examples/omnigent/README.md).
 
-Native OpenAI search is the default. To use the same search-provider wrapper as Omnigent, install the optional MCP extra and add `--search-provider mcp`:
+## Where this is going
 
-~~~sh
-uv run --extra mcp rh discover \
-  --brief examples/trade-policy.brief.md \
-  --out artifacts/direct-mcp \
-  --search-provider mcp
-~~~
+The shared foundation supports investigations and optional data ingestion.
+Planned workflows have different outputs:
 
-`--search-endpoint` can select a compatible MCP endpoint. `--settings` and `--instructions` bind explicit execution settings and a shared instruction file. Use the controlled comparison runner to preserve these controls and failed cases across both runtimes.
+| Workflow | Intended outputs |
+| --- | --- |
+| Financial research | Analyst work, diligence memos, financial models and DCF analysis |
+| Event research | Dated evidence, event timelines, competing scenarios and assessments |
+| Coding and ML research | Changes grounded in repository/design constraints, reproducible experiments and baseline comparisons |
 
-Discovery writes:
+These are planned capabilities, not finished workflows. General investigations
+remain part of the scope; a task does not have to produce a pipeline.
 
-- `proposal.md` and `proposal.json`: source assessments, citations, coverage, and open questions.
-- `probes.json` and `evidence/`: actual source responses and structural probe results.
-- `pipeline.json`: executable definitions backed by matching successful probes, when any are available.
-- `trace.jsonl`: tool activity, model response metadata, validation feedback, and token usage.
+## Documentation and downloads
 
-If a source requires an unsupported connector or credentials, the proposal records that requirement. A source sample does not establish complete history or sustained availability.
+Use the [documentation index](docs/README.md) for storage, agent integration,
+strategy experiments, testing and contributor guides.
 
-## Collect and export
-
-```sh
-uv run rh validate artifacts/trade-policy/pipeline.json
-uv run rh run artifacts/trade-policy/pipeline.json
-uv run rh status artifacts/trade-policy/pipeline.json
-uv run rh export artifacts/trade-policy/pipeline.json \
-  --out artifacts/trade-policy/observations.jsonl
-```
-
-Exports include lineage and a companion manifest with a data checksum and source health. `--as-of` selects the latest records actually observed **and published by the pipeline** before a timezone-qualified cutoff. An old source publication date never backdates collection.
-
-For a live collection example that needs no model key:
-
-```sh
-uv run rh run examples/trade-policy.pipeline.json
-```
-
-This hand-configured example uses three public sources identified during the product research. Its Polymarket contract is dated September 2026; use discovery or edit the watchlist for later research.
-
-## Registry and shared backend
-
-Every research question, discovery run, proposal, and candidate pipeline definition is recorded in a registry, so alternatives for the same question can be listed, compared, adopted, or retired. Discovery registers automatically; hand-written definitions are added with `rh pipelines register`. The registry and all collected data live either in local SQLite (the default) or in a shared Postgres database plus an S3-compatible bucket, selected by `RH_DATABASE_URL` and `RH_BLOB_*`. Supabase provides both.
-
-```sh
-uv run rh backend init
-uv run rh questions list
-uv run rh pipelines list --question QUESTION_ID
-uv run rh pipelines adopt PIPELINE_ID --note "Best coverage"
-uv run rh run PIPELINE_ID
-```
-
-Pipeline ids work wherever a pipeline file is accepted. See [docs/backend.md](docs/backend.md) for setup, schema, and concurrency details.
-
-## Reliability and extension
-
-- Immutable response bodies addressed by SHA-256, with HTTP attempts and source provenance in SQLite or Postgres.
-- Conditional requests, bounded retries, explicit pagination, and polling intervals respected by `rh run --due`.
-- Atomic publication per source. Failed pages, conflicting record identities, and quarantined records cannot advance its state or publish a partial snapshot.
-- Version deduplication with separate observations, so unchanged data still has a fresh collection history.
-- Offline replay from captured bodies, without HTTP requests or changes to published data.
-- Polymarket and Kalshi metadata/books, RSS/Atom, configurable JSON endpoints, and HTML page text.
-
-Read the [pipeline guide](docs/data-pipeline.md) for commands, schemas, guarantees, and limits. `rh catalog` lists connector capabilities; `rh schema source` exposes the configuration contract an agent uses.
-
-```sh
-uv run pytest
-uv run ruff check src tests
-uv run ruff format --check src tests
-```
-
-Pytest lists skip reasons by default. Follow the [test configurations](docs/testing.md) to include MCP, Docker and the pinned Omnigent runtime; `RH_TEST_REQUIRE_RUNTIME=1` makes missing configuration and skipped checks fail. The [CI workflow](.github/workflows/tests.yml) runs ordinary checks and the required runtime configuration on pushes and pull requests. New checkpoint archives follow the [evidence retention policy](docs/evidence-retention.md), with small hash-bound summaries in Git and complete archives in release assets.
-
-The [portable evidence guide](docs/portable-evidence.md) explains derived review
-copies with path placeholders and original/exported hashes. Historical originals
-remain unchanged in their pinned Git revision; the
-[restoration command](docs/evidence-retention.md#restore-exact-historical-originals)
-retrieves them into a private directory with exact hash checks. The
-[complete review release](https://github.com/Madhavan113/researchharness/releases/tag/evidence-historical-review-all-2026-09-12)
-is published, and all 15,397 downloaded members pass verification.
-The [complete historical review checkpoint](examples/evaluation/evidence/historical-review-all-2026-09-12/README.md)
-verifies all baseline evidence, including nested Omnigent snapshots, and provides
-a reproducible recipe, a hash-bound index and the publication/download receipt.
-
-## Product research
-
-The earlier company-analysis and prediction-market proposals provide context for the data layer:
-
-- [Geopolitical prediction markets](docs/prediction-markets.md): contract research, evidence monitoring, market capacity, and a pilot proposal.
-- [Analyst needs and product priorities](docs/analyst-needs.md): the broader job, user segments, and proposed first workflow.
-- [Market landscape](docs/market-landscape.md): documented competitors, integration choices, and differentiation hypotheses.
-- [Workflow examples](docs/product-workflows.md): event review, related-company monitoring, call preparation, and a fictional worked example.
-- [Analyst pilot plan](docs/analyst-pilot.md): interviews, benchmark assignments, measurements, and decision criteria.
-- [Research sources](docs/research-sources.md): evidence and its limits.
-- [Harness architecture](docs/research-design.md): shared records, agent responsibilities, financial checks, and execution design.
+Install the current CLI from this repository. The existing
+[GitHub release](https://github.com/Madhavan113/researchharness/releases/tag/evidence-historical-review-all-2026-09-12)
+is an archive of test evidence for reviewers, not an application installer or a
+benchmark result.
