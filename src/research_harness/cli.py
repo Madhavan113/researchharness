@@ -53,7 +53,7 @@ def parser() -> argparse.ArgumentParser:
     check_experiment.add_argument("--harbor", type=Path, required=True)
     check_experiment.add_argument("--timeout", type=int, default=1800)
     experiment_status = experiment_sub.add_parser(
-        "status", help="Inspect an existing check without rerunning"
+        "status", help="Inspect an existing check or execution without rerunning"
     )
     experiment_status.add_argument("output", type=Path)
     review = experiment_sub.add_parser(
@@ -361,9 +361,14 @@ def execute(args: argparse.Namespace) -> int:
         if args.experiment_command == "check":
             result = check(args.prepared, args.out, args.harbor, timeout=args.timeout)
         else:
-            result = status(args.output)
+            if (args.output / "execution.json").exists():
+                from research_harness.experiments.execution import status as execution_status
+
+                result = execution_status(args.output)
+            else:
+                result = status(args.output)
         emit(result)
-        return 0 if result["status"] == "passed" else 1
+        return 0 if result["status"] in {"passed", "completed"} else 1
     if args.command == "mcp":
         try:
             from research_harness.mcp.server import create_server

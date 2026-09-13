@@ -30,10 +30,14 @@ model, resource budget, additional tasks and comparison protocol before measured
 execution. Keep the task model fixed while the proposer changes the agent program.
 Record all attempts and costs; use independent reruns and describe uncertainty.
 
-The current executable check runs only Harbor's `oracle` and `nop` controls.
+The benchmark check runs Harbor's `oracle` and `nop` controls.
 The reference solution must receive reward 1, and no-op must receive reward 0.
 Both must reach the verifier without an environment/runtime exception. A green
 check establishes only that these controls separate on this setup.
+
+The separate Omnigent integration fixture uses a fixed supervisor/worker with
+scripted model responses. It verifies execution and isolation, not Terminus-2,
+a measured baseline or editable agent-program search.
 
 ## Infrastructure proposal and explicit adaptations
 
@@ -41,18 +45,21 @@ check establishes only that these controls separate on this setup.
 - Harbor 0.23.0 runs separately under Python 3.12. The task uses a pinned Python
   3.13 image digest and installs pinned pytest/CTRf package versions during build.
   Transitive dependencies are resolved during build; retain the build logs.
-- Runtime networking uses Harbor's `public` mode, as in the upstream task. Harbor's
-  network blocking requires nftables kernel support unavailable on the current
-  Docker host; the first failed attempt is retained. Network access needs curator
-  review before agent runs. No provider credentials or model calls are used by
-  the two controls. Image/dependency installation also requires network access.
+- The original reference/no-op check uses the upstream task's public networking.
+  Delegated execution forces Docker `network_mode: none` in both task and verifier
+  containers, retaining the actual setting with each run. Required packages are
+  preinstalled in the image. This avoids Harbor's nftables egress sidecar, which
+  failed on the local Docker host; that earlier attempt is retained. Trusted image
+  builds still require networking. No provider credentials enter the task container.
 - The verifier uses a fresh container and receives only `/app/run.py` from the
   candidate environment. The initial file is an empty stub so no-op reaches tests.
 - The overlay changes the environment and test launcher to use preinstalled
   dependencies. It leaves upstream test assertions and reference solution intact.
   These changes differ from the paper's environment and require review.
-- Omnigent delegation, editable agent programs, model-budget enforcement for those
-  programs and interruption/recovery of their experiments are not implemented here.
+- The execution adapter connects fixed Omnigent delegation to existing model-budget
+  controls and an isolated container command tool. Editable agent programs,
+  measured baseline/search results and durable interruption recovery remain
+  unfinished. No real model configuration or research spending is approved by this plan.
 
 ## Human curation before research execution
 

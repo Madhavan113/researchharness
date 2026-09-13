@@ -16,14 +16,16 @@ Most runtime code is under `src/research_harness/`:
 | [config.py](../src/research_harness/config.py) and [records.py](../src/research_harness/records.py) | Define validated pipeline/source configurations and data records. |
 | [store.py](../src/research_harness/store.py), [backend.py](../src/research_harness/backend.py) and [blobs.py](../src/research_harness/blobs.py) | Store metadata, record history and original responses locally or in Postgres/S3. |
 | [mcp/](../src/research_harness/mcp) and [integrations/](../src/research_harness/integrations) | Expose operations as agent tools and connect the separately installed Omnigent runtime. |
+| [experiments/](../src/research_harness/experiments) | Snapshot benchmark packages, retain curator decisions, delegate work through Omnigent into Docker and collect independent scores and execution evidence. |
 | [strategies/](../src/research_harness/strategies), [evaluation/](../src/research_harness/evaluation) and [optimization/](../src/research_harness/optimization) | Run configurable agent strategies, grade experiments and propose/test strategy changes. This experimental track is separate from ordinary ingestion. |
 
 `agents/` contains agent instructions, `examples/` contains configurations and
 walkthroughs, and `tests/` checks the implementation. `docs/archive/` contains
 historical research outputs. A saved JSON result is not a feature or an add-on.
 
-The existing service is specialized in source discovery and ingestion. A general
-task/artifact layer for other research workflows remains to be implemented.
+The existing research service is specialized in source discovery and ingestion.
+The separate experiment path currently supports single-step Harbor CPU tasks;
+broader investigation, planning and experiment search remain unfinished.
 Polymarket/Kalshi support currently lives in the built-in configuration, connector,
 record and collection code; there is no optional plugin loader yet.
 
@@ -47,7 +49,7 @@ record and collection code; there is no optional plugin loader yet.
 ## Evaluate research strategies
 
 - [Research experiments](experiments.md): prepare a proposed experiment, run real
-  Harbor benchmark controls and retain curator decisions. Agent execution is still pending.
+  Harbor benchmark controls, retain curator decisions and test delegated execution.
 - [Development evaluation](research-evaluation.md): case requirements and scoring.
 - [Controlled comparison](controlled-comparison.md): compare direct and Omnigent execution.
 - [Strategy optimization](strategy-optimization.md): candidate code, development

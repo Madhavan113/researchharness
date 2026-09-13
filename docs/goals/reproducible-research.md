@@ -51,7 +51,7 @@ their own untouched tasks and an explicitly different protocol.
 | Step | Deliverable | Status | Owner |
 | --- | --- | --- | --- |
 | E1 | One versioned experiment package and a runnable baseline/evaluator | in_progress | `/root` |
-| E2 | Omnigent delegation, isolated attempts and durable execution artifacts | queued | unassigned |
+| E2 | Omnigent delegation, isolated attempts and durable execution artifacts | in_progress | `/root` |
 | E3 | Candidate search, independent rerun and a reproducible finding | queued | unassigned |
 
 After the pilot, connect investigation (including computer-use evidence),
@@ -59,12 +59,12 @@ ideation and infrastructure proposals to the same human curation and experiment
 records. These capabilities remain required and unimplemented; completing E1–E3
 alone does not establish the full active thread goal.
 
-The [experiment guide](../experiments.md) now supplies a proposed task, setup/run
-commands, verified positive/negative benchmark controls and local operator review
-commands. Next: connect the curated package and planned agent baseline to execution
-through Omnigent, with explicit provider configuration and enforced resource limits.
-The research baseline itself remains unmeasured. Record provider access and a
-spending budget before any paid model run, using existing controls where applicable.
+The [experiment guide](../experiments.md) supplies a proposed task, benchmark
+controls, operator review and a real Omnigent/Docker execution fixture. Delegation
+now connects to the existing model budget and independent verifier. The authored
+fixture is not the planned Terminus-2 baseline or an editable agent program.
+Next: implement the full candidate-program interface and a runnable research
+baseline. Record provider access and a spending budget before any paid model run.
 
 ## Keep the scope small
 
@@ -80,6 +80,76 @@ The app goal controller now reports the user's research-workflow goal active.
 The earlier failed registration is historical; no old evaluation was marked complete.
 
 ## Current ownership
+
+September 13, `/root`, E2 execution integration in progress on
+`feat/experiment-execution`. Intended files: `experiments/` runtime/service code,
+CLI, focused/runtime tests, experiment documentation and this tracker. Connect the
+curation prerequisite to real Omnigent worker execution in a Harbor task environment;
+retain attempts and link worker actions to independent verifier results. Use
+scripted model responses to establish the runtime boundary before any paid run.
+Do not route experiments through a fabricated source-discovery case, execute
+candidate code on the host, expose curator writes to workers or claim model gains.
+Preserve the current ingestion path and Claude's private UI work.
+
+Implementation checkpoint: the trusted `experiments.execution.run` API rechecks
+curation, binds a fixed model/budget to exact inputs, snapshots the harness source,
+and starts real supervisor/worker sessions through the pinned Omnigent runtime.
+Worker code runs through a container command endpoint; raw commands, submitted
+artifacts, runtime identities/conversations, dependencies, actual Docker settings,
+verifier output and model usage are retained. `rh experiment status` verifies the
+exported inventory. Task reward 0 remains a valid completed negative result.
+
+Runtime inspection found that Harbor 0.23.0 mounts verifier output in its task
+container even with separate grading. `ExperimentDocker` removes all host mounts
+and uses Docker `network_mode: none` for both roles. Image builds remain networked.
+This runtime restriction is an explicit departure from the original check's public
+networking and is recorded in the example plan and each execution. Omnigent also
+auto-exposes management/browser tools: an inherited session policy restricts calls
+to the execution interface, with deliberate denied calls in both parent and child
+fixtures. Its inline format preserves the concurrent-worker limit; the native
+directory parser at this pin drops it, while inline nested MCP servers are dropped.
+The fixed connector function avoids both parser limitations.
+
+The integration fixture and required Docker/Omnigent CI cover a scripted working
+solution and an attempted forged reward, using a separate synthetic curator log and
+zero-cost mock model transport. These establish execution and selected isolation
+properties, not model quality, a human decision or a paper reproduction. Failed
+setup attempts remain under `.researchharness/experiments/omnigent-fixture-*`.
+Final local runtime controls are `omnigent-fixture-8` (solution, 6/6 assertions,
+reward 1) and `omnigent-fixture-9` (forged reward, 1/6 assertions, reward 0).
+Both retain seven scripted Responses calls, real parent/child sessions, zero-cost
+reconciled fixture accounting, actual Docker `network_mode: none`/empty mounts and
+verified terminal inventories. The [guide](../experiments.md#delegated-execution-controls)
+records exact trial IDs and inventory hashes. Earlier attempts are preserved.
+The final focused command passes 26 tests:
+`RH_TEST_OMNIGENT_PYTHON=/tmp/researchharness-omnigent-be042b39/.venv/bin/python uv run --locked --extra mcp pytest -q tests/test_experiment_bundle.py tests/test_experiment_execution.py tests/test_experiment_workspace.py`.
+Logs are `.researchharness/experiments/pytest-execution-focused-3.txt` and
+`pytest-execution-runtime.txt`. Published as
+[PR #24](https://github.com/Madhavan113/researchharness/pull/24), stacked on #23.
+[Hosted CI for source commit `8831dcc`](https://github.com/Madhavan113/researchharness/actions/runs/34747725016)
+passes: 1,492 ordinary tests with 33 explicit optional skips, all 1,525 required
+runtime tests with no skips, and both delegated execution controls (rewards 1/0).
+Exported runtime diagnostics are attached to that run for 14 days.
+
+Local macOS verification is not fully green: the required run passed 1,516 tests
+and failed eight Docker-dependent checks in 828.87 seconds. Docker create,
+inspect/info and strategy execution hit their existing deadlines. The run began
+before the final network override; the final 26-test focused run and both new
+Docker controls cover that change. After retaining receipts and removing three
+test-owned containers through the existing ownership-checked recovery API, a
+single targeted rerun passed three checks and still failed five in 260.79 seconds.
+Its remaining test-owned containers were removed or confirmed absent afterward;
+recovery did not replay candidate code.
+These local timeouts remain unresolved; no limits were relaxed or results erased.
+Rerun/recovery records are under `.researchharness/experiments/pytest-execution-runtime-rerun.txt`
+and `runtime-recovery*/`. Ruff, formatting, local documentation links and the
+evidence-retention policy pass. No paid provider calls have been made.
+
+Remaining scope: a normal research run entry point, editable full agent programs,
+the curated/measured baseline, candidate search, independent reruns and accepted
+findings. Computer-use investigation, ideation and infrastructure proposals still
+need to connect to the same curated records. This fixed coding fixture does not
+replace those requirements. E1/E2 and the full goal remain in progress.
 
 September 13, `/root`, E1 local curator decision step complete on
 `feat/experiment-curation`. Scope: `experiments/curation.py`, benchmark evidence

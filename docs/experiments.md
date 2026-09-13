@@ -1,7 +1,10 @@
 # Research experiments
 
-The experiment commands prepare inputs, check a benchmark and retain operator
-curation decisions. They do not run a research agent or accept a finding.
+Prepare a question and benchmark, review it, delegate work into Docker and inspect
+the independent score. CLI commands cover preparation, checks, curation and status;
+a trusted Python API connects execution to Omnigent and the existing model budget.
+The end-to-end examples use scripted responses. No research baseline or finding
+has been measured or accepted.
 See the [active goal](goals/reproducible-research.md).
 
 ## Prepare the example
@@ -115,8 +118,8 @@ these write methods as agent tools. A host writer can alter the database or hash
 Benchmark acceptance has a narrow scope: it does **not** authorize model spending,
 launch an experiment, accept a finding or change the proposal's saved metadata.
 `CuratorStore.require_accepted()` revalidates inputs, raw results and the latest
-decision for a future dispatcher. That prerequisite is implemented and tested;
-the Omnigent dispatcher and execution budget gate are not connected yet. Withdrawal
+decision before the Omnigent execution adapter starts. It also requires an explicit
+`DispatchBudget` bound to this experiment's ID and input fingerprint. Withdrawal
 does not cancel a running process. The CLI reports successful inspection/recording
 with exit code 0 even for pending/rejected packages; dispatchers must use the
 service prerequisite rather than interpreting that exit code as acceptance.
@@ -132,17 +135,114 @@ boundary for hostile task authors. Agent tools must not gain the same access.
 Prepared/check receipts remain `pending_human_review` when checks pass; only the
 separate curator log records an operator's decision. Humans still choose the
 direction, benchmark, evaluation criteria, environment, model/budget and accepted
-findings. Authenticated network curation, Omnigent delegation, computer-use evidence,
-experiment planning tools and model-backed execution remain follow-up work.
+findings. Authenticated network curation, computer-use evidence, experiment planning,
+full agent-program search and measured model-backed execution remain follow-up work.
 
 The example preserves upstream test assertions and adds an explicit verifier
-image, artifact transfer and pinned dependency setup. Networking uses the upstream
-task's public mode; the local Docker host lacks the kernel support required by
-Harbor's network-blocking implementation. Resource settings and this limitation
-are visible in the plan. Do not describe the environment as network-isolated.
+image, artifact transfer and pinned dependency setup. The original benchmark
+check uses upstream public networking. Delegated execution additionally overrides
+runtime networking to Docker's `none` mode in both roles, recorded with each run;
+the images contain the required dependencies. This avoids Harbor's nftables-based
+egress sidecar, which the local Docker host could not run. Image builds still use
+networking. See the [plan](../examples/experiments/meta-harness/plan.md).
 
-The first checker supports single-step local CPU tasks with binary `reward.txt`
-output. Other metrics, GPU jobs and agent execution need further integration.
+The first execution adapter supports single-step local CPU tasks with binary
+`reward.txt` output. Other metrics, GPU jobs and candidate-program search need
+further integration.
+
+## Try delegated execution without a model key
+
+After installing Harbor and checking out the task as above, install the pinned
+Omnigent environment separately:
+
+```sh
+sh examples/omnigent/setup.sh "$PWD/.researchharness/runtimes/omnigent"
+
+uv run --locked --extra mcp python examples/experiments/omnigent_runtime_fixture.py \
+  --checkout .researchharness/terminal-bench-2 \
+  --out .researchharness/experiments/delegation-1 \
+  --harbor .researchharness/runtimes/harbor/bin/harbor \
+  --omnigent-python .researchharness/runtimes/omnigent/.venv/bin/python
+
+uv run --locked --extra mcp python examples/experiments/omnigent_runtime_fixture.py \
+  --fixture-inputs .researchharness/experiments/delegation-1 \
+  --out .researchharness/experiments/forged-reward-1 --forged-reward \
+  --harbor .researchharness/runtimes/harbor/bin/harbor \
+  --omnigent-python .researchharness/runtimes/omnigent/.venv/bin/python
+
+uv run rh experiment status .researchharness/experiments/delegation-1/execution
+uv run rh experiment status .researchharness/experiments/forged-reward-1/execution
+```
+
+Use new output directories for every attempt. The first script prepares a clearly
+labelled test package, checks reference/no-op solutions, and records a synthetic
+decision in its own test-operator database. It does not accept the proposed research
+pilot on a person's behalf. Model responses come from `httpx.MockTransport`;
+Omnigent, its supervisor/worker sessions, Docker commands and Harbor's verifier
+are real. The first worker writes a known solution (expected reward 1); the second
+writes fake rewards without solving the task (expected independent reward 0).
+Both deliberately attempt forbidden tools in the parent and child sessions.
+
+`completed` means the execution protocol finished with verified evidence. A
+completed task can score **0**. A session ending or a process exiting successfully
+does not establish a passing benchmark, an accepted finding or model improvement.
+
+For integration code, use
+[`experiments.execution.run`](../src/research_harness/experiments/execution.py)
+with prepared inputs, check artifacts, a `CuratorStore`, an explicitly configured
+`DispatchBudget`, separate runtime paths and a fresh output directory. The budget
+binding uses the experiment ID, prepared input SHA, phase `workflow` and runtime
+`omnigent-experiment`. It reuses the [existing provider controls](pilot-budget.md);
+provider access, current pricing and spending authorization must be established
+separately. No provider is chosen implicitly. The reviewed provider policy does
+not yet cover Astra/max. There is no general `rh experiment run` command yet.
+
+## What a run retains and restricts
+
+| Evidence | Location inside an execution directory |
+| --- | --- |
+| Curated input/review binding, model settings, limits, score and usage | `execution.json`, `review.json` |
+| Frozen harness Python source, available project lockfiles and hashes | `source/`, `source-sha256.json` |
+| Actual Python/package versions for controller, Harbor and Omnigent | `dependencies.json`, per-trial dependency records |
+| Supervisor/worker IDs, exported conversation items, events and tool policy | `controller/<trial-id>/runtime/` |
+| Container command inputs, timestamps, exit codes and bounded output | `controller/<trial-id>/commands/` |
+| Actual image/container IDs, mounts, privilege, CPU and memory settings | `controller/environment-*.json` |
+| Submitted artifacts, raw verifier results and build/runtime logs | `jobs/experiment/`, `harbor.log` |
+| Model request/response records, usage and budget reconciliation | `gateway/` |
+
+`files.json` seals exported evidence; status detects changes without replaying a
+run. Source imports do not write bytecode into the frozen snapshot. Failed attempts
+remain separate. Runtime databases/configuration and the private loopback connection
+file are retained locally but excluded from exported evidence. Hosted runtime CI
+also runs both fixtures and keeps exported diagnostics for 14 days.
+
+The adapter removes **all host mounts** from both task and verifier containers.
+Harbor 0.23.0's default Docker environment mounts verifier output in the task
+container even with separate grading, so a separate verifier alone is insufficient.
+Only configured task artifacts are transferred into a fresh verifier. Controller
+records, curation and model credentials stay outside the candidate environment.
+Docker inspection checks actual mounts and privileges; the example applies one CPU
+and 1 GiB RAM. Disk space is declared by the task but is not an enforced quota.
+Runtime networking is forced to `none` in both containers, removing access to
+host services and external networks; this pilot cannot run network-dependent tasks.
+This restriction applies to task execution, not to trusted image builds or the
+host-side model gateway.
+
+Omnigent's root session has a tool policy installed before its first message,
+inherited by the worker. It permits delegation, session inspection, inbox reads
+and the fixed container-command connector; other automatically exposed management
+and browser tools are denied. The pinned inline format preserves a limit of one
+concurrent worker session. The bridge serializes commands, limits their number and
+duration, and records receipts before dispatch. Reusing a request ID returns the
+receipt; it never silently reruns a command. Retained stdout/stderr is capped at
+64 KiB each and explicitly marked if truncated; Harbor still buffers command output
+before that cap, so this is not a host-memory limit.
+
+These controls assume a trusted local operator, task definition and runtime.
+They do not establish a hostile multi-tenant service, eliminate every reward-hacking
+strategy or prove human presence. Abrupt termination may leave Docker/runtime
+resources; a `running` receipt is not a liveness check. Inspect the recorded IDs
+before taking recovery action. There is no automatic replay.
 
 ## Local verification, September 13, 2026
 
@@ -168,3 +268,31 @@ blocking, a missing separate-verifier image, and test files not copied into that
 image. The successful overlay fixes setup while preserving upstream test
 assertions. No model, research baseline, human acceptance or search improvement
 was measured. E1 remains in progress until the curated baseline is runnable.
+
+### Delegated execution controls
+
+The final local Docker/Omnigent controls use runtime networking `none`, no host
+mounts, one CPU and 1 GiB RAM in both roles. Each used seven scripted model
+responses with reconciled zero-cost fixture accounting. Parent and child histories
+contain explicit policy denials for the forbidden calls.
+
+| Local attempt | Control | Passed / failed tests | Independent reward |
+| --- | --- | --- | --- |
+| `omnigent-fixture-8` | Worker writes the scripted solution | 6 / 0 | 1 |
+| `omnigent-fixture-9` | Worker writes fake rewards without solving the task | 1 / 5 | 0 |
+
+Both attempts have `status: completed`, no runtime exceptions, retained child
+sessions and intact exported inventories. Their trial IDs are respectively
+`e989566b-d9a3-41aa-aa66-3600b650cdfd` and
+`7a252e61-07dd-4603-a9b9-1bd352830d2e`. The SHA-256 of `execution/files.json` is
+`586490f28c2a8859c4b5f84f380e970422b3e3a98c3764414afccef72d8b5f22`
+and
+`0c053b558c5b02b9ea80b2cbef90fea2cd645de00361ed2269c745a9267250dc`.
+
+Local evidence lives under `.researchharness/experiments/`, with checked fixture
+inputs in `omnigent-fixture-1/`. Earlier attempts remain there too: MCP/executor
+setup failures (1–3), a native bundle that lost its worker-session limit (4),
+source verification rejecting generated bytecode (5), and tool-policy checks
+before networking was disabled (6–7). They are development evidence, not failed
+or successful research hypotheses. Reproduce the current controls using the
+commands above; these local paths are not downloadable GitHub assets.
