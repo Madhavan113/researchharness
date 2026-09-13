@@ -59,11 +59,6 @@ jobs:
         run: |
           uv venv --python 3.12.12 "${RUNNER_TEMP}/harbor"
           uv pip install --python "${RUNNER_TEMP}/harbor/bin/python" -r examples/experiments/harbor-requirements.txt
-      - name: Run all checks with skips forbidden
-        env:
-          RH_TEST_OMNIGENT_PYTHON: ${{ runner.temp }}/omnigent/.venv/bin/python
-          RH_TEST_HARBOR_PYTHON: ${{ runner.temp }}/harbor/bin/python
-        run: uv run --locked --extra mcp pytest --tb=short --junitxml="${RUNNER_TEMP}/runtime-tests.xml"
       - name: Check out the pinned experiment task
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
@@ -72,6 +67,25 @@ jobs:
           path: .researchharness/terminal-bench-2
           sparse-checkout: cancel-async-tasks
           persist-credentials: false
+      - name: Verify the native Terminus-2 loop and persistent terminal
+        run: |
+          uv run --locked --extra mcp python examples/experiments/omnigent_runtime_fixture.py \
+            --checkout .researchharness/terminal-bench-2 --terminus \
+            --out "${RUNNER_TEMP}/experiment-terminus" \
+            --harbor "${RUNNER_TEMP}/harbor/bin/harbor" \
+            --omnigent-python "${RUNNER_TEMP}/omnigent/.venv/bin/python"
+      - name: Verify independent grading for the Terminus-2 program
+        run: |
+          uv run --locked --extra mcp python examples/experiments/omnigent_runtime_fixture.py \
+            --fixture-inputs "${RUNNER_TEMP}/experiment-terminus" --terminus --forged-reward \
+            --out "${RUNNER_TEMP}/experiment-terminus-forged" \
+            --harbor "${RUNNER_TEMP}/harbor/bin/harbor" \
+            --omnigent-python "${RUNNER_TEMP}/omnigent/.venv/bin/python"
+      - name: Run all checks with skips forbidden
+        env:
+          RH_TEST_OMNIGENT_PYTHON: ${{ runner.temp }}/omnigent/.venv/bin/python
+          RH_TEST_HARBOR_PYTHON: ${{ runner.temp }}/harbor/bin/python
+        run: uv run --locked --extra mcp pytest --tb=short --junitxml="${RUNNER_TEMP}/runtime-tests.xml"
       - name: Verify delegated execution and inherited tool restrictions
         run: |
           uv run --locked --extra mcp python examples/experiments/omnigent_runtime_fixture.py \
@@ -98,20 +112,6 @@ jobs:
           uv run --locked --extra mcp python examples/experiments/omnigent_runtime_fixture.py \
             --fixture-inputs "${RUNNER_TEMP}/experiment-solution" --program --forged-reward \
             --out "${RUNNER_TEMP}/experiment-program-forged" \
-            --harbor "${RUNNER_TEMP}/harbor/bin/harbor" \
-            --omnigent-python "${RUNNER_TEMP}/omnigent/.venv/bin/python"
-      - name: Verify the native Terminus-2 loop and persistent terminal
-        run: |
-          uv run --locked --extra mcp python examples/experiments/omnigent_runtime_fixture.py \
-            --checkout .researchharness/terminal-bench-2 --terminus \
-            --out "${RUNNER_TEMP}/experiment-terminus" \
-            --harbor "${RUNNER_TEMP}/harbor/bin/harbor" \
-            --omnigent-python "${RUNNER_TEMP}/omnigent/.venv/bin/python"
-      - name: Verify independent grading for the Terminus-2 program
-        run: |
-          uv run --locked --extra mcp python examples/experiments/omnigent_runtime_fixture.py \
-            --fixture-inputs "${RUNNER_TEMP}/experiment-terminus" --terminus --forged-reward \
-            --out "${RUNNER_TEMP}/experiment-terminus-forged" \
             --harbor "${RUNNER_TEMP}/harbor/bin/harbor" \
             --omnigent-python "${RUNNER_TEMP}/omnigent/.venv/bin/python"
       - name: Retain experiment diagnostics, including failed attempts

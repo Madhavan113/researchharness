@@ -272,9 +272,10 @@ for the new prepared directory; changing the environment requires its own review
 
 The [baseline notes](../examples/experiments/terminus/README.md) record transport,
 context, dependency and image-reproducibility limitations. Harbor 0.23.0 is our
-explicit version choice, not a verified historical paper pin. The paper starts
-from both Terminus-2 and Terminus-KIRA; its published optimized artifact builds on
-KIRA. This pilot currently supplies only the Terminus-2 starting point.
+explicit version choice, not a verified historical paper pin. The
+[paper](https://arxiv.org/html/2603.28052v1#S4.SS3) starts from both Terminus-2 and
+Terminus-KIRA; its [published optimized artifact](https://github.com/stanford-iris-lab/meta-harness-tbench2-artifact)
+builds on KIRA. This pilot currently supplies only the Terminus-2 starting point.
 
 For scripted runtime validation, run the same fixture with `--terminus`, a new
 `--out` directory and `--checkout` instead of old fixture inputs. It creates an

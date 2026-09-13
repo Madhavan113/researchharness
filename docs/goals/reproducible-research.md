@@ -106,6 +106,17 @@ the separate Harbor/Omnigent interpreters). Hosted native-loop/forged-reward con
 are still pending; no real model has run. Next: inspect those runtime outcomes,
 retain failures and fix integration defects before publishing a validated baseline.
 
+First hosted attempt, implementation `5f7ffee`,
+[run 34749234357](https://github.com/Madhavan113/researchharness/actions/runs/34749234357):
+ordinary 1,510 passed/35 skipped; required 1,545 passed without skips. All four
+existing command/program controls passed. New Terminus oracle/no-op controls
+failed during image build: the pinned Python image is Debian bookworm, while the
+recipe incorrectly requested trixie package versions. Neither Terminus candidate
+nor model ran; there is no baseline score. The correction pins bookworm's tmux
+3.3a-3 and asciinema 2.2.0-1. The failed check and four execution inventories are
+retained locally under `.researchharness/experiments/hosted-terminus-5f7ffee/`,
+with CI logs beside it and hosted artifact `10314704092` (14-day retention).
+
 September 13, `/root`, editable candidate-program interface implemented and
 fixture-validated on
 `feat/experiment-programs`. Intended files: `experiments/` execution, container

@@ -11,11 +11,15 @@ explicit conversation history; provider-side response references and provider
 reasoning state are not reused. The configured input admission bound supplies
 Terminus-2's context threshold, not a claimed native model capacity. Output and
 input limits, fixed model settings and the shared orchestration budget remain
-external. Token costs in the agent trace use the controller's rate card, which
+external. Provider HTTP errors currently fail the program transport; they are not
+translated into native provider exception types for Terminus-2's error recovery.
+Token costs in the agent trace use the controller's rate card, which
 charges cached input at the full input rate; controller records are authoritative.
 
-The proposed task image adds Harbor's pinned Python dependencies, tmux 3.5a-3 and
-asciinema 2.4.0-1. Tokenizer assets are cached during the networked build. The task
+The pinned task image uses Debian bookworm. It adds Harbor's pinned Python
+dependencies, [tmux 3.3a-3](https://packages.debian.org/bookworm/tmux) and
+[asciinema 2.2.0-1](https://packages.debian.org/bookworm/asciinema).
+Tokenizer assets are cached during the networked build. The task
 and verifier run without networking. Apt transitive dependencies are resolved
 during the build; package versions and image IDs are retained, but the image is
 not yet exported as an immutable reproducibility artifact. The verifier and test

@@ -3,7 +3,7 @@ FROM python@sha256:ed86c82274b3c69b52fb5820f358f0bd7df0b603332063cb5c6e32bd220c3
 WORKDIR /app
 ENV LITELLM_LOCAL_MODEL_COST_MAP=True TIKTOKEN_CACHE_DIR=/opt/tiktoken-cache TERM=xterm-256color
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends tmux=3.5a-3 asciinema=2.4.0-1 \
+    && apt-get install -y --no-install-recommends tmux=3.3a-3 asciinema=2.2.0-1 \
     && dpkg-query -W \
     && rm -rf /var/lib/apt/lists/*
 COPY requirements.txt /opt/terminus-requirements.txt
