@@ -145,15 +145,17 @@ Fix direction: make tool-schema fields nullable and apply defaults host-side; ru
 
 Acceptance: a recorded live preflight or a unit test asserting the generated strict schema contains no `default` keys.
 
-### RW-11 · Storage parity fixes · `open` · confirmed
+### RW-11 · Storage parity fixes · `done` · confirmed
 
-Files: `src/research_harness/store.py` (`MIGRATIONS` at line 125, `SqliteDialect.lock` near line 202, `ON CONFLICT` near lines 544 and 559), `src/research_harness/services/research.py` (inspection at lines 476 and 518), `src/research_harness/registry.py` (`latest_run` near line 256, check-then-insert near lines 39 and 164), `src/research_harness/blobs.py` (`S3Blobs.put`), `src/research_harness/services/jobs.py` (worker env at line 48), `docs/backend.md`.
+Files: store, registry, backend, blobs, CLI and research/job services; package pins; backend/service/job tests and a frozen original SQL schema; `docs/backend.md`.
 
 Problem: databases created on `main` never receive the `runs_pipeline` index because it is bundled into migration 1. Inspection runs under the shared writer lock yet advances a `source_state` checkpoint, contradicting the backend doc. `rh pipelines list` reports `latest_run: null` in local mode because runs live in per-pipeline SQLite files. SQLite locks ignore `scope` and `shared` and are not re-entrant in-process. Registry inserts do not catch UNIQUE violations. `S3Blobs.put` does not verify an existing object's bytes. Workers inherit the entire parent environment including provider keys.
 
-Fix direction: move the index into migration 2; use the `finish_probe` shape for inspections; compute `latest_run` from pipeline stores in local mode; catch IntegrityError; verify existing S3 objects; whitelist worker env. Document the SQLite 3.35 requirement.
+Fix: forward migration 5 repairs old and already-upgraded databases; inspections use `finish_probe` without checkpoint updates; CLI summaries load local pipeline runs by question. Scoped shared/exclusive locks retain the legacy global guard and safe reentry. Registration uses conflict-aware inserts with nested rollback; SQLite begins outer write transactions before reads. S3 verifies existing bodies and uses conditional uploads. Workers receive only selected runtime/storage environment settings. Enforce SQLite 3.35 and Boto3 1.35.2 minimums.
 
 Acceptance: a migration test from `main`'s schema; a test that inspection leaves `source_state` untouched; a CLI test for `latest_run`.
+
+Completed September 10 by `/root`, branch `fix/storage-parity`, based on PR #8. The required Docker/Omnigent suite passes 1,285 tests with zero skips. Separate disposable PostgreSQL/MinIO acceptance passes 166 tests (59 Postgres/S3) and the detached workflow/restart/export checks, including native conditional-upload corruption rejection. The [backend guide](backend.md) documents the contracts; the shared tracker records exact commands, report hashes and cleanup evidence. These are local fixture/runtime checks, not remote deployment or measured-model results.
 
 ### RW-12 · Tighten split checks and add a leakage audit · `open` · plausible
 

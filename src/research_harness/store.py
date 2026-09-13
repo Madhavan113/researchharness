@@ -8,10 +8,12 @@ from contextlib import contextmanager
 from dataclasses import asdict
 from datetime import datetime
 from pathlib import Path
+from threading import get_ident
 from typing import Any
 from urllib.parse import urlsplit
 from uuid import uuid4
 
+import portalocker
 from filelock import FileLock, Timeout
 
 from research_harness.blobs import Blobs, LocalBlobs, validate_hash
@@ -19,7 +21,7 @@ from research_harness.config import PipelineSpec, SourceSpec
 from research_harness.records import NORMALIZER_VERSION, Capture, Issue, Record
 from research_harness.util import canonical_json, digest, timestamp, utcnow
 
-SCHEMA_VERSION = 4
+SCHEMA_VERSION = 5
 IDENTIFIER = re.compile(r"^[a-z_][a-z0-9_]*$")
 
 # One schema for both dialects. {auto_pk} is an integer identity primary key. {seq_col} adds an
@@ -127,6 +129,8 @@ MIGRATIONS = {
     2: TABLES[7:] + INDEXES[3:],
     3: DISCOVERY_TABLES + DISCOVERY_INDEXES,
     4: JOB_TABLES + JOB_INDEXES,
+    # Early version-1 databases lacked this index, including ones already upgraded to v4.
+    5: ["CREATE INDEX IF NOT EXISTS runs_pipeline ON runs(pipeline, started_at)"],
 }
 TABLES += DISCOVERY_TABLES + JOB_TABLES
 INDEXES += DISCOVERY_INDEXES + JOB_INDEXES
@@ -155,6 +159,8 @@ class SqliteDialect:
         return str(self.root / "harness.sqlite3")
 
     def connect(self) -> sqlite3.Connection:
+        if sqlite3.sqlite_version_info < (3, 35, 0):
+            raise RuntimeError("Research Harness requires SQLite 3.35 or newer")
         self.root.mkdir(parents=True, exist_ok=True)
         db = sqlite3.connect(self.root / "harness.sqlite3", timeout=5)
         db.row_factory = _dict_row
@@ -175,6 +181,10 @@ class SqliteDialect:
         if version == SCHEMA_VERSION:
             return
         with self.transaction(db):
+            # A concurrent opener may have migrated while we waited for the write transaction.
+            version = self.schema_version(db)
+            if version < 0 or version > SCHEMA_VERSION:
+                raise RuntimeError(f"Unsupported database schema {version}; refusing to modify it")
             for number, statements in MIGRATIONS.items():
                 if number > version:
                     for statement in statements:
@@ -186,7 +196,18 @@ class SqliteDialect:
 
     @contextmanager
     def transaction(self, db: sqlite3.Connection) -> Iterator[None]:
-        # SAVEPOINT starts a transaction when needed and preserves outer atomicity on nesting.
+        # Take the write slot before reads, avoiding deferred read-to-write upgrade races.
+        if not db.in_transaction:
+            db.execute("BEGIN IMMEDIATE")
+            try:
+                yield
+            except BaseException:
+                db.rollback()
+                raise
+            else:
+                db.commit()
+            return
+        # Preserve outer atomicity when a domain operation nests registry writes.
         name = f"tx_{uuid4().hex}"
         db.execute(f"SAVEPOINT {name}")
         try:
@@ -200,11 +221,28 @@ class SqliteDialect:
 
     @contextmanager
     def lock(self, db: sqlite3.Connection, scope: str, shared: bool) -> Iterator[None]:
+        flags = (portalocker.LOCK_SH if shared else portalocker.LOCK_EX) | portalocker.LOCK_NB
         try:
-            with FileLock(self.root / "writer.lock", timeout=0):
+            # Older processes hold this file exclusively. New scopes share this guard.
+            with (
+                portalocker.Lock(
+                    self.root / "writer.lock",
+                    mode="a+b",
+                    timeout=0,
+                    flags=portalocker.LOCK_SH | portalocker.LOCK_NB,
+                ),
+                portalocker.Lock(
+                    self.root / f"writer-{digest(scope)}.lock",
+                    mode="a+b",
+                    timeout=0,
+                    flags=flags,
+                ),
+            ):
                 yield
-        except Timeout as exc:
-            raise WriterBusy(f"Another writer is using {self.root}; wait for it to finish") from exc
+        except portalocker.AlreadyLocked as exc:
+            raise WriterBusy(
+                f"Another writer holds the lock for {scope}; wait for it to finish"
+            ) from exc
 
 
 class PostgresDialect:
@@ -320,6 +358,7 @@ class Store:
         self.blobs = blobs
         self.clock = clock
         self.dataset_scope = dataset_scope
+        self._writer_modes: dict[tuple[int, str], bool] = {}
         self.db = dialect.connect()
         try:
             dialect.ensure_schema(self.db)
@@ -400,19 +439,29 @@ class Store:
         Shared mode is for bounded probes and inspections that never publish or advance state;
         several agents may hold it at once, so nothing is swept."""
         pipeline = self._pipeline(pipeline)
-        with self.dialect.lock(self.db, pipeline, shared):
-            if not shared:
-                now = timestamp(self.clock())
-                with self.transaction():
-                    self.execute(
-                        "UPDATE source_runs SET status='interrupted', finished_at=?, error=? WHERE status='running' AND run_id IN (SELECT id FROM runs WHERE pipeline=? AND status='running')",
-                        (now, INTERRUPTED, pipeline),
-                    )
-                    self.execute(
-                        "UPDATE runs SET status='interrupted', finished_at=?, error=? WHERE status='running' AND pipeline=?",
-                        (now, INTERRUPTED, pipeline),
-                    )
+        owner = (get_ident(), pipeline)
+        if owner in self._writer_modes:
+            if self._writer_modes[owner] and not shared:
+                raise WriterBusy("Release the shared writer lock before acquiring it exclusively")
             yield
+            return
+        with self.dialect.lock(self.db, pipeline, shared):
+            self._writer_modes[owner] = shared
+            try:
+                if not shared:
+                    now = timestamp(self.clock())
+                    with self.transaction():
+                        self.execute(
+                            "UPDATE source_runs SET status='interrupted', finished_at=?, error=? WHERE status='running' AND run_id IN (SELECT id FROM runs WHERE pipeline=? AND status='running')",
+                            (now, INTERRUPTED, pipeline),
+                        )
+                        self.execute(
+                            "UPDATE runs SET status='interrupted', finished_at=?, error=? WHERE status='running' AND pipeline=?",
+                            (now, INTERRUPTED, pipeline),
+                        )
+                yield
+            finally:
+                del self._writer_modes[owner]
 
     def put_blob(self, body: bytes) -> str:
         return self.blobs.put(body)

@@ -223,11 +223,18 @@ def registry_command(args: argparse.Namespace, backend: Backend) -> int:
             elif args.questions_command == "list":
                 emit(registry.list_questions(store))
             else:
-                emit(registry.question_overview(store, args.question_id))
+                result = registry.question_overview(store, args.question_id)
+                result["pipelines"] = backend.describe_pipelines(store, result["pipelines"])
+                emit(result)
             return 0
         command = args.pipelines_command
         if command == "list":
-            emit(registry.list_pipelines(store, question_id=args.question, status=args.status))
+            emit(
+                backend.describe_pipelines(
+                    store,
+                    registry.list_pipelines(store, question_id=args.question, status=args.status),
+                )
+            )
         elif command == "show":
             emit(
                 {

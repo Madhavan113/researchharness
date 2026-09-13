@@ -209,6 +209,19 @@ class Backend:
     def open_registry(self, *, clock: Callable[[], datetime] | None = None) -> Store:
         return self.open_store(self.settings.local_root / "registry", clock=clock)
 
+    def describe_pipelines(
+        self, store: Store, pipelines: list[dict[str, Any]]
+    ) -> list[dict[str, Any]]:
+        """Attach run state from each registered dataset, including separate local databases."""
+        from research_harness import registry
+
+        for pipeline in pipelines:
+            _, spec = registry.pipeline_spec(store, pipeline["id"])
+            pipeline["legacy_unscoped_data"] = self.legacy_pipeline_data(spec)
+            with self.pipeline_store(spec, None, question_id=pipeline["question_id"]) as data:
+                pipeline["latest_run"] = data.latest_run(spec.name, spec.fingerprint())
+        return pipelines
+
     def pipeline_store(
         self,
         spec: PipelineSpec,

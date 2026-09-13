@@ -7,10 +7,11 @@ requires-python = ">=3.11"
 dependencies = [
   "defusedxml>=0.7.1,<1",
   "filelock>=3.18,<4",
+  "portalocker[win32]>=4.3,<5",
   "httpx>=0.28,<1",
   "openai>=2,<3",
   "psycopg[binary]>=3.2,<4",
-  "boto3>=1.35,<2",
+  "boto3>=1.35.2,<2",
   "pydantic>=2.11,<3",
 ]
 

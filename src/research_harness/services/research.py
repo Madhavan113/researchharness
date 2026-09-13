@@ -203,7 +203,9 @@ class ResearchService:
             receipts = self._receipts(store)
             counts = self._operation_counts(store)
             question = registry.get_question(store, context["question_id"])
-            pipelines = registry.list_pipelines(store, question_id=question["id"])
+            pipelines = self.backend.describe_pipelines(
+                store, registry.list_pipelines(store, question_id=question["id"])
+            )
             operations = [
                 {
                     **{k: v for k, v in row.items() if k != "result_json"},
@@ -216,12 +218,6 @@ class ResearchService:
                 )
             ]
         limits = json.loads(context["limits_json"])
-        for pipeline in pipelines:
-            with self.backend.open_registry() as store:
-                _, spec = registry.pipeline_spec(store, pipeline["id"])
-            pipeline["legacy_unscoped_data"] = self.backend.legacy_pipeline_data(spec)
-            with self.backend.pipeline_store(spec, None, question_id=question["id"]) as data:
-                pipeline["latest_run"] = data.latest_run(spec.name, spec.fingerprint())
         probes, observed = self._evidence_state(receipts)
         return {
             "question_id": question["id"],
@@ -543,20 +539,11 @@ class ResearchService:
                             {**link, "href": urljoin(capture.url, link["href"])}
                             for link in page.links[:50]
                         ]
-                    store.finish_source(
-                        spec.name, source_run_id, source, [], [], checkpoint={"inspection": True}
-                    )
+                    store.finish_probe(source_run_id, [], None)
                     store.finish_run(run_id, "inspected")
                     return report
                 except Exception as exc:
-                    store.finish_source(
-                        spec.name,
-                        source_run_id,
-                        source,
-                        [],
-                        [],
-                        error=f"{type(exc).__name__}: {exc}",
-                    )
+                    store.finish_probe(source_run_id, [], f"{type(exc).__name__}: {exc}")
                     store.finish_run(run_id, "failed", str(exc))
                     raise
         finally:

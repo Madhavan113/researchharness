@@ -91,14 +91,23 @@ class S3Blobs:
 
     def put(self, body: bytes) -> str:
         hashed = digest(body)
-        if not self.exists(hashed):
+        if self.exists(hashed):
+            self.get(hashed)
+            return hashed
+        try:
             self.client.put_object(
                 Bucket=self.bucket,
                 Key=self.key(hashed),
                 Body=body,
                 ContentType="application/octet-stream",
                 Metadata={"sha256": hashed},
+                IfNoneMatch="*",
             )
+        except Exception as exc:
+            if _error_code(exc) not in {"412", "PreconditionFailed"}:
+                raise
+            # Another uploader won the race. Verify its bytes instead of overwriting them.
+            self.get(hashed)
         return hashed
 
     def get(self, hashed: str) -> bytes:
@@ -109,7 +118,11 @@ class S3Blobs:
             if _error_code(exc) in MISSING_CODES:
                 raise FileNotFoundError(f"Stored response is missing: {hashed}") from exc
             raise
-        body = response["Body"].read()
+        stream = response["Body"]
+        try:
+            body = stream.read()
+        finally:
+            stream.close()
         if digest(body) != hashed:
             raise RuntimeError(f"Stored response failed its integrity check: {hashed}")
         return body

@@ -220,6 +220,42 @@ def test_failed_inspection_is_cached_and_does_not_repeat_network(tmp_path, servi
         assert service.get_context()["observed_urls"] == []
 
 
+@pytest.mark.parametrize("seeded", [False, True])
+@pytest.mark.parametrize("status", [200, 404])
+def test_inspection_never_creates_or_changes_collection_checkpoint(
+    tmp_path, service_backend, source, seeded, status
+):
+    with httpx.Client(
+        transport=httpx.MockTransport(lambda _: httpx.Response(status, json={"items": []}))
+    ) as client:
+        service = make_service(tmp_path, service_backend, client)
+        with service.evidence_store() as evidence:
+            if seeded:
+                with evidence.transaction():
+                    evidence.execute(
+                        "INSERT INTO source_state (pipeline,source_id,config_hash,last_success_at,checkpoint_json) VALUES (?,?,?,?,?)",
+                        (
+                            "discovery-inspection",
+                            "inspection",
+                            "saved-config",
+                            timestamp(),
+                            '{"cursor":"saved"}',
+                        ),
+                    )
+            before = evidence.state("discovery-inspection", "inspection")
+        if status == 404:
+            with pytest.raises(Exception, match="404"):
+                service.inspect(source.url, operation_id="inspection")
+        else:
+            assert service.inspect(source.url, operation_id="inspection")["status_code"] == 200
+        with service.evidence_store() as evidence:
+            assert evidence.state("discovery-inspection", "inspection") == before
+            assert evidence.count("versions") == evidence.count("observations") == 0
+            assert evidence.count("captures") == 1
+            source_run = evidence.query_one("SELECT status FROM source_runs")
+            assert source_run["status"] == ("probed" if status == 200 else "probe_failed")
+
+
 def test_saved_operations_remain_readable_after_deadline_but_new_work_stops(
     tmp_path, service_backend, source, item, clock
 ):
