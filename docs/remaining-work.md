@@ -2,6 +2,13 @@
 
 Prioritized follow-up list from the September 10, 2026 review of HEAD `4f49495`. Read [checkpoint scope](checkpoint-scope.md) first. Each item names the files, the confirmed failure, a fix direction and the acceptance check that closes it. Line numbers refer to HEAD `4f49495` and will drift; search for the quoted identifiers.
 
+Scope clarification, September 13: this is the integration/evaluation checkpoint's
+follow-up list, not the backlog for the entire research and ingestion product.
+Existing completed fixes and measured-evaluation gates retain their meaning.
+General investigations and other workflow areas require separate task/artifact
+contracts and acceptance; they do not all end in source-discovery proposals or
+depend on completing measured strategy optimization first.
+
 How to work this list:
 
 - Take items in priority order unless the tracker records a different owner. Record ownership in the [tracker](goals/omnigent-integration.md) before starting, per AGENTS.md.

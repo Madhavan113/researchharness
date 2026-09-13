@@ -1,10 +1,23 @@
 # Research Harness
 
-A Python harness that turns a research question into a proposed data pipeline. An agent discovers sources, inspects their responses, tests connector configurations, and produces a source assessment plus a runnable definition. The collectors preserve original responses, revisions, and timestamps for later analytical models.
+A Python foundation for research investigations and automated data ingestion.
+The implemented workflow focuses on source discovery: an agent inspects sources,
+tests connector configurations, and produces a source assessment plus a runnable
+pipeline definition when supported. Collectors preserve original responses,
+revisions and timestamps for later analysis. This ingestion workflow is one
+specialist capability; a pipeline proposal is not the required output of every
+research task.
 
 **Status:** working local CLI and Omnigent integration. Public-source ingestion has been exercised against Polymarket, Kalshi, and OFAC. The Omnigent browser workflow has saved proposals, collected/exported data, and reopened the same case after restarting, using synthetic model responses and real local workers. A controlled fixture comparison now exercises both actual runtimes through shared request controls. Live model quality and comparisons using real model responses remain unverified. Model-driven discovery requires an `OPENAI_API_KEY`; forecasting and a background scheduler remain future work.
 
-**Shared development goal:** build the Omnigent integration, then add independently evaluated strategy optimization. See the [goal and milestone tracker](docs/goals/omnigent-integration.md), [accepted implementation plan](docs/omnigent-integration-plan.md), and [agent coordination instructions](AGENTS.md). The local software and evidence release are verified; measured evaluation requires independent benchmark review, provider access and an approved spending budget. The tracker records ownership and completion evidence. The [checkpoint scope](docs/checkpoint-scope.md) records what PR #1 delivers, its boundaries and how to reproduce its evidence; [remaining work](docs/remaining-work.md) lists reviewed follow-up items in priority order.
+**Integration/evaluation track:** the Omnigent source-discovery integration and independently evaluated strategy optimization have their own [goal and milestone tracker](docs/goals/omnigent-integration.md), [accepted implementation plan](docs/omnigent-integration-plan.md), and [agent coordination instructions](AGENTS.md). The local software and evidence release are verified; measured evaluation requires independent benchmark review, provider access and an approved spending budget. These completion gates apply to this technical track; they do not define the whole product or make optimization a prerequisite for other workflows. The [checkpoint scope](docs/checkpoint-scope.md) records what PR #1 delivers, its boundaries and how to reproduce its evidence; [remaining work](docs/remaining-work.md) lists that checkpoint's reviewed follow-ups.
+
+General task/artifact state and workflow-specific analytical outputs are not yet
+provided by the discovery service. A runtime session is an execution record, a
+pipeline is a reusable ingestion definition, and a collection job executes that
+definition. Future research tasks should bind these records explicitly and define
+their own deliverables. Existing analyst-design documents describe one workflow
+area and remain design hypotheses, not shipped analytical capabilities.
 
 The [durable research service and fourteen local MCP tools](docs/research-service.md) share validation with the direct CLI. Follow the [Omnigent setup and fixture walkthrough](examples/omnigent/README.md), inspect the [browser acceptance evidence](docs/omnigent-ui-acceptance.md), or run the [independent development evaluation](docs/research-evaluation.md). The [controlled comparison runner](docs/controlled-comparison.md) freezes shared settings, inputs and failure records for both runtimes and independently verifies gateway usage. The [budgeted pilot](docs/pilot-budget.md) adds shared reservations before provider dispatch, evidence-backed settlement and interruption recovery; its proposed spending decision remains pending. Local Postgres/MinIO acceptance now covers restart, detached jobs and scoped exports. The [strategy integration](docs/strategy-optimization.md) adds isolated Python execution, observation/context selection, verified-stop finalization, complete development archives, a bounded coding proposer, a durable search controller, advisory development-string audits and private final evaluation with registrable-domain split checks. A [complete runtime fixture](examples/evaluation/evidence/combined-strategy-search-2026-09-09/acceptance.json) now verifies three search iterations and isolated final evaluation through the actual coding proposer, Docker and normal Omnigent runtime. Responses are synthetic; reviewed cases and measured model optimization remain unfinished.
 

@@ -4,9 +4,20 @@ Goal id: `omnigent-research-harness`
 
 Status: in_progress; local software and artifact delivery verified; live provider acceptance and measured evaluation still require independent benchmark review, provider access and an approved spending budget
 
-Accepted: September 8, 2026. Last updated: September 12, 2026
+Accepted: September 8, 2026. Last updated: September 13, 2026
 
-Build an interactive research harness using Omnigent for agent execution and the interface, with Research Harness providing verified evidence, pipeline proposals, collection, and durable state. After measuring the working integration, add the Meta-Harness paper's strategy optimization process with independent evaluation.
+This technical track integrates an interactive source-discovery workflow using
+Omnigent for agent execution and the pilot interface, with Research Harness
+providing verified evidence, pipeline proposals, collection and durable state.
+After measuring the integration, evaluate the Meta-Harness paper's strategy
+optimization process independently.
+
+September 13 scope correction: the broader product supports investigation and
+automated ingestion. This tracker does not define every research task as a
+pipeline proposal or require Omnigent's native UI. General task/artifact contracts
+and other workflow areas need their own work and acceptance. The measured
+optimization phase retains its completion gates but is not a prerequisite for
+that product work. Historical evidence and unfinished evaluations are unchanged.
 
 The [accepted implementation plan](../omnigent-integration-plan.md) defines the design and detailed acceptance criteria. [AGENTS.md](../../AGENTS.md) defines how agents coordinate. This file is the shared progress record; update it as work happens.
 
@@ -24,7 +35,10 @@ The goal is complete when there is recorded evidence for all of the following:
 - Strategy optimization records the baseline, candidate code, complete available traces, scores, and usage. Selection uses development results; held-out evaluation remains isolated from search and candidate access.
 - Reproducible setup instructions, an example walkthrough, and validation evidence are available in this repository.
 
-Authenticated shared deployment, a custom dashboard, forecasting, and specialist research agents are later product work. Multiple development agents may collaborate on this goal now; a product with multiple specialist agents is a separate increment.
+Authenticated shared deployment, product interfaces, analytical workflows and
+specialist agents are outside this technical track. Their priority is governed by
+current product work, not the milestone sequence here. Multiple development agents
+may collaborate when assigned; a fixed product agent team is not implied.
 
 ## Milestones and ownership
 
@@ -57,7 +71,7 @@ M0 and M1 can proceed independently against the agreed tool/service boundary. Ev
 
 ## Next tasks
 
-The [remaining work](../remaining-work.md) list records completed pre-measure software follow-ups and artifact delivery. Its only conditional follow-up is reconsidering proposer exploration limits after measured runs provide evidence. The remaining critical path is live compatibility, independent case review, the measured baseline and then optimization/final evaluation:
+The [remaining work](../remaining-work.md) list records completed pre-measure software follow-ups and artifact delivery. Its only conditional follow-up is reconsidering proposer exploration limits after measured runs provide evidence. The remaining critical path **for this integration/evaluation track** is live compatibility, independent case review, the measured baseline and then optimization/final evaluation. Broader product work proceeds under its own scope; these are not automatic next tasks for every agent:
 
 1. Resolve provider access and the pending spending decision before a live compatibility case. The budgeted dispatcher and pilot runner are implemented and verified with actual runtime fixtures; the checked-in configuration remains draft. Recheck the priced snapshot/endpoint/tier/rates when recording the live configuration, and reuse the shared ledger and registered pilot directories across revisions.
 2. Finish M0's live provider/model checks once access and the pending budget choice are recorded. Validate live nested tool-schema acceptance and freeze the actual provider/model configuration before running a measured baseline.
@@ -78,6 +92,30 @@ For each active task, add a short entry with:
 Retain completed handoffs so another agent can distinguish implemented behavior from planned work. Avoid copying secrets, raw credentials, or held-out task contents into this shared tracker.
 
 ## Activity and handoffs
+
+### September 13, 2026 — Shared foundation scope clarification
+
+Owner: `/root`; status: done locally; branch `docs/research-foundation-scope`,
+separate worktree `researchharness-scope-cleanup`. The user clarified that the
+product is a broad investigation and automated data-ingestion harness. This
+tracker covers the existing ingestion integration and measured optimization
+track; its proposal workflow is not the required outcome of every investigation.
+
+Bounded task: clarify that boundary in `README.md`, `AGENTS.md`, this tracker,
+`docs/omnigent-integration-plan.md` and `docs/remaining-work.md`. Preserve all
+runtime code, frozen agent instructions, evaluation criteria and historical
+evidence. Private application design and detailed product plans stay outside
+this public repository. Acceptance: local Markdown links, consistent scope and
+`git diff --check`; no runtime or model-performance claim from documentation.
+
+Handoff: the five owned documents now distinguish the shared research/ingestion
+foundation from the existing source-discovery and measured-evaluation track.
+All 386 local Markdown targets resolve across 58 documents; `git diff --check`
+passes. The diff is limited to those five files. Runtime code, frozen bundles,
+evaluation criteria, evidence and release assets are unchanged. The full runtime
+suite was not rerun locally for this documentation-only change. Product work
+can proceed independently; live compatibility and measured evaluation still need
+their previously recorded external decisions and acceptance.
 
 ### September 12, 2026 — Complete review release publication ownership
 
