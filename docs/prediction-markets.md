@@ -1,4 +1,6 @@
-# Geopolitical prediction-market research harness
+# Archived prediction-market research notes
+
+Historical exploration, not a standalone application or the current product roadmap. The accompanying JSON is a saved observation snapshot, not executable harness code.
 
 Research date: September 7, 2026. This is a product proposal supported by public documentation and a small set of direct API observations. No customer interviews, forecasting benchmark, or trading trial has been conducted.
 
@@ -18,7 +20,7 @@ Start with a market inventory and one source-to-research-card workflow. Select a
 | New U.S. sanctions against China through September 2026 | Active and accepting orders | The rules distinguish new measures or expanded scope from routine additions of entities under existing rules. An authorizing act can count before its effective date. |
 | U.S.–Cuba trade agreement before January 2027 | Active | A preliminary framework can qualify; Cuba must also acknowledge the agreement. A statement about starting talks is insufficient. |
 
-Sources: [Boeing announcement contract](https://polymarket.com/event/trump-xi-summit-what-will-china-announce-by-may-22?marketSlug=will-china-announce-a-boeing-aircraft-purchase-by-may-22-385&outcomeIndex=0), [China sanctions contract](https://polymarket.com/event/us-imposes-new-sanctions-on-china-by-september-30), and [Cuba contract API](https://external-api.kalshi.com/trade-api/v2/markets/KXTRADEDEALCUBA-27-B270101). Dates, identifiers, and numerical observations are recorded in the [discovery snapshot](../research/prediction-markets/2026-09-07-discovery.json).
+Sources: [Boeing announcement contract](https://polymarket.com/event/trump-xi-summit-what-will-china-announce-by-may-22?marketSlug=will-china-announce-a-boeing-aircraft-purchase-by-may-22-385&outcomeIndex=0), [China sanctions contract](https://polymarket.com/event/us-imposes-new-sanctions-on-china-by-september-30), and [Cuba contract API](https://external-api.kalshi.com/trade-api/v2/markets/KXTRADEDEALCUBA-27-B270101). Dates, identifiers, and numerical observations are recorded in the [discovery snapshot](archive/prediction-markets/2026-09-07-discovery.json).
 
 These examples make source selection consequential. Shipment data may help assess demand, but it cannot substitute for a required purchase announcement. A sanctions-related headline may be relevant background without satisfying that contract's trigger. The research card must identify the actor, action, object, threshold, time window, exclusions, and resolution source separately.
 
@@ -33,7 +35,7 @@ Direct order-book observations retrieved around **19:09 UTC on September 7, 2026
 | China sanctions | $0.07 | $0.08 | 5 | $0.40 |
 | Cuba trade agreement | $0.11 | $0.15 | 103.43 | $15.5145 |
 
-These are displayed quantities at a particular instant, not promised fills. There were additional offers at higher prices. The Cuba ask is derived from the complementary No bid, consistent with Kalshi's order-book representation. Sources and extracted levels are preserved in the [snapshot](../research/prediction-markets/2026-09-07-discovery.json); see the [Polymarket order-book documentation](https://docs.polymarket.com/api-reference/market-data/get-order-book) and [Kalshi order-book documentation](https://docs.kalshi.com/api-reference/market/get-market-orderbook).
+These are displayed quantities at a particular instant, not promised fills. There were additional offers at higher prices. The Cuba ask is derived from the complementary No bid, consistent with Kalshi's order-book representation. Sources and extracted levels are preserved in the [snapshot](archive/prediction-markets/2026-09-07-discovery.json); see the [Polymarket order-book documentation](https://docs.polymarket.com/api-reference/market-data/get-order-book) and [Kalshi order-book documentation](https://docs.kalshi.com/api-reference/market/get-market-orderbook).
 
 This small sample does not characterize all geopolitical markets. It does show why headline probability and lifetime volume are inadequate measures of capacity. A user buying more than the best offer's quantity faces different prices. For hedge-fund users, feasible position size and research cost could determine whether this is a useful trading product. A geopolitical monitoring tool for their equity or macro portfolios is a separate customer hypothesis.
 

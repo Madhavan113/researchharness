@@ -3,6 +3,30 @@
 Start with the [project README](../README.md) for an introduction and a runnable
 example. This index groups the detailed guides by what you want to do.
 
+## Code map
+
+Most runtime code is under `src/research_harness/`:
+
+| Area | Responsibility |
+| --- | --- |
+| [cli.py](../src/research_harness/cli.py) | Routes `rh discover`, `run`, `export` and other terminal commands. |
+| [discovery.py](../src/research_harness/discovery.py) | Runs the direct model/tool loop for discovering sources. |
+| [services/](../src/research_harness/services) | Saves discovery state, checks source evidence and proposals, and manages durable collection/export jobs. |
+| [engine.py](../src/research_harness/engine.py) and [connectors.py](../src/research_harness/connectors.py) | Fetch and parse sources, collect complete snapshots, replay captures and export data. |
+| [config.py](../src/research_harness/config.py) and [records.py](../src/research_harness/records.py) | Define validated pipeline/source configurations and data records. |
+| [store.py](../src/research_harness/store.py), [backend.py](../src/research_harness/backend.py) and [blobs.py](../src/research_harness/blobs.py) | Store metadata, record history and original responses locally or in Postgres/S3. |
+| [mcp/](../src/research_harness/mcp) and [integrations/](../src/research_harness/integrations) | Expose operations as agent tools and connect the separately installed Omnigent runtime. |
+| [strategies/](../src/research_harness/strategies), [evaluation/](../src/research_harness/evaluation) and [optimization/](../src/research_harness/optimization) | Run configurable agent strategies, grade experiments and propose/test strategy changes. This experimental track is separate from ordinary ingestion. |
+
+`agents/` contains agent instructions, `examples/` contains configurations and
+walkthroughs, and `tests/` checks the implementation. `docs/archive/` contains
+historical research outputs. A saved JSON result is not a feature or an add-on.
+
+The existing service is specialized in source discovery and ingestion. A general
+task/artifact layer for other research workflows remains to be implemented.
+Polymarket/Kalshi support currently lives in the built-in configuration, connector,
+record and collection code; there is no optional plugin loader yet.
+
 ## Collect and use data
 
 - [Data pipelines](data-pipeline.md): discover sources, configure connectors,
@@ -35,7 +59,7 @@ live model quality or optimization gains; those measurements remain unfinished.
 
 - [Analyst workflow examples](product-workflows.md), [analyst needs](analyst-needs.md)
   and [financial research design](research-design.md).
-- [Event and prediction-market research](prediction-markets.md).
+- [Archived prediction-market exploration](prediction-markets.md), September 2026.
 - [Research sources](research-sources.md), [market landscape](market-landscape.md)
   and [analyst pilot](analyst-pilot.md).
 

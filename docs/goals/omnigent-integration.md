@@ -93,6 +93,27 @@ Retain completed handoffs so another agent can distinguish implemented behavior 
 
 ## Activity and handoffs
 
+### September 13, 2026 — Archive exploratory market snapshot and explain code layout
+
+Owner: `/root`; status: done; branch `docs/research-foundation-scope`, PR #20.
+The user identified `research/prediction-markets/` as an unnecessary top-level
+directory while asking for a codebase explanation. It contains one dated JSON
+research result, referenced only by two documentation links. Move that file
+unchanged to `docs/archive/prediction-markets/`, update those links and label the
+notes historical. Add a source map to `docs/README.md`. Preserve the working
+market connectors and their tests; an optional connector add-on is a design
+direction, not an implemented plugin system. Acceptance: identical snapshot
+bytes, no runtime references, valid documentation links and clean diff.
+
+Handoff: Git records a 100% content-preserving move into the documentation archive.
+The two note links now resolve there and the note title explicitly says archived.
+The documentation index explains the executable modules, examples, tests and
+research artifacts, including the current lack of a general task layer or plugin
+loader. Snapshot SHA-256 is unchanged; all 402 local Markdown targets resolve
+across 60 documents, and `git diff --check HEAD` passes. No runtime code, agent
+instructions or tests changed. Connector extraction remains a separate proposed
+refactor; this cleanup does not remove working market ingestion support.
+
 ### September 13, 2026 — README and release presentation cleanup
 
 Owner: `/root`; status: implemented, release presentation published;
