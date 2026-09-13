@@ -1,15 +1,15 @@
 # Research Harness
 
-Tools for finding data sources, collecting them repeatedly, and keeping research
-inputs traceable.
-
-For example: start with a question about trade policy, find relevant government
-feeds and market data, test whether those sources can be collected, then save a
-repeatable pipeline. Every exported record links back to the response it came from.
+Tools for running traceable research experiments and collecting the data they use.
+The experiment path connects a reviewed question and benchmark to an Omnigent
+worker in Docker, then retains its code, actions and independently computed score.
+The ingestion path discovers sources and collects them repeatedly, preserving
+the original responses behind each exported record.
 
 **Status:** early-stage Python CLI and agent integration. Data collection works
-today. The next milestone is a reproducible AI research experiment; that workflow
-is not implemented yet. See the [current goal](docs/goals/reproducible-research.md).
+today. Experiment delegation works with scripted model responses; a measured
+research baseline and automated candidate search remain unfinished. See the
+[current goal](docs/goals/reproducible-research.md).
 
 ## What you can do today
 
@@ -23,7 +23,10 @@ is not implemented yet. See the [current goal](docs/goals/reproducible-research.
   and ingestion operations through MCP.
 - **Curate an experiment:** snapshot a plan and task environment, run reference/no-op
   benchmark controls, and record an operator's review decision. See the
-  [experiment guide](docs/experiments.md); research-agent execution is still pending.
+  [experiment guide](docs/experiments.md).
+- **Test experiment execution:** run the included Omnigent/Docker integration
+  fixture, inspect worker actions and verify that a forged reward cannot alter
+  the independent score. This uses authored responses, not a live model.
 
 Live model quality and strategy-optimization gains have not been measured yet.
 The integration tests use scripted model responses.
