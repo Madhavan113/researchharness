@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sqlite3
 import sys
 from pathlib import Path
@@ -31,12 +32,12 @@ def emit(value: Any, *, stderr: bool = False) -> None:
 def parser() -> argparse.ArgumentParser:
     root = argparse.ArgumentParser(
         prog="rh",
-        description="Discover sources, propose pipelines, and collect traceable research data.",
+        description="Run traceable research experiments and collect the data they use.",
     )
     sub = root.add_subparsers(dest="command", required=True)
     experiment = sub.add_parser(
         "experiment",
-        help="Prepare research experiments and check their benchmarks for human review",
+        help="Curate benchmarks, run agent experiments, and inspect their results",
     )
     experiment_sub = experiment.add_subparsers(dest="experiment_command", required=True)
     prepare_experiment = experiment_sub.add_parser(
@@ -45,6 +46,30 @@ def parser() -> argparse.ArgumentParser:
     prepare_experiment.add_argument("manifest", type=Path)
     prepare_experiment.add_argument("--checkout", type=Path, required=True)
     prepare_experiment.add_argument("--out", type=Path, required=True)
+    experiment_budget = experiment_sub.add_parser(
+        "budget", help="Prepare a model budget or record external authorization metadata"
+    )
+    experiment_budget.add_argument("--rates", type=Path, required=True)
+    experiment_budget.add_argument("--ceiling-usd", required=True)
+    experiment_budget.add_argument("--out", type=Path, required=True)
+    experiment_budget.add_argument("--authorization", type=Path)
+    run_experiment = experiment_sub.add_parser(
+        "run", help="Run a reviewed agent program with an explicitly configured model budget"
+    )
+    run_experiment.add_argument("prepared", type=Path)
+    run_experiment.add_argument("--check", type=Path, required=True)
+    run_experiment.add_argument("--store", type=Path, required=True)
+    run_experiment.add_argument("--budget", type=Path, required=True)
+    run_experiment.add_argument("--settings", type=Path, required=True)
+    run_experiment.add_argument("--candidate", type=Path, required=True)
+    run_experiment.add_argument("--provider", choices=["openai-standard"], required=True)
+    run_experiment.add_argument("--harbor", type=Path, required=True)
+    run_experiment.add_argument("--omnigent-python", type=Path, required=True)
+    run_experiment.add_argument("--out", type=Path, required=True)
+    run_experiment.add_argument("--timeout", type=int, default=1800)
+    run_experiment.add_argument(
+        "--dry-run", action="store_true", help="Inspect configuration; execute nothing"
+    )
     check_experiment = experiment_sub.add_parser(
         "check", help="Run Harbor oracle/no-op benchmark controls"
     )
@@ -324,6 +349,33 @@ def execute(args: argparse.Namespace) -> int:
         from research_harness.experiments.checks import check, status
         from research_harness.experiments.package import prepare
 
+        if args.experiment_command in {"budget", "run"}:
+            from research_harness.experiments import operator
+
+            if args.experiment_command == "budget":
+                emit(
+                    operator.prepare_budget(
+                        args.rates, args.out, args.ceiling_usd, args.authorization
+                    )
+                )
+                return 0
+            result = operator.run(
+                args.prepared,
+                args.check,
+                args.store,
+                args.budget,
+                args.settings,
+                args.candidate,
+                provider=args.provider,
+                output=args.out,
+                harbor=args.harbor,
+                omnigent_python=args.omnigent_python,
+                timeout=args.timeout,
+                dry_run=args.dry_run,
+                provider_api_key=None if args.dry_run else os.environ.get("OPENAI_API_KEY"),
+            )
+            emit(result)
+            return 0 if args.dry_run or result["status"] == "completed" else 1
         if args.experiment_command == "prepare":
             emit(prepare(args.manifest, args.checkout, args.out))
             return 0
@@ -615,7 +667,7 @@ def main(argv: list[str] | None = None) -> int:
         emit(
             {
                 "status": "interrupted",
-                "message": "Run interrupted; incomplete source data was not published.",
+                "message": "Operation interrupted; inspect its retained records before retrying.",
             },
             stderr=True,
         )

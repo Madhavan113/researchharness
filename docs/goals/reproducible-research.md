@@ -65,8 +65,9 @@ now connects to the existing model budget and independent verifier. The editable
 Python-program interface adds a full model/tool loop inside the task container;
 its original example is not the planned Terminus-2 baseline or a model measurement.
 A pinned Terminus-2 exporter and runtime adapter are now under validation.
-Next: validate that baseline, establish stable benchmark controls and provide the
-normal run entry point before candidate search. Record provider
+The operator run command is under validation on a separate branch.
+Next: validate that baseline and run entry point, then establish stable benchmark
+controls before candidate search. Record provider
 access and a spending budget before any paid model run.
 
 ## Keep the scope small
@@ -83,6 +84,25 @@ The app goal controller now reports the user's research-workflow goal active.
 The earlier failed registration is historical; no old evaluation was marked complete.
 
 ## Current ownership
+
+September 13, `/root`, operator experiment run command in progress on
+`feat/experiment-run`, in its own worktree while the baseline controls run.
+Intended files: the CLI, a small operator entry point around the existing execution
+API, focused tests, an example run configuration and the experiment guide. Reuse
+curation, the existing budget ledger/settings and the same isolated execution
+path. Require explicit provider/budget configuration; do not select or spend on a
+provider automatically. Fixtures must remain visibly separate from real research.
+
+Implemented `rh experiment budget` and `rh experiment run --dry-run`, with actual
+execution using the same API as the existing fixture. A run opens an existing
+ledger, binds it to the reviewed input, checks recorded prerequisites and passes
+the credential directly to the host gateway. Preview never starts a runtime.
+Budget initialization reuses the existing ledger/registry recovery protocol;
+explicit authorization files append decisions without resetting balances.
+Initial checks: 44 operator/package checks and 41 operator/execution/program checks
+passed; all 10 final operator checks (including insufficient funds) pass. Ruff and
+diff checks pass. Hosted fixture validation is pending. No paid run or accepted
+finding is claimed.
 
 September 13, `/root`, Terminus-2 baseline integration in progress on
 `feat/terminus-baseline`. Intended files: a pinned baseline exporter/runtime

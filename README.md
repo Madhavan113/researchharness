@@ -24,6 +24,9 @@ research baseline and automated candidate search remain unfinished. See the
 - **Curate an experiment:** snapshot a plan and task environment, run reference/no-op
   benchmark controls, and record an operator's review decision. See the
   [experiment guide](docs/experiments.md).
+- **Run an agent program:** preview a reviewed experiment's model settings and
+  budget, then explicitly launch its program through Omnigent in Docker. Paid runs
+  require provider access and a recorded spending decision.
 - **Test experiment execution:** run the included Omnigent/Docker integration
   fixture with an editable Python agent program, inspect worker actions and verify
   that a forged reward cannot alter the independent score. This uses authored
