@@ -124,8 +124,26 @@ records exact trial IDs and inventory hashes. Earlier attempts are preserved.
 The final focused command passes 26 tests:
 `RH_TEST_OMNIGENT_PYTHON=/tmp/researchharness-omnigent-be042b39/.venv/bin/python uv run --locked --extra mcp pytest -q tests/test_experiment_bundle.py tests/test_experiment_execution.py tests/test_experiment_workspace.py`.
 Logs are `.researchharness/experiments/pytest-execution-focused-3.txt` and
-`pytest-execution-runtime.txt`. Full-suite results and publication are recorded at
-handoff; no paid provider calls have been made.
+`pytest-execution-runtime.txt`. Published as
+[PR #24](https://github.com/Madhavan113/researchharness/pull/24), stacked on #23.
+[Hosted CI for source commit `8831dcc`](https://github.com/Madhavan113/researchharness/actions/runs/34747725016)
+passes: 1,492 ordinary tests with 33 explicit optional skips, all 1,525 required
+runtime tests with no skips, and both delegated execution controls (rewards 1/0).
+Exported runtime diagnostics are attached to that run for 14 days.
+
+Local macOS verification is not fully green: the required run passed 1,516 tests
+and failed eight Docker-dependent checks in 828.87 seconds. Docker create,
+inspect/info and strategy execution hit their existing deadlines. The run began
+before the final network override; the final 26-test focused run and both new
+Docker controls cover that change. After retaining receipts and removing three
+test-owned containers through the existing ownership-checked recovery API, a
+single targeted rerun passed three checks and still failed five in 260.79 seconds.
+Its remaining test-owned containers were removed or confirmed absent afterward;
+recovery did not replay candidate code.
+These local timeouts remain unresolved; no limits were relaxed or results erased.
+Rerun/recovery records are under `.researchharness/experiments/pytest-execution-runtime-rerun.txt`
+and `runtime-recovery*/`. Ruff, formatting, local documentation links and the
+evidence-retention policy pass. No paid provider calls have been made.
 
 Remaining scope: a normal research run entry point, editable full agent programs,
 the curated/measured baseline, candidate search, independent reruns and accepted
