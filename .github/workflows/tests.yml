@@ -120,6 +120,7 @@ jobs:
         with:
           name: experiment-runtime-evidence
           retention-days: 14
+          include-hidden-files: true
           path: |
             ${{ runner.temp }}/experiment-solution/
             ${{ runner.temp }}/experiment-forged-reward/

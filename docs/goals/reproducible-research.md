@@ -116,6 +116,11 @@ nor model ran; there is no baseline score. The correction pins bookworm's tmux
 3.3a-3 and asciinema 2.2.0-1. The failed check and four execution inventories are
 retained locally under `.researchharness/experiments/hosted-terminus-5f7ffee/`,
 with CI logs beside it and hosted artifact `10314704092` (14-day retention).
+All four execution inventories and the failed check verify. Prepared-input export
+verification exposed missing hidden task files: GitHub's default artifact filter
+omitted them. Enable hidden-file retention for these scripted fixtures while
+preserving exclusions for runtime databases/configuration and connection files;
+verify both prepared and execution inventories on the next downloaded artifact.
 
 September 13, `/root`, editable candidate-program interface implemented and
 fixture-validated on
