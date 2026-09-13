@@ -34,6 +34,28 @@ def parser() -> argparse.ArgumentParser:
         description="Discover sources, propose pipelines, and collect traceable research data.",
     )
     sub = root.add_subparsers(dest="command", required=True)
+    experiment = sub.add_parser(
+        "experiment",
+        help="Prepare research experiments and check their benchmarks for human review",
+    )
+    experiment_sub = experiment.add_subparsers(dest="experiment_command", required=True)
+    prepare_experiment = experiment_sub.add_parser(
+        "prepare", help="Snapshot a proposal; execute nothing"
+    )
+    prepare_experiment.add_argument("manifest", type=Path)
+    prepare_experiment.add_argument("--checkout", type=Path, required=True)
+    prepare_experiment.add_argument("--out", type=Path, required=True)
+    check_experiment = experiment_sub.add_parser(
+        "check", help="Run Harbor oracle/no-op benchmark controls"
+    )
+    check_experiment.add_argument("prepared", type=Path)
+    check_experiment.add_argument("--out", type=Path, required=True)
+    check_experiment.add_argument("--harbor", type=Path, required=True)
+    check_experiment.add_argument("--timeout", type=int, default=1800)
+    experiment_status = experiment_sub.add_parser(
+        "status", help="Inspect an existing check without rerunning"
+    )
+    experiment_status.add_argument("output", type=Path)
     discovery = sub.add_parser(
         "discover", help="An agent discovers, probes, and proposes sources for a research question"
     )
@@ -276,6 +298,19 @@ def registry_command(args: argparse.Namespace, backend: Backend) -> int:
 
 
 def execute(args: argparse.Namespace) -> int:
+    if args.command == "experiment":
+        from research_harness.experiments.checks import check, status
+        from research_harness.experiments.package import prepare
+
+        if args.experiment_command == "prepare":
+            emit(prepare(args.manifest, args.checkout, args.out))
+            return 0
+        if args.experiment_command == "check":
+            result = check(args.prepared, args.out, args.harbor, timeout=args.timeout)
+        else:
+            result = status(args.output)
+        emit(result)
+        return 0 if result["status"] == "passed" else 1
     if args.command == "mcp":
         try:
             from research_harness.mcp.server import create_server
