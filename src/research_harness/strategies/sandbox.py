@@ -82,6 +82,34 @@ class DockerStrategyRunner:
             check=True,
         )
 
+    def _creation_rejection(self, error: subprocess.CalledProcessError, arguments: list[str]):
+        """Recognize proven pre-creation rejection, never infer it from an exit code alone."""
+        if error.returncode <= 0 or error.stdout or not isinstance(error.stderr, bytes):
+            return None
+        try:
+            message = error.stderr.decode("utf-8").strip()
+        except UnicodeError:
+            return None
+        # Moby looks up the image before allocating a container. With pulling
+        # forbidden, this exact error cannot leave a pending create request.
+        if (
+            "--pull=never" in arguments
+            and self.config.image in arguments
+            and message == f"Error response from daemon: No such image: {self.config.image}"
+        ):
+            return "image_missing_before_creation"
+        # Docker CLI flag parsing happens before its create handler. Match its
+        # first diagnostic line and a flag actually supplied by this host;
+        # CLI releases differ in the help text printed afterward.
+        match = re.match(r"unknown flag: (--[a-z0-9-]+)(?:\n|$)", message)
+        if (
+            error.returncode == 125
+            and match
+            and any(argument.split("=", 1)[0] == match[1] for argument in arguments)
+        ):
+            return "cli_flag_rejected_before_creation"
+        return None
+
     def _inspect_image(self) -> dict:
         image = json.loads(self._command(["image", "inspect", self.config.image]).stdout)[0]
         if image.get("Os") != "linux" or self.config.image not in image.get("RepoDigests", []):
@@ -317,7 +345,20 @@ class DockerStrategyRunner:
             report["status"] = "creating"
             write_json(report_path, report)
             created = True  # A failed/timed-out create may still have reached the daemon.
-            container = self._command(arguments).stdout.decode().strip()
+            try:
+                container = self._command(arguments).stdout.decode().strip()
+            except subprocess.CalledProcessError as exc:
+                rejection = self._creation_rejection(exc, arguments)
+                if rejection is not None:
+                    created = False
+                    report["creation_rejection"] = {
+                        "reason": rejection,
+                        "exit_code": exc.returncode,
+                        "stderr": exc.stderr.decode("utf-8"),
+                        "stdout": "",
+                        "arguments": arguments,
+                    }
+                raise
             if not re.fullmatch(r"[a-f0-9]{64}", container):
                 raise ValueError("Docker did not return a container identity")
             report["container_id"] = container
@@ -426,9 +467,15 @@ class DockerStrategyRunner:
             raise ValueError("Recovery configuration differs from the recorded execution")
         if report["status"] == "completed":
             return report
-        report["cleanup"] = self._remove_owned(report["container_name"], report["execution_id"])
-        if report["cleanup"] == "absent" and not report["creation_acknowledged"]:
-            report["cleanup"] = "absent_at_check_creation_unconfirmed"
+        never_created = (
+            report["cleanup"] == "not_created"
+            and report["status"] in {"prepared", "failed", "interrupted"}
+            and report["creation_acknowledged"] is False
+        )
+        if not never_created:
+            report["cleanup"] = self._remove_owned(report["container_name"], report["execution_id"])
+            if report["cleanup"] == "absent" and not report["creation_acknowledged"]:
+                report["cleanup"] = "absent_at_check_creation_unconfirmed"
         report["status"] = "failed"
         report["recovery"] = {"at": timestamp(), "replayed": False}
         write_json(path, report)

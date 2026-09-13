@@ -16,6 +16,7 @@ import os
 import shutil
 import stat
 import tempfile
+import unicodedata
 from pathlib import Path, PurePosixPath
 from typing import Literal
 from uuid import uuid4
@@ -163,7 +164,7 @@ def _relative(value: str, limit: int, *, directory: bool = False) -> str:
         not value
         or any(part in ("", ".", "..") for part in parts)
         or "\\" in value
-        or any(ord(char) < 32 or ord(char) == 127 for char in value)
+        or not value.isprintable()
         or PurePosixPath(value).is_absolute()
     ):
         raise ValueError("Use a relative virtual path without traversal or links")
@@ -497,13 +498,17 @@ class ProposalWorkspace:
             self._check_trees()
             if len(self._state["calls"]) >= self.config.max_calls:
                 raise ValueError("Workspace tool-call limit exhausted")
-            raw = canonical_json({"name": name, "arguments": arguments})
-            if len(raw.encode()) > self.config.max_file_bytes * 2 + 65536:
+            request_text = canonical_json({"name": name, "arguments": arguments})
+            # Preserve lone surrogates as JSON escapes in the request evidence;
+            # reject them through the ordinary, repairable tool-error path below.
+            raw = request_text.encode("utf-8", errors="backslashreplace")
+            invalid_unicode = any(0xD800 <= ord(char) <= 0xDFFF for char in request_text)
+            if len(raw) > self.config.max_file_bytes * 2 + 65536:
                 raise ValueError("Tool request exceeds its byte limit")
             call_id = f"tool-{len(self._state['calls']) + 1:06d}"
             artifact = self.output / "tools" / call_id
             artifact.mkdir()
-            write_json(artifact / "request.json", {"name": name, "arguments": arguments})
+            atomic_write(artifact / "request.json", raw)
             row = {
                 "id": call_id,
                 "status": "pending",
@@ -514,6 +519,8 @@ class ProposalWorkspace:
             self._state["status"] = "pending"
             self._save()
             try:
+                if invalid_unicode:
+                    raise ValueError("Tool arguments must contain valid Unicode scalar values")
                 args = self._arguments(name, arguments)
                 result = self._operate(name, args, artifact)
                 if len(canonical_json(result).encode()) > self.config.max_tool_output_bytes:
@@ -608,6 +615,20 @@ class ProposalWorkspace:
             raw = self._decode(args["content"], args["encoding"])
             planned = {**inventory, relative: {"sha256": digest(raw), "bytes": len(raw)}}
             self._check_planned(planned)
+            # Failed earlier writes can leave empty directories, which are not
+            # part of the file inventory. Reject their aliases before mkdir/write.
+            parent = self.workspace
+            for part in Path(relative).parts:
+                if not parent.is_dir():
+                    break
+                normalized = unicodedata.normalize("NFC", part).casefold()
+                if any(
+                    entry.name != part
+                    and unicodedata.normalize("NFC", entry.name).casefold() == normalized
+                    for entry in parent.iterdir()
+                ):
+                    raise ValueError("Write path aliases an existing workspace entry")
+                parent /= part
             path.parent.mkdir(parents=True, exist_ok=True)
             atomic_write(path, raw)
             observed = _inventory(self.workspace, self.config)
@@ -636,6 +657,16 @@ class ProposalWorkspace:
             or sum(row["bytes"] for row in inventory.values()) > self.config.max_workspace_bytes
         ):
             raise ValueError("Workspace file or byte limit exceeded")
+        paths = {}
+        for name in inventory:
+            parts = _relative(name, self.config.max_path_chars).split("/")
+            for length in range(1, len(parts) + 1):
+                prefix = "/".join(parts[:length])
+                portable = unicodedata.normalize("NFC", prefix).casefold()
+                entry = (prefix, "file" if length == len(parts) else "directory")
+                if portable in paths and paths[portable] != entry:
+                    raise ValueError("Workspace paths collide by case, normalization or file type")
+                paths[portable] = entry
 
     def _run(self, relative: str, arguments: list[str], artifact: Path) -> dict:
         seed = artifact / "seed"
