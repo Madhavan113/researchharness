@@ -95,7 +95,7 @@ Retain completed handoffs so another agent can distinguish implemented behavior 
 
 ### September 13, 2026 — Shared foundation scope clarification
 
-Owner: `/root`; status: done locally; branch `docs/research-foundation-scope`,
+Owner: `/root`; status: implemented and published for review; branch `docs/research-foundation-scope`,
 separate worktree `researchharness-scope-cleanup`. The user clarified that the
 product is a broad investigation and automated data-ingestion harness. This
 tracker covers the existing ingestion integration and measured optimization
@@ -110,6 +110,9 @@ this public repository. Acceptance: local Markdown links, consistent scope and
 
 Handoff: the five owned documents now distinguish the shared research/ingestion
 foundation from the existing source-discovery and measured-evaluation track.
+Checkpoint `2eb5898` is published in
+[PR #20](https://github.com/Madhavan113/researchharness/pull/20), stacked on PR #19;
+hosted-check status is recorded on the PR. No merge is implied.
 All 386 local Markdown targets resolve across 58 documents; `git diff --check`
 passes. The diff is limited to those five files. Runtime code, frozen bundles,
 evaluation criteria, evidence and release assets are unchanged. The full runtime
