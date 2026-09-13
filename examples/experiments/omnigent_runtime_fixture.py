@@ -22,6 +22,7 @@ from research_harness.execution import DiscoverySettings, GatewayBinding
 from research_harness.experiments.checks import check
 from research_harness.experiments.curation import CuratorStore
 from research_harness.experiments.execution import run
+from research_harness.experiments.operator import run as operator_run
 from research_harness.experiments.package import load_prepared, prepare
 from research_harness.util import write_json
 
@@ -319,21 +320,8 @@ def main():
         price_as_of="2026-09-13",
     )
     ledger = BudgetLedger(root / "test-operator/budget.json", rates=rates, ceiling_usd="0")
-    budget = DispatchBudget(
-        ledger,
-        policy=DispatchPolicy(
-            mode="fixture", upstream_base_url="https://fixture.invalid/v1", model=MODEL
-        ),
-        binding=GatewayBinding(
-            execution_id=uuid4().hex,
-            case_id=spec["id"],
-            runtime="omnigent-experiment",
-            phase="workflow",
-            task_sha256=package["input_sha256"],
-        ),
-        settings=DiscoverySettings(
-            max_rounds=12 if args.terminus else 10, deadline_seconds=300, service_tier="default"
-        ),
+    settings = DiscoverySettings(
+        max_rounds=12 if args.terminus else 10, deadline_seconds=300, service_tier="default"
     )
     fixture = ModelFixture(
         (prepared / "inputs/tasks/cancel-async-tasks/instruction.md").read_text(),
@@ -341,24 +329,49 @@ def main():
         program=args.program or args.terminus,
         terminus=args.terminus,
     )
-    report = run(
-        prepared,
-        inputs / "check",
-        curator,
-        budget,
-        output=root / "execution",
-        harbor=args.harbor,
-        omnigent_python=args.omnigent_python,
-        client=httpx.Client(transport=httpx.MockTransport(fixture)),
-        timeout=600,
-        candidate=(
-            root / "baseline/candidate/agent.py"
-            if args.terminus
-            else Path(__file__).parent / "programs/python_loop.py"
-            if args.program
-            else None
-        ),
+    candidate = (
+        root / "baseline/candidate/agent.py"
+        if args.terminus
+        else Path(__file__).parent / "programs/python_loop.py"
+        if args.program
+        else None
     )
+    runtime = {
+        "output": root / "execution",
+        "harbor": args.harbor,
+        "omnigent_python": args.omnigent_python,
+        "client": httpx.Client(transport=httpx.MockTransport(fixture)),
+        "timeout": 600,
+    }
+    if candidate:
+        settings_path = root / "run.settings.json"
+        write_json(settings_path, settings.model_dump(mode="json"))
+        report = operator_run(
+            prepared,
+            inputs / "check",
+            curator.path,
+            ledger.path,
+            settings_path,
+            candidate,
+            provider="fixture",
+            **runtime,
+        )
+    else:
+        budget = DispatchBudget(
+            ledger,
+            policy=DispatchPolicy(
+                mode="fixture", upstream_base_url="https://fixture.invalid/v1", model=MODEL
+            ),
+            binding=GatewayBinding(
+                execution_id=uuid4().hex,
+                case_id=spec["id"],
+                runtime="omnigent-experiment",
+                phase="workflow",
+                task_sha256=package["input_sha256"],
+            ),
+            settings=settings,
+        )
+        report = run(prepared, inputs / "check", curator, budget, **runtime)
     summary = {
         "status": report["status"],
         "model_transport": "fixture",

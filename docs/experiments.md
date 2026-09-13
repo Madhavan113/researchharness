@@ -1,8 +1,8 @@
 # Research experiments
 
 Prepare a question and benchmark, review it, delegate work into Docker and inspect
-the independent score. CLI commands cover preparation, checks, curation and status;
-a trusted Python API connects execution to Omnigent and the existing model budget.
+the independent score. CLI commands cover preparation, checks, curation, budgeted
+execution and status; the CLI and Python API use the same Omnigent runtime.
 The end-to-end examples use scripted responses. No research baseline or finding
 has been measured or accepted.
 See the [active goal](goals/reproducible-research.md).
@@ -195,7 +195,72 @@ binding uses the experiment ID, prepared input SHA, phase `workflow` and runtime
 `omnigent-experiment`. It reuses the [existing provider controls](pilot-budget.md);
 provider access, current pricing and spending authorization must be established
 separately. No provider is chosen implicitly. The reviewed provider policy does
-not yet cover Astra/max. There is no general `rh experiment run` command yet.
+not yet cover Astra/max.
+
+## Run a reviewed program
+
+After checking and curating the experiment, prepare a budget with your reviewed
+`RateCard` JSON and an explicit ceiling. Replace `AMOUNT_USD` with the amount you
+intend to allocate. The [budget guide](pilot-budget.md) explains the existing rate
+schema, conservative reservations and accounting limits; a rate file is not proof
+that its prices are current.
+
+```sh
+uv run rh experiment budget --rates operator/rates.json \
+  --ceiling-usd AMOUNT_USD --out .researchharness/operator/budget.json
+```
+
+This creates a **draft** budget. Repeating the command preserves an existing
+balance and authorization record; changing its immutable rates/ceiling is rejected.
+If a registered ledger is missing, the command refuses to recreate its funds.
+
+After obtaining actual spending authorization, record its reference in a file
+with the existing `AuthorizationRecord` format:
+
+```json
+{"status": "approved", "reference": "Reference to the actual operator decision and scope"}
+```
+
+Repeat the budget command with `--authorization operator/authorization.json` to
+record that decision explicitly. Passing a file with `{"status": "draft"}` records
+a revocation for subsequent dispatch. These are local operator records, not proof
+of a human identity or permission granted by this software. They do not start a run.
+
+Copy and edit [run.settings.json](../examples/experiments/run.settings.json) for
+the proposed call count, output cap, reasoning setting and deadline. These settings
+apply to the shared program/orchestration budget. They currently reuse the existing
+settings schema; ingestion-specific limits in that schema do not govern this task.
+Use `--dry-run` to inspect the configuration before execution:
+
+```sh
+uv run rh experiment run .researchharness/experiments/terminus-prepared \
+  --check .researchharness/experiments/terminus-check \
+  --store .researchharness/operator/curation.sqlite3 \
+  --budget .researchharness/operator/budget.json \
+  --settings operator/run.settings.json \
+  --candidate .researchharness/experiments/terminus-proposal/candidate/agent.py \
+  --provider openai-standard \
+  --harbor .researchharness/runtimes/harbor/bin/harbor \
+  --omnigent-python .researchharness/runtimes/omnigent/.venv/bin/python \
+  --out .researchharness/experiments/run-1 --dry-run
+```
+
+The preview reports review status, the candidate hash, fixed model/settings,
+current budget and the reservation needed for one request. It never starts Docker,
+contacts a provider or approves anything. Exit 0 means inspection succeeded; inspect
+`prerequisites` separately. Runtime availability and credentials are not checked.
+
+To execute the same configuration, set `OPENAI_API_KEY` and remove `--dry-run`.
+**This makes paid provider calls.** The command requires current benchmark acceptance,
+recorded spending approval and the existing budget; it never creates one implicitly.
+All requests remain subject to the controller's per-request checks. Use a new output
+directory for every attempt and inspect it with `rh experiment status`. A completed
+run with reward 0 is a valid negative result, not a CLI infrastructure failure.
+
+The CLI exposes only the existing `openai-standard` profile. Fixture injection is
+an internal test API used by the scripted examples, never an implicit fallback for
+a missing provider key. This command has not established model quality or accepted
+a research finding.
 
 ## Edit the agent program
 
