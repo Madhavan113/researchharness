@@ -6,6 +6,15 @@ Track milestone status, ownership, validation evidence, and agent handoffs in th
 
 Implementation update: the [shared research service and fourteen MCP tools](research-service.md) now cover discovery, jobs, exports, and recovery. The normal Omnigent server/runner and [browser workflow](omnigent-ui-acceptance.md) have acceptance evidence with synthetic model responses and real local collection workers. The [compatibility spike](omnigent-compatibility.md), budget-policy fixture, [independent evaluator with twenty development cases](research-evaluation.md), and [controlled runtime fixture comparison](controlled-comparison.md) have landed. Live model testing, independent human review, matched comparisons with real model responses, and optimization remain outstanding.
 
+Evidence follows the [retention policy](evidence-retention.md): future full
+archives belong in release assets, while small indices and summaries stay in Git.
+Historical archives and identity-bearing files are referenced at their original
+Git revision and can be restored with exact byte/hash verification. This keeps
+original runtime proofs intact; it does not erase public history or establish
+release availability. The [portable review exporter](portable-evidence.md)
+creates separately labelled derived copies. Repository-wide review exports and
+the first external asset upload/download remain unfinished.
+
 The first deliverable is one complete workflow: a user supplies a research brief, the agent discovers and tests sources, the backend produces a validated pipeline proposal, and the user can request collection, inspect the evidence, and return to the case later.
 
 Use source discovery as the initial task because its tools, storage, and validation already exist. Company analysis, forecasting, workbook editing, and specialist agents can build on this foundation after the first workflow works.

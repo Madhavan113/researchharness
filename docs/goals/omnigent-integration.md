@@ -39,13 +39,13 @@ Use `queued`, `in_progress`, `blocked`, or `done`. Replace an owner only after a
 | M3 | Omnigent research agent bundle and runtime binding | done | `/root/omnigent_spike`, browser verification `/root` | Normal server/runner/MCP and browser chat save validated proposal/pipeline ids; synthetic model HTTP, frozen authored bundle |
 | M4 | Collection jobs, exports, case lookup, recovery | done | `/root` | Detached workers, cancellation, process termination, scoped data, exports, and full server/browser restart verified locally; local Postgres/MinIO tests and detached workflow/restart/export acceptance now verified |
 | M5 | Independent pilot evaluation and baseline comparison | blocked | `/root`, bounded agent work handed off | Twenty authored cases now discriminate in the offline policy comparison; independent evaluators, frozen controller and bound gateway usage verified through actual runtimes; budgeted dispatch and independent settlement verified through both actual runtimes; awaits human review, provider access and the pending spending decision |
-| M6 | Meta-Harness strategy optimization and isolated final evaluation | in_progress | `/root`, review follow-ups | RW-1/2/3/4/7/8/9/10/11/12/14 are published in PRs #2–#12, with PR #11 and #12 hosted checks passing. The bounded RW-15 admission/compatibility checkpoint is published in PR #13. Copied-feedback privacy is published in PR #14 with both hosted jobs passing. RW-13 verification efficiency is published in PR #15 and passes 1,378 required local tests with zero skips; both hosted jobs also pass. RW-6 tooling/policy is published in PR #16 with 1,412 required local tests passing; its first reviewed external asset round trip remains open. The bounded RW-5 portable review exporter is published in PR #17 with 1,444 required local tests passing; historical path cleanup remains open. Exploration limits remain conditional on measured-run evidence. Measured search/final still awaits remaining review work, reviewed cases, provider access, spending approval and the measured baseline |
+| M6 | Meta-Harness strategy optimization and isolated final evaluation | in_progress | `/root`, review follow-ups | RW-1/2/3/4/7/8/9/10/11/12/14 are published in PRs #2–#12, with PR #11 and #12 hosted checks passing. The bounded RW-15 admission/compatibility checkpoint is published in PR #13. Copied-feedback privacy is published in PR #14 with both hosted jobs passing. RW-13 verification efficiency is published in PR #15 and passes 1,378 required local tests with zero skips; both hosted jobs also pass. RW-6 tooling/policy is published in PR #16 with 1,412 required local tests passing; its first reviewed external asset round trip remains open. The bounded RW-5 portable review exporter and failure diagnostics are published in PR #17 with 1,446 required local tests and both hosted jobs passing. The historical-reference follow-up is published in PR #18 and passes 1,463 required local tests with zero skips and removes duplicate originals from the current checkout after exact restoration; complete derived review coverage and historical path cleanup remain open. Exploration limits remain conditional on measured-run evidence. Measured search/final still awaits remaining review work, reviewed cases, provider access, spending approval and the measured baseline |
 
 M0 and M1 can proceed independently against the agreed tool/service boundary. Evaluation case design can also proceed independently. Agree on ownership of shared schemas, CLI wiring, dependencies, migrations, and this tracker before concurrent edits.
 
 ## Current evidence and limits
 
-- GitHub reports the repository public as of September 12. Historical evidence still contains operator paths. The portable exporter creates labelled derived review copies; it does not rewrite original evidence or Git history, and its prepared release package is not published.
+- GitHub reports the repository public as of September 12. Twenty-five original files are now referenced at their pinned Git revision and restored outside the checkout with exact hash checks. Historical originals and Git history still contain operator paths. The portable exporter creates labelled derived review copies; its prepared release package is not published, and complete derived review coverage remains unfinished.
 - The repository already contains the direct discovery CLI, connector probes, proposal compilation, collection/export/replay, and local/shared backend work. Inspect and preserve the existing working-tree changes before building on them.
 - The tested Omnigent source pin is `be042b390e293a8d586cbb7e403a2ce0ce38fc62`, installed in a separate environment. Normal server, runner, MCP, browser, restart, and spending-policy fixtures have run. The current turn can exceed the configured budget threshold; the next turn is blocked. This is not an exact provider billing cap.
 - The independent evaluator is maintained in this package under `evaluation/`, with twenty authored development cases and verified Omnigent usage-file support. It derives source usefulness from independent requirements. Authored cases are not human-reviewed cases, and fixtures do not establish model performance.
@@ -78,6 +78,97 @@ For each active task, add a short entry with:
 Retain completed handoffs so another agent can distinguish implemented behavior from planned work. Avoid copying secrets, raw credentials, or held-out task contents into this shared tracker.
 
 ## Activity and handoffs
+
+### September 12, 2026 — Historical evidence reference migration ownership
+
+Owner: `/root`; bounded implementation, local verification and publication done
+in [PR #18](https://github.com/Madhavan113/researchharness/pull/18), branch
+`feat/historical-evidence-references`, based on
+PR #17 diagnostic head `d938385d797dd1e07a8827ba91e83a3f0292fdbb`. The preceding
+turn made progress by publishing diagnostics and passing 1,446 required tests.
+Hosted run `34724115100` now passes both jobs at that exact head: 1,446
+required tests with zero skips and 1,414 ordinary tests with 32 expected optional
+runtime skips. The earlier timeout did not recur; its cause remains unconfirmed.
+
+A read-only comparison verifies that all 13 legacy compressed assets plus 12
+path-bearing or JUnit-hostname-bearing files exactly match existing commit
+`b58bf44a84407d1069039499411e53aaaede5968`: **25 files / 22,872,690 bytes**.
+Candidate records are retained locally in
+`/tmp/rh-legacy-git-reference-candidates-20260912.json`. The repository's Git
+object database already contains those bytes (30.29 MiB total observed); no
+history rewrite or additional public archive upload is needed to reference them.
+
+Scope: extend the retention policy with explicit, hash/size-bound historical
+Git references and a private, exclusive-create restore command; verify original
+objects before removing their duplicate current-checkout copies; update affected
+links and reproduction instructions; preserve every historical byte and hash.
+The existing guard only checks listed files and can miss staged archive deletions;
+close that gap by requiring each legacy original either present or covered by a
+verified reference. CI must fetch the referenced history explicitly. This reduces
+current-checkout exposure/size, not Git history size or historical public exposure.
+RW-5 remains open until its full acceptance is supported; this migration must
+not relabel original captures as sanitized or claim a new runtime execution.
+
+Intended files: evidence retention helper/tests and policy, CI checkout settings,
+25 verified file removals, evidence guides/links and trackers. Acceptance: all
+25 originals restored outside Git with exact bytes, absent/corrupt/mismatched
+objects refused, unrecorded removals and reintroduced archived copies refused,
+no overwrites or executable restored files, current evidence identity scan,
+focused tool tests, retention checks and documentation links. Public release
+approval, benchmark review, provider access and spending decisions remain pending.
+
+Local handoff: implementation commit `fccd48bb5e8ea5b384fcaf5e4e932351d421b25e` adds
+verified historical restoration and retention guards. Schema 2 preserves the
+original baseline commit, all 13 compressed hashes and the 18 original size
+records. Both CI checkouts fetch full history. All 25 originals were restored
+into `/tmp/rh-legacy-originals-20260912` before the selected `git rm`; a separate
+comparison checked each Git blob, current file, restored file, recorded length
+and SHA-256. The private `0700` directory and `0600` nonexecutable files pass.
+The current checkout loses 22,872,690 original bytes; Git history is unchanged.
+
+The [checkpoint](../../examples/evaluation/evidence/historical-references-2026-09-12/README.md)
+contains only small acceptance/verification metadata. Fifteen checkpoint READMEs
+now describe original retrieval, and nine former local links resolve to their
+pinned original Git blobs. The current evidence scan found no checked operator
+home/hostname matches and no nonempty JUnit hostname attributes in 144 files
+(before the new verification summary). The representative 159-file portable
+review copy separately re-verifies all original transforms, with three changed
+files. Restored originals remain unsanitized; RW-5 stays `in_progress`.
+
+Validation: the asset/portable group passes **83 tests** in 4.24 seconds. JUnit
+`/tmp/rh-historical-references-tools-final-20260912.xml`, SHA-256
+`c47ac2aba939a0da741120cb269890aba2c3f32ed9b993fec4ba489e5ab33c49`.
+The first focused attempt failed only because a fault-injection test tried to
+modify its own read-only Git fixture object; the fixture now changes that
+object's mode before corrupting it. It did not modify this repository's objects.
+
+~~~sh
+RH_TEST_REQUIRE_RUNTIME=1 \
+RH_TEST_STRATEGY_IMAGE=python@sha256:9d2e5553305c7c7b0097999bb17187c69b921ccd6bc9d40e4bb5ebe652c00285 \
+RH_TEST_OMNIGENT_PYTHON=/tmp/researchharness-omnigent-be042b39/.venv/bin/python \
+uv run --locked --extra mcp pytest --tb=short \
+  --basetemp=/tmp/rh-historical-references-required-20260912 \
+  --junitxml=/tmp/rh-historical-references-required-20260912.xml
+~~~
+
+The full required suite passes **1,463 tests, zero failures/errors/skips**, in
+304.23 seconds; JUnit SHA-256
+`e1766515f6d4f17612d0c66baaaf31a3336e1e2e460e2dc66922bb74298b2f35`.
+Production source, tests and policy were stable throughout that run. Ruff lint
+and formatting pass for 116 source/test files. The retention guard verifies
+20 checkpoints and all 25 historical references; final documentation links
+and staged changes are checked before publication.
+
+Publication: commits `fccd48b` (implementation) and `9c4f8ad` (migration/evidence)
+are pushed, and [PR #18](https://github.com/Madhavan113/researchharness/pull/18)
+is open, stacked on #17. The final link check resolves 372 local Markdown targets
+and nine pinned original Git blobs. The new checkpoint is 5,198 bytes; all
+evidence checkpoints total 4,368,280 bytes in the current tree. Hosted checks
+are pending. Next: inspect those checks and retain any failure evidence. The
+pinned baseline must remain available in retained Git history.
+Public release assets remain local pending the existing publication question;
+human benchmark review, provider access, spending approval and measured
+baseline/search/final are still pending. The overall goal remains active.
 
 ### September 12, 2026 — Runtime collection timeout investigation
 
@@ -138,9 +229,12 @@ Lint/format checks pass for 117 files (including the fixture), all 109 local
 Markdown targets in changed documentation resolve, and the retention guard
 verifies 19 checkpoints with all 13 historical compressed hashes intact.
 
-Next action: inspect the hosted checks for this diagnostic follow-up in PR #17;
-use the retained state to investigate any recurrence. A passing rerun does not
-demonstrate a fix for the original timeout. Public release publication, human
+Hosted follow-up: [run 34724115100](https://github.com/Madhavan113/researchharness/actions/runs/34724115100)
+passes both jobs at `d938385d797dd1e07a8827ba91e83a3f0292fdbb`: 1,446 required
+tests with zero skips in 447.62 seconds, and 1,414 ordinary tests with 32 expected
+optional-runtime skips. The diagnostic checkpoint is complete; use its retained
+state to investigate a recurrence. The original timeout cause remains unconfirmed,
+and a passing rerun does not demonstrate a fix for it. Public release publication, human
 benchmark review, provider access and spending approval remain unanswered; no
 live model requests or release uploads occurred. The overall goal remains active.
 
@@ -679,7 +773,7 @@ Owners: `/root` for controller integration, recovery fixes, documentation, verif
 
 Changed files include the new `optimization/workspace.py`, `proposer.py`, `controller.py` and `final.py`, four focused test modules, the explicit held-out comparison option and proposer gateway phase. The search controller freezes exact proposer tasks before dispatch, independently verifies gateway artifacts, retains every candidate slot and prior development attempt, and revokes proposer access before private final evaluation. Review fixes preserve admission reservations, immutable recovery receipts and completed final state. The proposer now retains unresolved client/gateway/workspace ownership across replacement objects and requires actual cleanup before reporting quiescence. Its budget metadata is frozen and checked before dispatch and usage verification. Missing artifacts and permanently failed cleanup remain unresolved.
 
-The [verification record](../../examples/evaluation/evidence/search-orchestration-2026-09-09/verification.json) records **985 unique tests verified, zero skips and no remaining failures**, with 105 source/test/configuration hashes. Initial command: `RH_TEST_STRATEGY_IMAGE=python@sha256:9d2e5553305c7c7b0097999bb17187c69b921ccd6bc9d40e4bb5ebe652c00285 RH_TEST_OMNIGENT_PYTHON=/tmp/researchharness-omnigent-be042b39/.venv/bin/python uv run --extra mcp pytest -ra --basetemp=/tmp/rh-search-controller-suite-20260909 --junitxml=/tmp/rh-search-controller-suite-20260909.xml`. The [initial report](../../examples/evaluation/evidence/search-orchestration-2026-09-09/pytest.xml) records 982 passed and three failures in 181.94 seconds because the pinned Omnigent checkout had disappeared from `/tmp`. `sh examples/omnigent/setup.sh /tmp/researchharness-omnigent-be042b39` restored the exact pin and frozen environment. All three affected checks then passed in 67.35 seconds; the [retry report](../../examples/evaluation/evidence/search-orchestration-2026-09-09/runtime-retry.xml) and exact selectors are retained. No implementation changes were needed for those environment failures. Ruff lint/format checks pass across 103 Python files; all eight previous evidence archives and 1,490 payload hashes remain unchanged.
+The [verification record](../../examples/evaluation/evidence/search-orchestration-2026-09-09/verification.json) records **985 unique tests verified, zero skips and no remaining failures**, with 105 source/test/configuration hashes. Initial command: `RH_TEST_STRATEGY_IMAGE=python@sha256:9d2e5553305c7c7b0097999bb17187c69b921ccd6bc9d40e4bb5ebe652c00285 RH_TEST_OMNIGENT_PYTHON=/tmp/researchharness-omnigent-be042b39/.venv/bin/python uv run --extra mcp pytest -ra --basetemp=/tmp/rh-search-controller-suite-20260909 --junitxml=/tmp/rh-search-controller-suite-20260909.xml`. The [initial report](https://github.com/Madhavan113/researchharness/blob/b58bf44a84407d1069039499411e53aaaede5968/examples/evaluation/evidence/search-orchestration-2026-09-09/pytest.xml) records 982 passed and three failures in 181.94 seconds because the pinned Omnigent checkout had disappeared from `/tmp`. `sh examples/omnigent/setup.sh /tmp/researchharness-omnigent-be042b39` restored the exact pin and frozen environment. All three affected checks then passed in 67.35 seconds; the [retry report](https://github.com/Madhavan113/researchharness/blob/b58bf44a84407d1069039499411e53aaaede5968/examples/evaluation/evidence/search-orchestration-2026-09-09/runtime-retry.xml) and exact selectors are retained. No implementation changes were needed for those environment failures. Ruff lint/format checks pass across 103 Python files; all eight previous evidence archives and 1,490 payload hashes remain unchanged.
 
 The [acceptance record](../../examples/evaluation/evidence/search-orchestration-2026-09-09/acceptance.json) distinguishes the coordinator fixtures from actual components. The actual coding proposer makes eight synthetic requests/eight tool calls, executes its generated check in Docker, submits a candidate and closes access; independent usage is 880 synthetic tokens. Coordinator fixtures evaluate the baseline plus six candidates, preserve prior complete development traces, freeze selection and exercise private final evaluation with authored executors and a substituted strategy runner. Separate actual Omnigent/Docker checks pass, but combined actual-runtime search is still unverified. No paid calls occurred.
 
@@ -708,7 +802,7 @@ Owners: `/root` for integration, review fixes, archive bridge, acceptance and pu
 
 Changed source includes `strategies/context.py` and `session.py`, discovery/CLI/MCP and Omnigent session loading, the controlled model gateway, benchmark/controller/runtime/pilot integration, gateway usage verification, and the new `optimization/evaluator.py`. Focused tests cover protocol grouping, budget/deadline/shutdown ordering, strategy failure versus proposal commit, missing/replaced storage, evaluation bindings, preserved failures and private evaluator inputs. README, the plan and strategy guide now describe the implemented boundary and remaining work.
 
-The [combined verification](../../examples/evaluation/evidence/strategy-context-evaluation-2026-09-09/verification.json) and [JUnit report](../../examples/evaluation/evidence/strategy-context-evaluation-2026-09-09/pytest.xml) record **876 passed, zero skips**, in 183.42 seconds. Command: `RH_TEST_STRATEGY_IMAGE=python@sha256:9d2e5553305c7c7b0097999bb17187c69b921ccd6bc9d40e4bb5ebe652c00285 RH_TEST_OMNIGENT_PYTHON=/tmp/researchharness-omnigent-be042b39/.venv/bin/python uv run --extra mcp pytest -ra --basetemp=/tmp/rh-context-evaluation-suite-20260909 --junitxml=/tmp/rh-context-evaluation-suite-20260909.xml`. Ruff lint and format checks passed across 95 Python files. The record retains 97 source/test/configuration hashes; prior checkpoint hashes remain unchanged.
+The [combined verification](../../examples/evaluation/evidence/strategy-context-evaluation-2026-09-09/verification.json) and [JUnit report](https://github.com/Madhavan113/researchharness/blob/b58bf44a84407d1069039499411e53aaaede5968/examples/evaluation/evidence/strategy-context-evaluation-2026-09-09/pytest.xml) record **876 passed, zero skips**, in 183.42 seconds. Command: `RH_TEST_STRATEGY_IMAGE=python@sha256:9d2e5553305c7c7b0097999bb17187c69b921ccd6bc9d40e4bb5ebe652c00285 RH_TEST_OMNIGENT_PYTHON=/tmp/researchharness-omnigent-be042b39/.venv/bin/python uv run --extra mcp pytest -ra --basetemp=/tmp/rh-context-evaluation-suite-20260909 --junitxml=/tmp/rh-context-evaluation-suite-20260909.xml`. Ruff lint and format checks passed across 95 Python files. The record retains 97 source/test/configuration hashes; prior checkpoint hashes remain unchanged.
 
 The [acceptance](../../examples/evaluation/evidence/strategy-context-evaluation-2026-09-09/acceptance.json) verifies actual normal Omnigent follow-up context with five requests, five Docker executions and 550 synthetic tokens: the active turn remains intact, and a real second user message permits older completed history to shrink from 7 to 2 and then 9 to 4 items. Both user messages remain. The controlled direct/Omnigent runs produce independently valid fixture proposals, 440/770 synthetic tokens and 7/10 strategy executions. Both complete execution packages pass the independent archive bridge with model verification explicitly false. Single-brief conversations may have no removable groups; these fixtures establish software behavior, not model quality or cost improvement.
 
@@ -739,7 +833,7 @@ The CLI adds `--strategy` to discovery and MCP serving, plus `rh strategy status
 
 The [observation acceptance](../../examples/evaluation/evidence/strategy-observation-2026-09-09/acceptance.json) passed through the actual normal Omnigent server/runner/MCP and the direct dispatcher using two real Docker containers and four synthetic model requests. Both paths produce matching projection, retain original receipts and reuse exact retries with one candidate execution each. A host-import guard remained untouched. Command: `uv run --extra mcp python examples/evaluation/strategy_observation_fixture.py --omnigent-python /tmp/researchharness-omnigent-be042b39/.venv/bin/python --out /tmp/rh-strategy-observation-20260909`. The [portable archive](../../examples/evaluation/evidence/strategy-observation-2026-09-09/index.json) contains 120 files, 160811 compressed bytes, SHA-256 `2bc96e5afc24856a5a1e7dfe9efb20d6e2f2bfa251961244e6afe46c08b538aa`; extraction and every indexed hash were verified. This fixture tests projection and retry behavior, not complete proposal quality or optimization.
 
-Final validation: `RH_TEST_STRATEGY_IMAGE=python@sha256:9d2e5553305c7c7b0097999bb17187c69b921ccd6bc9d40e4bb5ebe652c00285 RH_TEST_OMNIGENT_PYTHON=/tmp/researchharness-omnigent-be042b39/.venv/bin/python uv run --extra mcp pytest -ra --basetemp=/tmp/rh-pr-checkpoint-suite-20260909 --junitxml=/tmp/rh-pr-checkpoint-suite-20260909.xml` passed **787 tests, zero skips**, in 121.87 seconds. The [verification record](../../examples/evaluation/evidence/checkpoint-2026-09-09/verification.json) retains 99 source/test/configuration hashes and the [JUnit report](../../examples/evaluation/evidence/checkpoint-2026-09-09/pytest.xml). An import-order-only Ruff fix was followed by all 11 session tests passing with real Docker enabled. Ruff check and format check passed across 90 Python files. Documentation checks resolved 169 local links across 33 Markdown files, with no links depending on sibling checkouts, trailing whitespace or diff errors. All 99 checkpoint hashes matched; no task-owned strategy or shared-storage containers remained. Older evidence remains unchanged and refers to its own dated checkpoint.
+Final validation: `RH_TEST_STRATEGY_IMAGE=python@sha256:9d2e5553305c7c7b0097999bb17187c69b921ccd6bc9d40e4bb5ebe652c00285 RH_TEST_OMNIGENT_PYTHON=/tmp/researchharness-omnigent-be042b39/.venv/bin/python uv run --extra mcp pytest -ra --basetemp=/tmp/rh-pr-checkpoint-suite-20260909 --junitxml=/tmp/rh-pr-checkpoint-suite-20260909.xml` passed **787 tests, zero skips**, in 121.87 seconds. The [verification record](../../examples/evaluation/evidence/checkpoint-2026-09-09/verification.json) retains 99 source/test/configuration hashes and the [JUnit report](https://github.com/Madhavan113/researchharness/blob/b58bf44a84407d1069039499411e53aaaede5968/examples/evaluation/evidence/checkpoint-2026-09-09/pytest.xml). An import-order-only Ruff fix was followed by all 11 session tests passing with real Docker enabled. Ruff check and format check passed across 90 Python files. Documentation checks resolved 169 local links across 33 Markdown files, with no links depending on sibling checkouts, trailing whitespace or diff errors. All 99 checkpoint hashes matched; no task-owned strategy or shared-storage containers remained. Older evidence remains unchanged and refers to its own dated checkpoint.
 
 Next action after publication: resume protocol-safe context selection and controlled code-strategy evaluation bindings, then connect the coding proposer and archive evaluator. Live provider access and the spending decision, human review of development cases, held-out briefs, a measured baseline and actual optimization/final evaluation remain open. No paid calls occurred. The PR is a reviewable checkpoint of the implementation so far, not completion of M0/M5/M6.
 
@@ -770,7 +864,7 @@ Portable evidence was extracted and its indexed hashes verified:
 - [Native hooks](../../examples/evaluation/evidence/native-strategy-hooks-2026-09-08/index.json): 41 files, archive SHA-256 `91ec05b5770f2b02a6ff0dfd7330c552d298d6c22bc8c9dddd19b7ba3c24c5f6`. Exact fixture/bundle code, available model requests, original/projected observations and runtime exports are retained without runtime credentials or operational databases.
 - [Strategy isolation](../../examples/evaluation/evidence/strategy-isolation-2026-09-08/index.json): 75 files, archive SHA-256 `c3d61b2a66c173503b69fad13a477f181366c4b01f430b79f8b33788eba41d6b`. Twenty-one tests include ten actual containers; the archive retains exact code, inputs, decisions, failures and effective container settings.
 
-Final combined validation: `RH_TEST_STRATEGY_IMAGE=python@sha256:9d2e5553305c7c7b0097999bb17187c69b921ccd6bc9d40e4bb5ebe652c00285 RH_TEST_OMNIGENT_PYTHON=/tmp/researchharness-omnigent-be042b39/.venv/bin/python uv run --extra mcp pytest -ra --basetemp=/tmp/rh-strategy-foundation-suite-20260908-reviewed --junitxml=/tmp/rh-strategy-foundation-suite-20260908-reviewed.xml` passed **739 tests, zero skips**, in 119.53 seconds. The [verification record](../../examples/evaluation/evidence/strategy-foundation-2026-09-08/verification.json) and [JUnit report](../../examples/evaluation/evidence/strategy-foundation-2026-09-08/pytest.xml) retain results and tested code hashes. `uv run ruff check src tests agents/research/policies examples/evaluation examples/strategies` and the corresponding `ruff format --check` passed across 80 Python files. The archive's focused suite passed 85 tests; the independent reviewer passed 21 targeted regressions and an ephemeral hard-exit check with one evaluator invocation and exact-byte recovery. That independent inline check retained no script/raw artifacts and is identified as such in the verification record.
+Final combined validation: `RH_TEST_STRATEGY_IMAGE=python@sha256:9d2e5553305c7c7b0097999bb17187c69b921ccd6bc9d40e4bb5ebe652c00285 RH_TEST_OMNIGENT_PYTHON=/tmp/researchharness-omnigent-be042b39/.venv/bin/python uv run --extra mcp pytest -ra --basetemp=/tmp/rh-strategy-foundation-suite-20260908-reviewed --junitxml=/tmp/rh-strategy-foundation-suite-20260908-reviewed.xml` passed **739 tests, zero skips**, in 119.53 seconds. The [verification record](../../examples/evaluation/evidence/strategy-foundation-2026-09-08/verification.json) and [JUnit report](https://github.com/Madhavan113/researchharness/blob/b58bf44a84407d1069039499411e53aaaede5968/examples/evaluation/evidence/strategy-foundation-2026-09-08/pytest.xml) retain results and tested code hashes. `uv run ruff check src tests agents/research/policies examples/evaluation examples/strategies` and the corresponding `ruff format --check` passed across 80 Python files. The archive's focused suite passed 85 tests; the independent reviewer passed 21 targeted regressions and an ephemeral hard-exit check with one evaluator invocation and exact-byte recovery. That independent inline check retained no script/raw artifacts and is identified as such in the verification record.
 
 Documentation checks passed: 157 local file links across 23 Markdown files, no trailing whitespace, and `git diff --check`. All 83 recorded code/configuration hashes still matched the tested files, and the retained JUnit hash matched. No task-owned strategy or shared-storage containers remained after validation.
 

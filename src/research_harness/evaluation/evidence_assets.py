@@ -1,4 +1,4 @@
-"""Prepare and verify offline evidence release assets; never upload or execute them."""
+"""Prepare, verify or restore checkpoint evidence without uploading or executing it."""
 
 from __future__ import annotations
 
@@ -318,10 +318,151 @@ def verify(index_path: Path, archive_path: Path, inventory_path: Path):
     return {"verified": True, "file_count": len(seen), "bytes": index["uncompressed_bytes"]}
 
 
+def _historical_records(policy):
+    if not isinstance(policy, dict):
+        raise ValueError("Invalid historical Git reference policy")
+    records = policy.get("historical_git_files", {})
+    if records == {} and policy.get("schema_version") == 1:
+        return {}
+    if (
+        type(policy.get("schema_version")) is not int
+        or policy.get("schema_version") != 2
+        or not isinstance(records, dict)
+        or not 1 <= len(records) <= MAX_FILES
+        or not isinstance(policy.get("baseline_commit"), str)
+        or not re.fullmatch(r"[0-9a-f]{40}", policy["baseline_commit"])
+    ):
+        raise ValueError("Invalid historical Git reference policy")
+    migrated = {}
+    for name, record in records.items():
+        _relative(name)
+        prefix = next((item for item in EVIDENCE_ROOTS if name.startswith(item + "/")), None)
+        if prefix is None:
+            raise ValueError("Historical references must stay inside the evidence roots")
+        relative = name[len(prefix) + 1 :]
+        checkpoint = prefix + "/" + relative.split("/")[0]
+        if checkpoint not in policy.get("legacy_checkpoint_bytes", {}):
+            raise ValueError("Historical reference is not part of the fixed legacy baseline")
+        _record(record)
+        if set(record) != {"sha256", "bytes"}:
+            raise ValueError("Historical references need only the original size and hash")
+        expected = policy.get("legacy_archives", {}).get(name)
+        if expected is not None and record["sha256"] != expected:
+            raise ValueError("Historical reference differs from the original archive hash")
+        migrated[checkpoint] = migrated.get(checkpoint, 0) + record["bytes"]
+        if migrated[checkpoint] > policy["legacy_checkpoint_bytes"][checkpoint]:
+            raise ValueError("Historical references exceed the original checkpoint size")
+    if sum(record["bytes"] for record in records.values()) > MAX_BYTES:
+        raise ValueError("Historical originals exceed the total byte limit")
+    return records
+
+
+def _historical_file(root, commit, name, expected, sink=None):
+    """Read a regular blob from a pinned tree, without checkout, filters or execution."""
+    command = ["git", "--no-replace-objects"]
+    kind = subprocess.run(
+        [*command, "cat-file", "-t", commit], cwd=root, capture_output=True, check=False
+    )
+    if kind.returncode or kind.stdout.strip() != b"commit":
+        raise ValueError("Historical original unavailable; fetch the recorded baseline commit")
+    entry = subprocess.run(
+        [*command, "ls-tree", "--full-tree", "-z", commit, "--", name],
+        cwd=root,
+        capture_output=True,
+        check=False,
+    )
+    if entry.returncode or not entry.stdout.endswith(b"\0"):
+        raise ValueError("Historical original unavailable; fetch the recorded baseline commit")
+    metadata, _, path = entry.stdout[:-1].partition(b"\t")
+    fields = metadata.split()
+    if (
+        len(fields) != 3
+        or fields[0] not in {b"100644", b"100755"}
+        or fields[1] != b"blob"
+        or path != name.encode()
+        or not re.fullmatch(rb"[0-9a-f]{40}", fields[2])
+    ):
+        raise ValueError("Historical reference is not one exact regular Git file")
+    process = subprocess.Popen(
+        [*command, "cat-file", "blob", fields[2].decode()],
+        cwd=root,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
+    )
+    digest, size = hashlib.sha256(), 0
+    try:
+        while chunk := process.stdout.read(1024**2):
+            size += len(chunk)
+            if size > expected["bytes"]:
+                raise ValueError("Historical original exceeds its recorded size")
+            digest.update(chunk)
+            if sink is not None:
+                sink.write(chunk)
+        if (
+            process.wait(timeout=10)
+            or {
+                "bytes": size,
+                "sha256": digest.hexdigest(),
+            }
+            != expected
+        ):
+            raise ValueError("Historical original differs from its recorded size or hash")
+    finally:
+        process.stdout.close()
+        if process.poll() is None:
+            process.kill()
+            process.wait()
+
+
+def restore_historical(root: Path, output: Path, policy: dict, names: list[str] | None = None):
+    """Restore exact historical data into a fresh private tree; never run its contents."""
+    records = _historical_records(policy)
+    selected = sorted(records if names is None else set(names))
+    if not selected or any(name not in records for name in selected):
+        raise ValueError("Select recorded historical files")
+    if output.resolve().is_relative_to(root.resolve()):
+        raise ValueError("Restore historical originals outside the repository checkout")
+    output.mkdir(mode=0o700, parents=True, exist_ok=False)
+    for name in selected:
+        target = output / name
+        target.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+        with os.fdopen(os.open(target, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600), "wb") as sink:
+            _historical_file(root, policy["baseline_commit"], name, records[name], sink)
+    before = _tree(output)
+    if set(before) != set(selected):
+        raise ValueError("Restored historical files differ from the recorded originals")
+    for name in selected:
+        actual = _file_record(output / name)
+        if {key: actual[key] for key in ("sha256", "bytes")} != records[name]:
+            raise ValueError("Restored historical files differ from the recorded originals")
+    if _tree(output) != before:
+        raise ValueError("Restored historical files changed during verification")
+    summary = {
+        "kind": "research-harness-historical-originals-v1",
+        "source_commit": policy["baseline_commit"],
+        "files": {name: records[name] for name in selected},
+        "executed": False,
+        "sanitized": False,
+    }
+    pending = output / "restoration.pending.json"
+    pending.write_bytes(_encoded(summary))
+    pending.rename(output / "restoration.json")
+    return {
+        "verified": True,
+        "files": len(selected),
+        "bytes": sum(records[name]["bytes"] for name in selected),
+        "source_commit": policy["baseline_commit"],
+        "executed": False,
+        "sanitized": False,
+    }
+
+
 def check_policy(root: Path, paths: list[str], policy: dict):
     """Bound new Git checkpoints and pin every grandfathered compressed blob."""
     if (
-        policy.get("schema_version") != 1
+        not isinstance(policy, dict)
+        or type(policy.get("schema_version")) is not int
+        or policy.get("schema_version") not in {1, 2}
         or not isinstance(policy.get("legacy_archives"), dict)
         or not isinstance(policy.get("legacy_checkpoint_bytes"), dict)
         or any(
@@ -329,6 +470,12 @@ def check_policy(root: Path, paths: list[str], policy: dict):
         )
     ):
         raise ValueError("Invalid evidence retention policy")
+    historical = _historical_records(policy)
+    migrated = {}
+    for name, record in historical.items():
+        prefix = next(item for item in EVIDENCE_ROOTS if name.startswith(item + "/"))
+        checkpoint = prefix + "/" + name[len(prefix) + 1 :].split("/")[0]
+        migrated[checkpoint] = migrated.get(checkpoint, 0) + record["bytes"]
     totals, present = {}, set()
     for name in sorted(set(paths)):
         prefix = next((item for item in EVIDENCE_ROOTS if name.startswith(item + "/")), None)
@@ -355,6 +502,8 @@ def check_policy(root: Path, paths: list[str], policy: dict):
         info = _regular(path)
         totals[checkpoint] = totals.get(checkpoint, 0) + info.st_size
         present.add(name)
+        if name in historical:
+            raise ValueError(f"Keep referenced historical originals outside the checkout: {name}")
         if _compressed(path):
             expected = policy["legacy_archives"].get(name)
             if expected is None or _file_record(path)["sha256"] != expected:
@@ -363,11 +512,21 @@ def check_policy(root: Path, paths: list[str], policy: dict):
             load_index(path)
     for checkpoint, size in totals.items():
         baseline = policy["legacy_checkpoint_bytes"].get(checkpoint, 0)
-        if size >= baseline + GIT_CHECKPOINT_LIMIT:
+        if size >= baseline - migrated.get(checkpoint, 0) + GIT_CHECKPOINT_LIMIT:
             raise ValueError(f"Evidence checkpoint exceeds its Git byte allowance: {checkpoint}")
         if not baseline and checkpoint + "/README.md" not in present:
             raise ValueError(f"New evidence checkpoint needs a README: {checkpoint}")
-    return {"checkpoints": len(totals), "git_bytes": sum(totals.values())}
+    if set(policy["legacy_archives"]) - present - set(historical):
+        raise ValueError("Legacy evidence is missing without a verified historical reference")
+    for name, record in historical.items():
+        _historical_file(root, policy["baseline_commit"], name, record)
+    result = {"checkpoints": len(totals), "git_bytes": sum(totals.values())}
+    if historical:
+        result.update(
+            historical_git_files=len(historical),
+            historical_git_bytes=sum(record["bytes"] for record in historical.values()),
+        )
+    return result
 
 
 def main():
@@ -387,6 +546,11 @@ def main():
     policy_parser = commands.add_parser("check-policy")
     policy_parser.add_argument("--repo", type=Path, default=Path.cwd())
     policy_parser.add_argument("--policy", type=Path, required=True)
+    restore_parser = commands.add_parser("restore-legacy")
+    restore_parser.add_argument("--repo", type=Path, default=Path.cwd())
+    restore_parser.add_argument("--policy", type=Path, required=True)
+    restore_parser.add_argument("--out", type=Path, required=True)
+    restore_parser.add_argument("--file", action="append", dest="files")
     args = parser.parse_args()
     if args.command == "prepare":
         result = prepare(
@@ -399,6 +563,10 @@ def main():
         )
     elif args.command == "verify":
         result = verify(args.index, args.archive, args.inventory)
+    elif args.command == "restore-legacy":
+        result = restore_historical(
+            args.repo, args.out, _json(args.policy.read_bytes()), args.files
+        )
     else:
         paths = (
             subprocess.check_output(

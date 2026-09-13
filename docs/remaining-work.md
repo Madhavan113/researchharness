@@ -89,7 +89,7 @@ Fix direction: relativize paths at archive time (the writer knows the repository
 
 Acceptance: `git grep -l "$HOME"` over the evidence directories and a grep over freshly extracted archives return nothing.
 
-September 12 bounded checkpoint: the [portable review exporter](portable-evidence.md) creates separately labelled copies with named path placeholders, JUnit hostname removal and every original/exported file hash. It preserves authoritative originals and refuses unsupported binary identity rather than corrupting evidence. Source-bound verification of a historical 159-file controlled-runtime archive changes three files and preserves 156 byte-for-byte. This does not complete the acceptance above: historical originals and the old machine-bound audit script remain unchanged in Git. Derived templates cannot replace original runtime proofs or relocate a budgeted run. Release assets remain prepared locally until an actual publication/download receipt exists.
+September 12 bounded checkpoint: the [portable review exporter](portable-evidence.md) creates separately labelled copies with named path placeholders, JUnit hostname removal and every original/exported file hash. It preserves authoritative originals and refuses unsupported binary identity rather than corrupting evidence. Source-bound verification of a historical 159-file controlled-runtime archive changes three files and preserves 156 byte-for-byte. The historical-reference follow-up restores all 25 selected originals (22,872,690 bytes) exactly from their published commit before removing their duplicate checkout copies. The current evidence tree has no matches for the checked operator home/hostname and no nonempty JUnit hostname attributes. This does not complete the acceptance above: restored historical archives and the old machine-bound audit script retain their original contents, and only one complete derived archive has been reviewed. Original Git history is unchanged. Derived templates cannot replace original runtime proofs or relocate a budgeted run. Release assets remain prepared locally until an actual publication/download receipt exists.
 
 ### RW-6 · Adopt an artifact retention policy · `in_progress` · confirmed
 
@@ -102,6 +102,16 @@ Fix direction: keep `index.json`, `acceptance.json`, `verification.json` and the
 Acceptance: a new checkpoint adds under 1 MB to the repository and its README says where the archive lives and how to verify it.
 
 The [retention policy](evidence-retention.md) selects GitHub release assets for future archives and full inventories, with small hash-bound indices/summaries in Git. `/root` completed deterministic preparation, streaming verification and a CI size/archive guard in [PR #16](https://github.com/Madhavan113/researchharness/pull/16), branch `feat/evidence-retention`; all 34 added cases and the full **1,412-test required suite pass with zero skips**. The guard verifies all 13 original compressed hashes across 18 historical checkpoints. A separate CLI process verified a prepared package's three unchanged report files; no upload occurred. The [tooling handoff](goals/omnigent-integration.md#september-12-2026--rw-6-artifact-retention-tooling-handoff) records exact commands and hashes. The first actual upload/download round trip remains part of RW-6 acceptance; prepared URLs are not published assets. Existing archives and their hashes remain intact, and RW-5 content cleanup is separate.
+
+The schema-2 follow-up in [PR #18](https://github.com/Madhavan113/researchharness/pull/18)
+replaces duplicate current-checkout originals with pinned Git references, leaving
+all original bytes in history. Its 83 focused checks and the full 1,463-test
+required Docker/Omnigent suite pass with zero skips. CI checks every reference
+and refuses unrecorded legacy deletions or reintroduced copies. Removed original
+bytes cannot be reused as a larger metadata allowance. Both CI jobs fetch full
+history; shallow clones must fetch the baseline before verification/restoration.
+This reduces current checkout size, not historical clone size. The first reviewed
+release upload/download remains pending.
 
 ### RW-7 · Make runtime test skips visible and enforceable · `done` · confirmed
 
