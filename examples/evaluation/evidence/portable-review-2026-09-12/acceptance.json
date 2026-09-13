@@ -1,0 +1,47 @@
+{
+  "date": "2026-09-12",
+  "export": {
+    "changed_files": [
+      "comparison/omnigent/cases/controlled-policy/runtime/agent/tools/mcp/research.yaml",
+      "comparison/omnigent/cases/controlled-policy/runtime/case.json",
+      "comparison/report.json"
+    ],
+    "configured_identity_matches": 0,
+    "exported_bytes": 1937443,
+    "files": 159,
+    "manifest": "portable-review.json",
+    "manifest_bytes": 54204,
+    "manifest_sha256": "c56d63a4172bbd48553b39014800343683a44a8f260d6752e59fabce18a351b6",
+    "source_inventory_sha256": "231a52a78b66b62c750c8115a7ba9ec848bdaf2e2e5c50f794bb11cdb81ac838",
+    "unchanged_files": 156
+  },
+  "kind": "research-harness-portable-review-acceptance-v1",
+  "limits": [
+    "Original runtime audit requires exact original artifacts; embedded original runtime hashes are not rewritten",
+    "Historical operator paths remain in Git; repository-wide RW-5 acceptance is not met",
+    "No release upload or download has occurred",
+    "Configured identity scan is not general secrets or PII detection"
+  ],
+  "original": {
+    "archive_sha256": "30049e5f7b3cb3b902ae3ffd9fb6fc94c1b0e20575a8766e35e22df62652e153",
+    "bytes": 1937864,
+    "directory": "examples/evaluation/evidence/controlled-runtime-2026-09-08",
+    "git_ref": "e03c498930906b6efa48812168e02780a78a78da",
+    "index_sha256": "8acfb547a2104b87b4a46f4d11a718109cde8d366f9ca9927e75b837a85f73ef",
+    "verified_files": 159
+  },
+  "remote_assets_published": false,
+  "role": "derived_review_only",
+  "scope": "Current export tooling applied to historical authored controlled-runtime evidence; no new research/model run",
+  "tool_files": {
+    "src/research_harness/evaluation/evidence_assets.py": "d6e7133ee61fadb95b9cf6fa87dc500c9e348be1fd9a46ef3400319e541fd36c",
+    "src/research_harness/evaluation/portable_evidence.py": "87b312cfc0acfa457b90ed2b89bb1f624c6b588af7fec951ed074fad1456c46d"
+  },
+  "verification": {
+    "changed_files": 3,
+    "files": 159,
+    "role": "derived_review_only",
+    "source_and_transforms_verified": true,
+    "verified": true
+  }
+}

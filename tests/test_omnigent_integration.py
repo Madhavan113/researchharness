@@ -355,6 +355,76 @@ def test_usage_preserves_unknown_and_interrupted_usage_and_rejects_conflicting_r
         usage([foreign])
 
 
+def test_offline_fixture_diagnostics_exclude_payloads_and_bound_errors():
+    repo = Path(__file__).resolve().parents[1]
+    fixture = runpy.run_path(str(repo / "examples/omnigent/normal_runtime_fixture.py"))
+    model = fixture["ModelFixture"](fixture["SOURCE"])
+    model.mode, model.stage = "collection", 2
+    model.requests = [{"input": "REQUEST_CONTENT_CANARY"}]
+    model.responses = [
+        {
+            "output": [
+                {
+                    "type": "function_call",
+                    "name": "research__get_job",
+                    "status": "completed",
+                    "arguments": "ARGUMENT_CONTENT_CANARY",
+                }
+            ]
+        }
+    ]
+    model.jobs["job-1"] = {
+        "kind": "collection",
+        "status": "running",
+        "worker_active": False,
+        "recovery_pending": True,
+        "request": "JOB_REQUEST_CANARY",
+        "result": "JOB_RESULT_CANARY",
+    }
+    model.errors = ["x" * 4000] * 8
+    report = model.diagnostics()
+    assert report["phase"] == "collection" and report["stage"] == 2
+    assert report["model_error_count"] == 8
+    assert len(report["last_model_errors"]) == 5
+    assert all(len(error) == 1000 for error in report["last_model_errors"])
+    assert report["jobs"]["job-1"]["status"] == "running"
+    assert report["jobs"]["job-1"]["recovery_pending"] is True
+    assert report["last_response_outputs"][0]["name"] == "research__get_job"
+    assert "CANARY" not in json.dumps(report)
+    assert model.requests[0]["input"] == "REQUEST_CONTENT_CANARY"
+
+
+def test_offline_fixture_preserves_state_and_original_timeout(tmp_path, monkeypatch):
+    pytest.importorskip("mcp")
+    repo = Path(__file__).resolve().parents[1]
+    fixture = runpy.run_path(str(repo / "examples/omnigent/normal_runtime_fixture.py"))
+
+    class InterruptedRuntime:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+        def send(self, prompt, *, timeout, phase):
+            assert timeout == 90 and phase == "discovery"
+            raise TimeoutError("controlled diagnostic interruption")
+
+    monkeypatch.setitem(fixture["run"].__globals__, "LocalOmnigent", InterruptedRuntime)
+    output = tmp_path / "interrupted"
+    with pytest.raises(TimeoutError, match="controlled diagnostic interruption"):
+        fixture["run"](output, Path(sys.executable))
+    state = json.loads((output / "fixture-state.json").read_text())
+    assert state["phase"] == "discovery" and state["stage"] == 0
+    assert state["model_requests"] == state["model_responses"] == 0
+    assert not state["jobs"]
+    assert json.loads((output / "model-requests.json").read_text()) == []
+    assert not (output / "acceptance.json").exists()
+
+
 def test_normal_server_runner_mcp_path_saves_and_recovers_a_pipeline(tmp_path):
     python = os.environ.get("RH_TEST_OMNIGENT_PYTHON")
     if not python:
@@ -376,7 +446,20 @@ def test_normal_server_runner_mcp_path_saves_and_recovers_a_pipeline(tmp_path):
         timeout=180,
         cwd=repo,
     )
-    assert completed.returncode == 0, completed.stdout + completed.stderr
+    failure = completed.stdout + completed.stderr
+    if completed.returncode:
+        state = tmp_path / "normal-runtime/fixture-state.json"
+        if state.is_file():
+            with state.open("rb") as stream:
+                detail = stream.read(16385)
+            failure += "\nLast observed offline fixture state:\n" + detail[:16384].decode(
+                errors="replace"
+            )
+            if len(detail) > 16384:
+                failure += "\n[diagnostic display truncated; original file retained]"
+        else:
+            failure += "\nOffline fixture exited before writing fixture-state.json"
+    assert completed.returncode == 0, failure
     acceptance = json.loads((tmp_path / "normal-runtime/acceptance.json").read_text())
     assert acceptance["normal_server_runner"]
     assert acceptance["server_runner_restart_preserved_case"]

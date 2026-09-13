@@ -39,12 +39,13 @@ Use `queued`, `in_progress`, `blocked`, or `done`. Replace an owner only after a
 | M3 | Omnigent research agent bundle and runtime binding | done | `/root/omnigent_spike`, browser verification `/root` | Normal server/runner/MCP and browser chat save validated proposal/pipeline ids; synthetic model HTTP, frozen authored bundle |
 | M4 | Collection jobs, exports, case lookup, recovery | done | `/root` | Detached workers, cancellation, process termination, scoped data, exports, and full server/browser restart verified locally; local Postgres/MinIO tests and detached workflow/restart/export acceptance now verified |
 | M5 | Independent pilot evaluation and baseline comparison | blocked | `/root`, bounded agent work handed off | Twenty authored cases now discriminate in the offline policy comparison; independent evaluators, frozen controller and bound gateway usage verified through actual runtimes; budgeted dispatch and independent settlement verified through both actual runtimes; awaits human review, provider access and the pending spending decision |
-| M6 | Meta-Harness strategy optimization and isolated final evaluation | in_progress | `/root`, review follow-ups | RW-1/2/3/4/7/8/9/10/11/12/14 are published in PRs #2–#12, with PR #11 and #12 hosted checks passing. The bounded RW-15 admission/compatibility checkpoint is published in PR #13. Copied-feedback privacy is published in PR #14 with both hosted jobs passing. RW-13 verification efficiency is published in PR #15 and passes 1,378 required local tests with zero skips; both hosted jobs also pass. RW-6 tooling/policy is published in PR #16 with 1,412 required local tests passing; its first reviewed external asset round trip remains open. Exploration limits remain conditional on measured-run evidence. Measured search/final still awaits remaining review work, reviewed cases, provider access, spending approval and the measured baseline |
+| M6 | Meta-Harness strategy optimization and isolated final evaluation | in_progress | `/root`, review follow-ups | RW-1/2/3/4/7/8/9/10/11/12/14 are published in PRs #2–#12, with PR #11 and #12 hosted checks passing. The bounded RW-15 admission/compatibility checkpoint is published in PR #13. Copied-feedback privacy is published in PR #14 with both hosted jobs passing. RW-13 verification efficiency is published in PR #15 and passes 1,378 required local tests with zero skips; both hosted jobs also pass. RW-6 tooling/policy is published in PR #16 with 1,412 required local tests passing; its first reviewed external asset round trip remains open. The bounded RW-5 portable review exporter is published in PR #17 with 1,444 required local tests passing; historical path cleanup remains open. Exploration limits remain conditional on measured-run evidence. Measured search/final still awaits remaining review work, reviewed cases, provider access, spending approval and the measured baseline |
 
 M0 and M1 can proceed independently against the agreed tool/service boundary. Evaluation case design can also proceed independently. Agree on ownership of shared schemas, CLI wiring, dependencies, migrations, and this tracker before concurrent edits.
 
 ## Current evidence and limits
 
+- GitHub reports the repository public as of September 12. Historical evidence still contains operator paths. The portable exporter creates labelled derived review copies; it does not rewrite original evidence or Git history, and its prepared release package is not published.
 - The repository already contains the direct discovery CLI, connector probes, proposal compilation, collection/export/replay, and local/shared backend work. Inspect and preserve the existing working-tree changes before building on them.
 - The tested Omnigent source pin is `be042b390e293a8d586cbb7e403a2ce0ce38fc62`, installed in a separate environment. Normal server, runner, MCP, browser, restart, and spending-policy fixtures have run. The current turn can exceed the configured budget threshold; the next turn is blocked. This is not an exact provider billing cap.
 - The independent evaluator is maintained in this package under `evaluation/`, with twenty authored development cases and verified Omnigent usage-file support. It derives source usefulness from independent requirements. Authored cases are not human-reviewed cases, and fixtures do not establish model performance.
@@ -77,6 +78,176 @@ For each active task, add a short entry with:
 Retain completed handoffs so another agent can distinguish implemented behavior from planned work. Avoid copying secrets, raw credentials, or held-out task contents into this shared tracker.
 
 ## Activity and handoffs
+
+### September 12, 2026 — Runtime collection timeout investigation
+
+Owner: `/root`; `in_progress`, continuing PR #17 on `feat/portable-evidence-export`
+from head `49c0ecdbf4830dcfb8c301281d196e94c0d15b54` (initial investigation branch
+`fix/runtime-fixture-diagnostics`; no separate implementation commits). The prior turn was a
+verified wait. PR #16 exact-head run `34722233873` attempt 2 passed both hosted
+jobs (1,412 required tests, zero skips). PR #17 run `34723146902` passed ordinary
+checks but failed one required test: the normal server/runner collection/export
+follow-up timed out after 90 seconds; 1,443 other required tests passed.
+The console trace identifies an unresolved turn, not its cause. The public CI
+log does not retain the fixture's model errors, session events or job state.
+
+Scope: reproduce the failing path with retained offline artifacts, inspect
+model/tool/worker/session evidence, and fix a demonstrated cause or the missing
+diagnostics needed to establish it. Do not simply relax the timeout or replay an
+unresolved turn. Intended files: normal runtime fixture, its focused tests and
+diagnostic retention if needed, testing guide and this tracker. Retain the failed
+CI result; it is not superseded by a passing local rerun. All provider/model
+responses remain authored fixtures; no live model or spending gate changes.
+
+Diagnostic checkpoint: the exact failed test passed locally in **8.49 seconds**
+with the original limits; report `/tmp/rh-runtime-timeout-repro-20260912.xml`,
+SHA-256 `962d67a3810839ef1d752cd418de07a2c929da6dc1028aebf6978c57950d2576`.
+The original hosted failure log remains at
+`/tmp/rh-pr17-runtime-failed-20260912.log`, SHA-256
+`58e35c62d18d146517322e363909ff7f5a5c243f0054b9a74da660ae32951d83`.
+Its cause is not established, and no production runtime limit, retry policy or
+assertion was relaxed.
+
+The fixture now writes a bounded `fixture-state.json` from its finalizer with
+phase/stage, request/response counts, the last action, observed job states and
+model errors. Failed subprocess exits include up to 16 KiB of that report in the
+test assertion. Complete original captures stay separate; the summary is a last
+observation and cannot prove an unresolved job stopped. Two added tests verify
+payload exclusion/error bounds and preservation of both diagnostics and the
+original timeout without a fabricated acceptance record. They pass in 0.70
+seconds; report `/tmp/rh-runtime-diagnostics-tests-20260912.xml`, SHA-256
+`14501596527287edba3482941717ebed75d69719770f3f01d2d5bb6806fa1a73`.
+
+~~~sh
+RH_TEST_REQUIRE_RUNTIME=1 \
+RH_TEST_STRATEGY_IMAGE=python@sha256:9d2e5553305c7c7b0097999bb17187c69b921ccd6bc9d40e4bb5ebe652c00285 \
+RH_TEST_OMNIGENT_PYTHON=/tmp/researchharness-omnigent-be042b39/.venv/bin/python \
+uv run --locked --extra mcp pytest --tb=short \
+  --basetemp=/tmp/rh-runtime-diagnostics-required-20260912 \
+  --junitxml=/tmp/rh-runtime-diagnostics-required-20260912.xml
+~~~
+
+The fresh full suite passes **1,446 tests, zero failures/errors/skips**, in
+300.90 seconds. JUnit SHA-256:
+`b4b77715ee4979ae37d341f263207dbdc07bbcaac88d236b3bd9b2abcbdbe6de`.
+The actual workflow's new report records 19 model requests/responses, zero model
+errors, both jobs succeeded and a completed final response in the reopened case;
+its SHA-256 is
+`5ee5bc04f5d96750ba89bbe03373fb23039b59912e8f2b9509791aa687149e23`.
+Lint/format checks pass for 117 files (including the fixture), all 109 local
+Markdown targets in changed documentation resolve, and the retention guard
+verifies 19 checkpoints with all 13 historical compressed hashes intact.
+
+Next action: inspect the hosted checks for this diagnostic follow-up in PR #17;
+use the retained state to investigate any recurrence. A passing rerun does not
+demonstrate a fix for the original timeout. Public release publication, human
+benchmark review, provider access and spending approval remain unanswered; no
+live model requests or release uploads occurred. The overall goal remains active.
+
+### September 12, 2026 — Historical audit portability follow-up
+
+Owner: `/root`; bounded documentation/evidence check completed, continuing
+PR #17. The preceding turn made progress by publishing the portable exporter,
+its verified checkpoint and PR. Current-head PR #17 run `34723007267` and PR #16
+run `34722233873` attempt 2 are confirmed live; no restart is requested.
+
+The archived budgeted-search audit depends on more than a hard-coded repository
+path: it opens the original private final executions and retained ledger, checks
+the executed source version, and writes into the original run. Replacing two
+paths would not make it a valid audit of the published subset. Scope: document
+that boundary and provide/test a portable, read-only member-integrity command
+against the complete historical public archive. Keep originals unchanged; do
+not claim that member hashes reproduce the private-final or runtime audit.
+Files: portable evidence guide, historical checkpoint README and shared tracker.
+Publication of the prepared derived release is awaiting a separate user answer;
+provider/budget and benchmark-review decisions remain pending.
+
+The documented command was executed verbatim from the guide in a separate
+Python process against the original budgeted-search index/archive. It verifies
+all **6,479 files / 49,698,731 expanded bytes** without extraction. The compressed
+SHA-256 remains `7af0293e450f0279139c56ff0dd4f35a0996dfd5bafe1d5f0dbe3514713a90f3`.
+The local result `/tmp/rh-historical-member-verification-20260912.json` records
+the original index hash and exact documented script hash; its SHA-256 is
+`9c9d5b32a3b6bbd3186f98204dfd70ed0de0e1c24d5396a483f365968a5c9def`.
+All 84 local Markdown targets in the changed files resolve, the diff check
+passes, and the retention guard still verifies all 13 original compressed
+hashes across 19 checkpoints. This is a documentation and integrity check;
+production code/tests are unchanged and no runtime suite was rerun. The full
+private-final/runtime audit has not been rerun or claimed reproduced.
+
+### September 12, 2026 — RW-5 portable review export ownership
+
+Owner: `/root`; bounded RW-5 export work `in_progress` on `feat/portable-evidence-export`, based on PR #16 head `e03c498930906b6efa48812168e02780a78a78da`. The preceding goal turn made progress: it implemented retention tools/CI, passed 1,412 required tests and published PR #16. Its hosted run `34722228062` is confirmed queued at this task's initial poll and is not restarted.
+
+Source inspection confirms five loose files and 74 files across eight compressed archives contain the operator's home path. Most are MCP launch configurations bound into original bundle/runtime hashes; blindly rewriting them would invalidate that evidence. Scope: create explicitly derived portable review exports with named path placeholders, normalized JUnit host metadata and an original/exported hash manifest; preserve every original byte and runtime/ledger binding; reject residual known identity in unsupported binary data rather than corrupting it. Verify a representative complete reviewed archive and its original hashes, package the result with the adopted retention tools, and record the limits of derived evidence. Intended files: export/verification helpers and tests, a portable evidence guide and reproduction templates, small acceptance/index records and trackers. Historical originals remain available and unchanged. This work does not declare the whole RW-5 item complete while historical identity remains in the current tree, nor establish model performance or spending authorization.
+
+### September 12, 2026 — RW-5 portable review export handoff
+
+Owner: `/root`; bounded export/verification checkpoint implemented on
+`feat/portable-evidence-export`, based on PR #16. Implementation revision:
+`cf21dc26c01805001cf1f2687e1f3a3117003613`. Added the portable export, verification
+and local template-rendering CLI plus 32 regression cases. The
+[guide](../portable-evidence.md) distinguishes derived copies from authoritative
+runtime evidence, private bindings from public placeholder names, and local
+preparation from asset availability. The original run, ledgers, archive hashes
+and private held-out draft remain unchanged.
+
+Validation:
+
+~~~sh
+RH_TEST_REQUIRE_RUNTIME=1 \
+RH_TEST_STRATEGY_IMAGE=python@sha256:9d2e5553305c7c7b0097999bb17187c69b921ccd6bc9d40e4bb5ebe652c00285 \
+RH_TEST_OMNIGENT_PYTHON=/tmp/researchharness-omnigent-be042b39/.venv/bin/python \
+uv run --locked --extra mcp pytest --tb=short \
+  --basetemp=/tmp/rh-rw5-required-20260912 \
+  --junitxml=/tmp/rh-rw5-required-20260912.xml
+~~~
+
+The full required suite passes **1,444 tests, zero skips, in 299.35 seconds**.
+Its JUnit SHA-256 is
+`7884112f8fe93e06089f6e5c94edf649edf3a15878ef9e2c7e2fcab7061e7121`.
+The focused command `uv run --locked --extra mcp pytest
+tests/test_portable_evidence.py tests/test_evidence_assets.py --tb=short
+--junitxml=/tmp/rh-rw5-tools-final-20260912.xml` passes all 66 cases, zero skips;
+report SHA-256
+`ed40c0307ad275e3ac95076c35147281aff8c81ab6afdb7e4a9ee902d9e935b7`.
+Ruff lint and format checks pass for 116 files. All 153 local Markdown targets
+resolve after correcting one historical-index link; `git diff --check` passes.
+The retention guard verifies 19 checkpoints and all 13 original compressed
+hashes. The new evidence directory contains 9,446 bytes in Git, below the
+1,000,000-byte limit; complete prepared assets remain outside Git.
+
+The [representative checkpoint](../../examples/evaluation/evidence/portable-review-2026-09-12/README.md)
+first verifies every original hash in the historical 159-file controlled-runtime
+archive. Export changes three path-bearing files and preserves 156 byte-for-byte.
+A separate CLI process verifies every source hash and transformation with private
+bindings. The manifest contains no binding values. A second process verifies
+the complete prepared package: 160 members including the manifest, 1,991,647
+expanded bytes. Asset hashes, intended URLs, source references and test reports
+are in the small committed index/acceptance/verification records. Local package:
+`/tmp/rh-rw5-package-20260912`; source and review copies:
+`/tmp/rh-rw5-original-20260912` and `/tmp/rh-rw5-review-20260912`. The private
+binding file stays outside Git. No release was created or uploaded.
+
+GitHub reports the repository public (`gh repo view --json nameWithOwner,isPrivate`),
+so the earlier private-repository assumption has been corrected. Historical
+operator paths remain in Git; these derived copies do not satisfy RW-5's original
+repository-wide removal check. RW-5 and RW-6 remain `in_progress`; the first
+actual reviewed asset upload/download is still outstanding. No provider or paid
+model calls occurred. Independent benchmark review, provider access, spending
+approval and measured baseline/search/final remain pending; the shared goal is
+active. Next actions: inspect this checkpoint's hosted checks, decide the next
+publication step for the prepared public-repository assets, and address the
+remaining original-path acceptance without invalidating runtime evidence.
+
+PR #16 CI observation: the first current-head runs `34722228062` and
+`34722233873` were cancelled while older implementation-head run `34722208937`
+remained active. After confirming every earlier branch run terminal and that
+the implementation-head run succeeded, `/root` reran `34722233873` once.
+Attempt 2 targets exact head `e03c498930906b6efa48812168e02780a78a78da`; its
+last observation during this handoff is `in_progress`, not a success claim.
+
+Publication: implementation commit `cf21dc26c01805001cf1f2687e1f3a3117003613` and evidence/documentation commit `86eed6b97750168e961a2ef6f067ce75050821d6` are pushed to `origin/feat/portable-evidence-export`. [PR #17](https://github.com/Madhavan113/researchharness/pull/17) is open and ready for review, stacked on `feat/evidence-retention`. All preceding checkpoint commits are already on origin. Hosted checks remain pending and no merge or release publication occurred.
 
 ### September 12, 2026 — RW-6 artifact retention ownership
 

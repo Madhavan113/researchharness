@@ -23,7 +23,10 @@ evidence selected for sharing. Keep the authoritative original run, ledger and
 private final package in their original locations. Review the export for
 credentials, operator identity, private held-out contents and host-only records.
 The packager preserves file bytes; it does not sanitize them or decide what is
-appropriate to publish. RW-5's path/hostname cleanup remains separate.
+appropriate to publish. The [portable review exporter](portable-evidence.md)
+can create explicitly derived copies with known operator paths replaced and
+JUnit hostnames removed; it does not replace manual content review or the
+original artifacts needed for runtime audits.
 
 Record the commit corresponding to the executed source, and retain observed
 source fingerprints in the verification summary. The packager checks that this
@@ -32,6 +35,11 @@ that revision. Review the observed fingerprints before making that claim.
 Do not copy a redundant top-level `checkpoint-source/`: retrieve that source
 from its commit. Preserve frozen implementation files that an original runtime
 proof actually requires; the tool never silently drops files from the export.
+
+For a derived export of historical evidence, `source_commit` identifies the
+export tools' revision. Also record the historical archive's Git reference,
+original SHA-256 and member index in the checkpoint summary. This does not claim
+the historical runtime executed the newer tooling revision.
 
 ~~~sh
 uv run --locked --extra mcp python -m research_harness.evaluation.evidence_assets prepare \
@@ -70,7 +78,9 @@ Git checkpoint directory, alongside its README. Assets remain outside Git.
 
 Publish the reviewed archive and inventory together under the recorded release
 tag in the recorded repository. Keep that tag and those asset bytes stable;
-corrections require a new checkpoint/tag. Keep private repositories private.
+corrections require a new checkpoint/tag. GitHub reports this repository public
+as of September 12, 2026; its release assets would also be public. Publishing a
+prepared package is a separate action from committing the small metadata.
 The release must retain both assets for as long as the checkpoint is supported.
 
 After publication, use an authenticated GitHub CLI to download both assets into
