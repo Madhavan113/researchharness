@@ -27,7 +27,7 @@ PRIVATE = b"host-only-independent-evaluator-canary"
 
 @pytest.fixture
 def prepared(tmp_path):
-    original = ROOT / "examples/evaluation/development"
+    original = Path(__file__).resolve().parent / "fixtures/research-lifecycle"
     package = tmp_path / "benchmark-input"
     shutil.copytree(original, package)
     manifest = read(package / "manifest.json")

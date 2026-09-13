@@ -473,35 +473,85 @@ def assert_archive(path):
     return manifest
 
 
-def test_absolute_deadline_interrupts_silence_after_a_late_chunk(tmp_path):
-    release = threading.Event()
+def test_absolute_deadline_interrupts_silence_after_a_late_chunk(tmp_path, monkeypatch):
+    from research_harness.integrations import model_gateway
+
+    now = [0.0]
+    timers = []
+
+    class Timer:
+        def __init__(self, interval, function, args=(), kwargs=None):
+            self.when = now[0] + interval
+            self.function, self.args, self.kwargs = function, args, kwargs or {}
+            self.active = False
+            timers.append(self)
+
+        def start(self):
+            self.active = True
+
+        def cancel(self):
+            self.active = False
+
+    def advance(value):
+        now[0] = value
+        for timer in list(timers):
+            if timer.active and timer.when <= value:
+                timer.active = False
+                timer.function(*timer.args, **timer.kwargs)
+
+    monkeypatch.setattr(model_gateway.threading, "Timer", Timer)
+    headers_ready, send_chunk, release = (threading.Event() for _ in range(3))
+    chunk = b"event: response.created\ndata: {}\n\n"
 
     def serve(handler):
         handler.send_response(200)
         handler.send_header("Content-Type", "text/event-stream")
         handler.end_headers()
-        time.sleep(0.8)
-        handler.wfile.write(b"event: response.created\ndata: {}\n\n")
+        headers_ready.set()
+        assert send_chunk.wait(10), "Test did not release the late chunk"
+        handler.wfile.write(chunk)
         handler.wfile.flush()
-        release.wait(5)
+        release.wait(10)
 
     try:
         with live_upstream(serve) as upstream:
             with ResponsesGateway(
                 tmp_path / "gateway",
                 model=MODEL,
-                settings=DiscoverySettings(deadline_seconds=1),
+                settings=DiscoverySettings(deadline_seconds=100),
                 upstream_base_url=upstream,
+                clock=lambda: now[0],
             ) as proxy:
-                started = time.monotonic()
-                with contextlib.suppress(httpx.HTTPError):
-                    post(proxy)
-                elapsed = time.monotonic() - started
-                assert 0.85 <= elapsed < 1.5
+                with ThreadPoolExecutor(max_workers=1) as executor:
+                    future = executor.submit(post, proxy)
+                    assert headers_ready.wait(5)
+                    advance(80.0)
+                    send_chunk.set()
+                    # Wall time only guards a deadlocked test. Deadline semantics
+                    # use the injected clock, with the provider still silent.
+                    limit = time.monotonic() + 5
+                    while time.monotonic() < limit:
+                        with proxy._lock:
+                            captured = any(
+                                bytes(attempt["body"]) == chunk
+                                for attempt in proxy._active_attempts.values()
+                            )
+                        if captured:
+                            break
+                        time.sleep(0.01)
+                    assert captured, "Gateway did not capture the late chunk"
+                    assert not future.done()
+                    assert [timer.when for timer in timers if timer.active] == [100.0]
+                    advance(100.0)
+                    with contextlib.suppress(httpx.HTTPError):
+                        future.result(timeout=5)
+                    assert not release.is_set()
                 report = proxy.report()
                 assert report["interrupted"] and not report["complete"]
                 assert report["requests"][0]["reason"] == "deadline_exhausted"
+                assert (proxy.output / "request-0001/response.body").read_bytes() == chunk
     finally:
+        send_chunk.set()
         release.set()
 
 

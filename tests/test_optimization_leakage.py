@@ -7,7 +7,7 @@ from research_harness.evaluation.benchmark import load_benchmark
 from research_harness.optimization.leakage import MAX_FINDINGS, audit_candidate, audit_inputs
 from research_harness.util import canonical_json, digest
 
-DEVELOPMENT = Path(__file__).resolve().parents[1] / "examples/evaluation/development/manifest.json"
+DEVELOPMENT = Path(__file__).resolve().parent / "fixtures/research-lifecycle/manifest.json"
 
 
 def test_audit_uses_public_tasks_and_fixture_urls_without_private_evaluator_fields():

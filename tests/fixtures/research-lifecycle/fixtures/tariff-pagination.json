@@ -1,0 +1,62 @@
+{
+  "authorship": "Synthetic fixture authored by Codex; no live source was sampled",
+  "search_results": [
+    {
+      "url": "https://tariff-office.fixture.example/publication-index.json",
+      "title": "Tariff bulletin enumeration: publication index and monthly counts"
+    },
+    {
+      "url": "https://tariff-office.fixture.example/bulletins",
+      "title": "Tariff bulletin enumeration: source publication"
+    }
+  ],
+  "responses": [
+    {
+      "url": "https://tariff-office.fixture.example/bulletins",
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "items": [
+          {
+            "id": "t-1"
+          }
+        ],
+        "next_cursor": "second"
+      }
+    },
+    {
+      "url": "https://tariff-office.fixture.example/bulletins?cursor=second",
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "items": [
+          {
+            "id": "t-2"
+          }
+        ],
+        "next_cursor": null
+      }
+    },
+    {
+      "url": "https://tariff-office.fixture.example/publication-index.json",
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "synthetic": true,
+        "items": [
+          {
+            "id": "monthly-index",
+            "topic": "Tariff bulletin enumeration",
+            "publication_count": 12
+          }
+        ]
+      }
+    }
+  ]
+}

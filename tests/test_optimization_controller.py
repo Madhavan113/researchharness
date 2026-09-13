@@ -11,7 +11,6 @@ import pytest
 from test_optimization_proposer import response, tool
 from test_research_controller import fixture_executor
 from test_strategy_session import CODE, bundle
-from test_strategy_session import fake_runner as fake_runner
 
 from research_harness.evaluation import controller as comparison_module
 from research_harness.evaluation.controller import ComparisonConfig
@@ -37,16 +36,17 @@ def read(path):
 
 @pytest.fixture
 def search(tmp_path, monkeypatch, fake_runner, request):
-    # Freeze a stable backend for these coordinator-only fixtures while other
-    # independent agent modules are edited. Runtime acceptance freezes all code.
+    # Most coordinator-only fixtures use a small stable freeze. The dedicated
+    # real-source cases below exercise the actual scanner through this controller.
     backend = ROOT / "src/research_harness/config.py"
-    monkeypatch.setattr(
-        comparison_module,
-        "source_fingerprints",
-        lambda: {"src/research_harness/config.py": digest(backend.read_bytes())},
-    )
+    if getattr(request, "param", None) != "real-source":
+        monkeypatch.setattr(
+            comparison_module,
+            "source_fingerprints",
+            lambda: {"src/research_harness/config.py": digest(backend.read_bytes())},
+        )
     package = tmp_path / "development"
-    shutil.copytree(ROOT / "examples/evaluation/development", package)
+    shutil.copytree(Path(__file__).resolve().parent / "fixtures/research-lifecycle", package)
     manifest = read(package / "manifest.json")
     manifest["cases"] = [
         ref for ref in manifest["cases"] if Path(ref["path"]).stem == "export-notices"
@@ -75,6 +75,36 @@ def search(tmp_path, monkeypatch, fake_runner, request):
         instructions="Shared fixture instructions.\n",
         config=config,
     )
+
+
+@pytest.mark.parametrize("search", ["real-source"], indirect=True)
+@pytest.mark.parametrize("location", ["working", "frozen"])
+def test_controller_real_implementation_freeze_rejects_changed_bytes_before_execution(
+    search, monkeypatch, location
+):
+    comparison = search.root / "comparisons/baseline"
+    plan = read(comparison / "comparison.json")
+    relative = "src/research_harness/mcp/server.py"
+    sources = comparison_module.source_fingerprints()
+    assert plan["sources"] == sources
+    assert {relative, "uv.lock", "pyproject.toml"} <= sources.keys()
+    assert len([name for name in sources if name.endswith(".py")]) > 20
+    target = ROOT / relative if location == "working" else comparison / "implementation" / relative
+    original_read = Path.read_bytes
+
+    def changed_bytes(path):
+        raw = original_read(path)
+        return raw + b"\n# simulated changed implementation\n" if path == target else raw
+
+    # Present altered bytes to the real scanner without editing the shared checkout.
+    monkeypatch.setattr(Path, "read_bytes", changed_bytes)
+    executor = Executor()
+    message = (
+        "Implementation changed" if location == "working" else "Frozen implementation bytes changed"
+    )
+    with pytest.raises(ValueError, match=message):
+        search.step(executor=executor)
+    assert executor.calls == []
 
 
 class Executor:

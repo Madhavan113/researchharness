@@ -14,7 +14,6 @@ import anyio
 import httpx
 import pytest
 from test_strategy_session import bundle
-from test_strategy_session import fake_runner as fake_runner
 
 import research_harness.evaluation.runtime_executor as executor_module
 from research_harness.backend import Backend

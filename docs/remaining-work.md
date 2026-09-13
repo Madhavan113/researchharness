@@ -177,11 +177,15 @@ Completed September 10 by `/root`, branch `fix/split-leakage-audit`, based on PR
 
 `strategies/session.py` (lines 149–187) re-hashes every completed event on every `apply`, `assert_ready`, `guard` and `status`. `optimization/workspace.py` (lines 382–394) re-hashes the whole feedback tree on every tool call. `optimization/controller.py` (lines 247–268) re-hashes all inventories on every open, so `status` is O(archive bytes). `evaluation/pilot.py` (lines 199–236) re-verifies every registered run's archives on every case start and proposer attempt, and a moved run directory raises a raw `FileNotFoundError`. Cache by inventory digest and mtime; convert the missing-directory case into a ledger error.
 
-### RW-14 · Test suite maintenance · `open` · confirmed
+### RW-14 · Test suite maintenance · `done` · confirmed
 
 `tests/test_model_gateway.py:381–406` asserts `0.85 <= elapsed < 1.5` around a 0.8 s sleep and 1.0 s deadline; widen margins or use a fake clock. `fake_runner` is imported across test modules from `test_strategy_session.py`; move it to `conftest.py`. The `search` fixture in `tests/test_optimization_controller.py` replaces `source_fingerprints`, so no controller-level test exercises the real implementation-freeze check. Tests read the twenty committed cases as inputs, so editing cases under RW-2 changes test behavior; snapshot the inputs the tests need.
 
+Completed September 12 by `/root` on `test/reproducible-runtime-checks`, based on PR #11. The late-chunk deadline test uses a controlled clock/timer and a real HTTP connection. Shared observation-runner evidence moved to `conftest.py`; two new controller cases exercise the real fingerprint scanner against altered working/frozen implementation bytes before execution. Six lifecycle/leakage modules use four frozen cases with original content hashes; benchmark/workbook tests still inspect the actual development package. Sandbox tests now exercise each guard independently: the deadline case remains one second, while output/memory cases use the production default ten-second watchdog with unchanged 1,024-byte/64-MB caps and additional truncation/OOM assertions. The full required suite passes **1,337 tests with zero skips**; all three real-Docker guard checks also pass separately. The [testing guide](testing.md#stable-test-inputs-and-guard-coverage) and [tracker handoff](goals/omnigent-integration.md#september-12-2026--rw-14-test-maintenance-ownership) record the contracts and exact verification. No production limit changed.
+
 ### RW-15 · Small items · `open`
+
+RW-14 is published in [PR #12](https://github.com/Madhavan113/researchharness/pull/12), stacked on PR #11. The remaining small items below are separate work.
 
 - Declare `anyio` under the `mcp` extra; it is imported directly in `mcp/server.py`.
 - Remove or explain the four zero-byte `.log` files under `examples/omnigent/evidence/`.
@@ -199,7 +203,7 @@ Unchanged from the tracker: provider access, the spending decision, human review
 
 ## Suggested order for a continuing agent
 
-1. Check the published checkpoint's required CI result, including the two local Docker runaway-test timeouts recorded in the RW-10 handoff.
+1. Check the latest published checkpoint's required CI result. PR #11's hosted suite passed, and RW-14's complete required local suite now passes with isolated guard tests.
 2. RW-5 and RW-6: agree on artifact retention and path/hostname handling before the next evidence regeneration or public release.
-3. RW-13, RW-14 and RW-15: remaining independent offline efficiency and maintenance work.
+3. RW-13 and RW-15: remaining independent offline efficiency and maintenance work.
 4. Resolve the external decisions above, then perform live compatibility and the measured baseline before model-mode search. RW-10's offline acceptance does not replace that live compatibility gate.

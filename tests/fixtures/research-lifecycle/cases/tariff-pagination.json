@@ -1,0 +1,70 @@
+{
+  "id": "tariff-pagination",
+  "title": "Tariff bulletin enumeration",
+  "brief": "Collect every tariff bulletin, including continuation pages; a compatible first page is not a complete bulletin catalog.",
+  "topic_group": "tariffs",
+  "source_families": [
+    "tariff-office"
+  ],
+  "tags": [
+    "pagination",
+    "parseable-incomplete"
+  ],
+  "review_status": "authored",
+  "review_notes": "Authored development contract, not independently human-reviewed. Endpoints, records, and search ordering are synthetic.",
+  "specification": {
+    "requirements": [
+      {
+        "id": "all-bulletins",
+        "weight": 1,
+        "any_of": [
+          {
+            "url": "https://tariff-office.fixture.example/bulletins",
+            "connector": "json",
+            "pagination": {
+              "mode": "cursor",
+              "next_pointer": "/next_cursor",
+              "cursor_parameter": "cursor"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "fixtures": {
+    "path": "fixtures/tariff-pagination.json",
+    "sha256": "e518e8901e54ac3e5c868a02d469457d0f7c6044acd3416eb684b45245ef6f7b"
+  },
+  "sources": [
+    {
+      "id": "first-page-only",
+      "name": "First Page Only",
+      "connector": "json",
+      "url": "https://tariff-office.fixture.example/bulletins",
+      "items_pointer": "/items",
+      "id_pointer": "/id"
+    },
+    {
+      "id": "paginated-bulletins",
+      "name": "Paginated Bulletins",
+      "connector": "json",
+      "url": "https://tariff-office.fixture.example/bulletins",
+      "items_pointer": "/items",
+      "id_pointer": "/id",
+      "pagination": {
+        "mode": "cursor",
+        "next_pointer": "/next_cursor",
+        "cursor_parameter": "cursor"
+      }
+    }
+  ],
+  "fixture_plan": {
+    "source_ids": [
+      "paginated-bulletins"
+    ],
+    "unsupported": []
+  },
+  "manual_checks": [
+    "Run full collection and verify both pages publish atomically; the source score checks configuration only."
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "authorship": "Synthetic fixture authored by Codex; no live source was sampled",
+  "search_results": [
+    {
+      "url": "https://export-office.fixture.example/publication-index.json",
+      "title": "Export control notices: publication index and monthly counts"
+    },
+    {
+      "url": "https://export-office.fixture.example/notices.json",
+      "title": "Export control notices: source publication"
+    }
+  ],
+  "responses": [
+    {
+      "url": "https://export-office.fixture.example/notices.json",
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "synthetic": true,
+        "items": [
+          {
+            "id": "notice-1",
+            "title": "Authored policy notice",
+            "published_at": "2026-09-01T12:00:00Z",
+            "downloaded_at": "2026-09-08T12:00:00Z"
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://export-office.fixture.example/publication-index.json",
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "synthetic": true,
+        "items": [
+          {
+            "id": "monthly-index",
+            "topic": "Export control notices",
+            "publication_count": 12
+          }
+        ]
+      }
+    }
+  ]
+}

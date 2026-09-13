@@ -182,20 +182,38 @@ def test_actual_invalid_candidates_fail_without_fallback(tmp_path, code):
 
 
 @pytest.mark.parametrize(
-    "code, expected",
+    "code, expected, timeout_seconds",
     [
-        ("def apply(event):\n while True: pass", "wall-clock"),
-        ('def apply(event):\n while True: print("x" * 65536)', "output"),
-        ('def apply(event): return {"large": str(bytearray(512 * 1024 * 1024))}', "status"),
+        pytest.param("def apply(event):\n while True: pass", "wall-clock", 1, id="wall-clock"),
+        pytest.param(
+            'def apply(event):\n while True: print("x" * 65536)', "output", 10, id="output"
+        ),
+        pytest.param(
+            'def apply(event): return {"large": str(bytearray(512 * 1024 * 1024))}',
+            "status",
+            10,
+            id="memory",
+        ),
     ],
 )
-def test_actual_runaway_candidates_are_bounded_and_removed(tmp_path, code, expected):
-    runner = actual_runner(timeout_seconds=1, max_output_bytes=1024, memory_mb=64)
+def test_actual_runaway_candidates_are_bounded_and_removed(
+    tmp_path, code, expected, timeout_seconds
+):
+    # Exercise each guard before a competing guard can win. Output and memory
+    # retain the production default watchdog; the deadline case still uses 1s.
+    runner = actual_runner(timeout_seconds=timeout_seconds, max_output_bytes=1024, memory_mb=64)
     output = tmp_path / "bounded"
     with pytest.raises(StrategyExecutionError, match=expected):
         runner.execute(source(tmp_path, code), {}, output)
     saved = report(output)
     assert saved["status"] == "failed" and saved["cleanup"] == "removed"
+    assert saved["configuration"]["max_output_bytes"] == 1024
+    assert saved["configuration"]["memory_mb"] == 64
+    if expected == "output":
+        assert saved["output_truncated"] is True
+    elif expected == "status":
+        assert saved["exit_code"] == 137
+        assert saved["output_truncated"] is False
     assert (output / "stdout.txt").stat().st_size <= 1024
     assert (output / "stderr.txt").stat().st_size <= 1024
     assert runner.recover(output)["recovery"]["replayed"] is False

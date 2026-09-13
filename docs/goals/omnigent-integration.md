@@ -39,7 +39,7 @@ Use `queued`, `in_progress`, `blocked`, or `done`. Replace an owner only after a
 | M3 | Omnigent research agent bundle and runtime binding | done | `/root/omnigent_spike`, browser verification `/root` | Normal server/runner/MCP and browser chat save validated proposal/pipeline ids; synthetic model HTTP, frozen authored bundle |
 | M4 | Collection jobs, exports, case lookup, recovery | done | `/root` | Detached workers, cancellation, process termination, scoped data, exports, and full server/browser restart verified locally; local Postgres/MinIO tests and detached workflow/restart/export acceptance now verified |
 | M5 | Independent pilot evaluation and baseline comparison | blocked | `/root`, bounded agent work handed off | Twenty authored cases now discriminate in the offline policy comparison; independent evaluators, frozen controller and bound gateway usage verified through actual runtimes; budgeted dispatch and independent settlement verified through both actual runtimes; awaits human review, provider access and the pending spending decision |
-| M6 | Meta-Harness strategy optimization and isolated final evaluation | in_progress | `/root`, review follow-ups | RW-1/2/3/4/7/8/9/10/11/12 are published in PRs #2–#11. RW-10 satisfies its offline schema acceptance, including actual SDK/MCP/runtime checks; two unchanged local Docker runaway checks still time out on recheck, as recorded below. Measured search/final still awaits remaining review work, reviewed cases, provider access, spending approval and the measured baseline |
+| M6 | Meta-Harness strategy optimization and isolated final evaluation | in_progress | `/root`, review follow-ups | RW-1/2/3/4/7/8/9/10/11/12/14 are published in PRs #2–#12, with PR #11's required hosted suite passing. RW-14 test maintenance passes 1,337 required local tests with zero skips, including isolated sandbox guards and real implementation-freeze checks. Measured search/final still awaits remaining review work, reviewed cases, provider access, spending approval and the measured baseline |
 
 M0 and M1 can proceed independently against the agreed tool/service boundary. Evaluation case design can also proceed independently. Agree on ownership of shared schemas, CLI wiring, dependencies, migrations, and this tracker before concurrent edits.
 
@@ -77,6 +77,31 @@ For each active task, add a short entry with:
 Retain completed handoffs so another agent can distinguish implemented behavior from planned work. Avoid copying secrets, raw credentials, or held-out task contents into this shared tracker.
 
 ## Activity and handoffs
+
+### September 12, 2026 — RW-14 test maintenance ownership
+
+Owner: `/root`; RW-14 done in [PR #12](https://github.com/Madhavan113/researchharness/pull/12), branch `test/reproducible-runtime-checks`, based on PR #11, head `cdc596c`. The previous goal turn made progress: it completed and published the RW-10 schema checkpoint and retained the full local test evidence. PR #11 run `34718217512` was pending at this task's first poll; its later successful completion is recorded below.
+
+Scope: make deadline and sandbox guard tests distinguish the controls they exercise, consolidate the shared fake runner, add controller coverage of the actual implementation-freeze scanner, and audit lifecycle tests for accidental dependence on editable development cases. The two repeated local runaway-test failures reached the test's one-second wall-clock limit before its expected output/memory errors; production limits and cleanup guarantees remain intact. Intended files: `tests/conftest.py`, affected gateway/strategy/controller/archive test modules and test fixtures as needed, the testing guide and shared trackers. No production limit will be relaxed. Acceptance: independently exercise wall-clock, output and memory failures with cleanup assertions; remove brittle elapsed-time windows; use the real scanner in a controller freeze regression; keep lifecycle fixtures stable when benchmark cases change. Record both targeted results and the still-pending hosted checkpoint result.
+
+Progress: the shared observation fake runner is in `conftest.py`, with seven cross-module fixture imports removed. Six lifecycle/leakage modules now use a four-case snapshot with eight original content hashes and recorded provenance; the snapshot is 15,516 bytes including its README. Benchmark/workbook tests still validate the editable benchmark. Two new controller tests invoke the real scanner and reject changed working/frozen MCP implementation bytes before execution. The live HTTP deadline test uses a controlled clock/timer, preserves a late partial chunk and interrupts the silent connection at the original deadline. Docker tests separately exercise the one-second watchdog, 1,024-byte output cap and 64-MB memory ceiling; output/memory tests use the existing default ten-second watchdog and additionally require truncation/OOM evidence. Production source is unchanged.
+
+Targeted verification: the deadline and two scanner checks passed (`3 passed in 3.88s`), report `/tmp/rh-rw14-targeted-v2-20260912.xml`, SHA-256 `1de15e961ecbbf17bef4ea4549c89550792ada81abf042f4a831ebfff3337ac8`. Required real-Docker guard checks passed (`3 passed in 27.37s`, zero skips), report `/tmp/rh-rw14-sandbox-20260912.xml`, SHA-256 `7b8edcbc8500a673cd35fc5702c764582136e085cc54371eaf1a140f9ccc2243`. Both jobs in [PR #11's hosted run](https://github.com/Madhavan113/researchharness/actions/runs/34718217512) also passed, including its complete required Docker/Omnigent suite. Its original local timeout reports remain historical evidence; the PR description now records the hosted result.
+
+Full verification on the final test changes:
+
+~~~sh
+RH_TEST_REQUIRE_RUNTIME=1 \
+RH_TEST_STRATEGY_IMAGE=python@sha256:9d2e5553305c7c7b0097999bb17187c69b921ccd6bc9d40e4bb5ebe652c00285 \
+RH_TEST_OMNIGENT_PYTHON=/tmp/researchharness-omnigent-be042b39/.venv/bin/python \
+uv run --locked --extra mcp pytest --tb=short \
+  --basetemp=/tmp/rh-rw14-required-20260912 \
+  --junitxml=/tmp/rh-rw14-required-20260912.xml
+~~~
+
+Result: **1,337 passed, zero failures/errors/skips**, 794.90 seconds. JUnit SHA-256: `19d9bc99cd510901aaf1e17b699ec7d0db369ecc709c0e81c25ce4e8cc537c7e`; console output: `/tmp/rh-rw14-required-20260912.log`. The full run includes actual Docker/Omnigent comparisons, normal-runner follow-up, every sandbox guard, snapshot-backed lifecycle tests and runtime skip enforcement. No owned running containers remain. `uv run --locked --extra mcp ruff check src tests`, `ruff format --check src tests` and `git diff --check` pass.
+
+Handoff: changed shared/test-specific fixtures, gateway/sandbox/controller coverage, the four-case snapshot with its provenance README, the testing guide and shared trackers. Production source, the authored twenty-case development package and historical evidence archives are unchanged. All 80 local Markdown link targets resolve. Implementation commit `9261de5` is pushed and PR #12 is open for review. Next action: inspect its required CI; continue RW-5/6 artifact hygiene/retention, RW-13 hashing and RW-15 remaining correctness/maintenance work. The goal stays active: human benchmark review, provider access, spending decisions and measured baseline/search/final remain unfinished.
 
 ### September 10, 2026 — RW-10 strict provider schema ownership
 

@@ -7,7 +7,6 @@ from types import SimpleNamespace
 import anyio
 import pytest
 from test_strategy_session import bundle
-from test_strategy_session import fake_runner as fake_runner
 from test_strategy_workflow import Provider
 
 from research_harness.backend import Backend

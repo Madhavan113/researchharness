@@ -22,7 +22,7 @@ from research_harness.strategies.sandbox import SandboxConfig
 from research_harness.util import digest, write_json
 
 ROOT = Path(__file__).resolve().parents[1]
-DEVELOPMENT = ROOT / "examples/evaluation/development"
+DEVELOPMENT = Path(__file__).resolve().parent / "fixtures/research-lifecycle"
 CANARY = "PRIVATE-HELDOUT-CANARY-DO-NOT-PUBLISH"
 IMAGE = "python@sha256:9d2e5553305c7c7b0097999bb17187c69b921ccd6bc9d40e4bb5ebe652c00285"
 

@@ -32,6 +32,35 @@ Keep the virtual-environment executable path itself; resolving its symlink to th
 
 The [pytest-contract regressions](../tests/test_pytest_runtime_contract.py) launch isolated child suites against the actual repository configuration. Their small dependency stubs test configuration reporting and failure behavior only; the real Docker/Omnigent cases provide runtime evidence.
 
+## Stable test inputs and guard coverage
+
+Controller, pilot, private-final and leakage tests use the four-case
+[lifecycle snapshot](../tests/fixtures/research-lifecycle/README.md). Its original
+case/source hashes are retained. Editing the development benchmark therefore
+does not silently change lifecycle expectations. Archive tests construct two
+minimal cases themselves; benchmark and workbook-fixture tests still read the
+current development package because they validate that package.
+
+Shared authored observation-runner evidence lives in `tests/conftest.py`; it
+never executes candidate Python. Most search-controller tests use a small
+implementation freeze for speed. Dedicated regressions use the real fingerprint
+scanner and verify that changed working or frozen implementation bytes prevent
+execution, including files beyond the fixture's configuration module.
+
+The gateway's late-chunk deadline test uses an injected clock and controlled
+timers with a real HTTP connection. It captures a chunk before the absolute
+deadline, then fires that deadline while the provider is silent and checks that
+the connection is interrupted and partial evidence retained. Real-time waits
+guard test deadlocks; they are not narrow assertions about scheduler timing.
+
+Docker guard tests exercise wall-clock, output and memory failure separately.
+The wall-clock case retains its one-second limit. Output/memory cases keep the
+production default ten-second watchdog so it does not mask their intended
+guard; both retain the 1,024-byte capture limit and 64-MB memory ceiling. They
+assert bounded captures, removal/recovery, output truncation or the OOM exit
+status as applicable. No production limits are changed. A Docker setup timeout
+still fails verification and must be reported.
+
 ## Hosted CI
 
 The [Tests workflow](../.github/workflows/tests.yml) runs on pushes and pull requests and supports manual dispatch. Both jobs use Ubuntu 24.04, Python 3.13.12, uv 0.11.8 and the locked MCP extra:

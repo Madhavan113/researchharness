@@ -207,3 +207,59 @@ def rss() -> bytes:
 <item><guid>policy-123</guid><title>Trade rule issued</title><link>https://source.example/policy/123</link>
 <pubDate>Fri, 04 Sep 2026 12:30:00 GMT</pubDate><description><![CDATA[<p>An <strong>official</strong> update.</p>]]></description>
 </item></channel></rss>"""
+
+
+@pytest.fixture
+def fake_runner(monkeypatch):
+    """Authored evidence for host journal tests; never executes candidate Python."""
+
+    import json
+
+    import research_harness.strategies.session as session_module
+    from research_harness.util import canonical_json, digest, write_json
+
+    class FakeRunner:
+        calls = 0
+        invalid = False
+
+        def __init__(self, config):
+            self.config = config
+
+        def execute(self, source, event, output):
+            type(self).calls += 1
+            inputs = output / "input"
+            inputs.mkdir(parents=True)
+            (inputs / "strategy.py").write_bytes(source.read_bytes())
+            (inputs / "request.json").write_text(canonical_json(event))
+            (inputs / "worker.py").write_text("# authored fixture worker evidence\n")
+            decision = {"order": [item["id"] for item in reversed(event["payload"]["items"])]}
+            if self.invalid:
+                decision["order"] = ["invented-result"]
+            raw = {"decision": decision, "state": {"calls": event["state"].get("calls", 0) + 1}}
+            write_json(output / "decision.json", raw)
+            (output / "stdout.txt").write_text(canonical_json(raw))
+            (output / "stderr.txt").write_text("")
+            write_json(
+                output / "execution.json",
+                {
+                    "status": "completed",
+                    "cleanup": "removed",
+                    "configuration": self.config.model_dump(mode="json"),
+                    "source_sha256": digest(source.read_bytes()),
+                    "request_sha256": digest(canonical_json(event)),
+                    "output_truncated": False,
+                    "output_collection_complete": True,
+                    "artifact_hashes": {
+                        p.relative_to(output).as_posix(): digest(p.read_bytes())
+                        for p in sorted(output.rglob("*"))
+                        if p.is_file()
+                    },
+                },
+            )
+            return raw
+
+        def recover(self, output):
+            return json.loads((output / "execution.json").read_bytes())
+
+    monkeypatch.setattr(session_module, "DockerStrategyRunner", FakeRunner)
+    return FakeRunner

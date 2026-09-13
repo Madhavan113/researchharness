@@ -13,7 +13,6 @@ from test_research_controller import fixture_executor
 from test_research_pilot import configuration
 from test_search_runtime_fixtures import FIXTURE
 from test_strategy_session import CODE, bundle
-from test_strategy_session import fake_runner as fake_runner
 
 from research_harness.evaluation import pilot
 from research_harness.evaluation.budget import AuthorizationRecord
