@@ -60,8 +60,9 @@ records. These capabilities remain required and unimplemented; completing E1–E
 alone does not establish the full active thread goal.
 
 The [experiment guide](../experiments.md) now supplies a proposed task, setup/run
-commands and verified positive/negative benchmark controls. Next: connect human
-curator decisions and the planned agent baseline to execution through Omnigent.
+commands, verified positive/negative benchmark controls and local operator review
+commands. Next: connect the curated package and planned agent baseline to execution
+through Omnigent, with explicit provider configuration and enforced resource limits.
 The research baseline itself remains unmeasured. Record provider access and a
 spending budget before any paid model run, using existing controls where applicable.
 
@@ -79,6 +80,35 @@ The app goal controller now reports the user's research-workflow goal active.
 The earlier failed registration is historical; no old evaluation was marked complete.
 
 ## Current ownership
+
+September 13, `/root`, E1 local curator decision step complete on
+`feat/experiment-curation`. Scope: `experiments/curation.py`, benchmark evidence
+validation, CLI, focused tests and experiment/goal documentation. Add an operator
+review history bound to exact prepared inputs and check evidence, with withdrawal
+and stale-review protection. Acceptance: a human can inspect and record a decision;
+the service rejects missing, stale, withdrawn or altered evidence. Local OS account
+attribution is not proof a human was present. This step does not authorize spending,
+accept findings or claim that Omnigent execution is integrated.
+
+Implementation checkpoint: `rh experiment review/reviews/withdraw` and
+`CuratorStore.require_accepted()` now retain decisions in an operator SQLite log,
+revalidate the raw controls and prevent stale or withdrawn acceptances from being
+reused. Sixteen new curation test cases pass; the combined experiment/CLI tests pass
+43 tests, including recovery after interrupted database initialization. Read-only
+inspection of the actual `async-v4` Harbor evidence passes and leaves its state
+pending, without creating a curator database or making a decision. The full
+ordinary MCP-enabled run passed 1,466 tests with 32 optional runtime skips in
+244.59 seconds. That run started before the final initialization guard; the final
+43-test focused run covers that fix. Ruff lint/formatting, documentation links
+(345 targets in 31 files), evidence-retention policy and `git diff --check` pass.
+Logs are retained in `.researchharness/experiments/pytest-curation-*.txt`.
+
+Next: use this prerequisite in a trusted Omnigent execution adapter with isolated
+worker tools, a fixed task model, enforced run limits and retained attempt/session
+identities. The existing `LocalOmnigent` wrapper is source-discovery-specific;
+experiments must not be represented as fake discovery cases. Network curator
+authentication, paid-run configuration, independent reruns and the full
+investigation/planning workflow remain unfinished. E1 and the full goal stay active.
 
 September 13, `/root`, E1 in progress on `feat/curated-experiments`: implement one
 reviewable experiment package and benchmark validation using Harbor's existing
@@ -108,7 +138,7 @@ Logs remain under `.researchharness/experiments/`; source and setup are reviewab
 without committing another large evidence archive. No paid model calls were made.
 
 E1 stays in progress: the proposed Terminus-2/model baseline needs integration and
-curation. Authenticated curator decisions, Omnigent delegation, computer-use
+curation. Authenticated network curator decisions, Omnigent delegation, computer-use
 investigation, agent planning and infrastructure-planning tools remain required.
 The plan currently records those choices for human review; it does not implement
 agents that make or execute them. The full goal remains active.

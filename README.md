@@ -21,8 +21,8 @@ is not implemented yet. See the [current goal](docs/goals/reproducible-research.
   and reprocess saved responses without fetching them again.
 - **Connect agents:** use the CLI directly or let Omnigent call the same research
   and ingestion operations through MCP.
-- **Check a proposed experiment:** snapshot a plan and task environment, then run
-  reference/no-op benchmark controls for human review. See the
+- **Curate an experiment:** snapshot a plan and task environment, run reference/no-op
+  benchmark controls, and record an operator's review decision. See the
   [experiment guide](docs/experiments.md); research-agent execution is still pending.
 
 Live model quality and strategy-optimization gains have not been measured yet.

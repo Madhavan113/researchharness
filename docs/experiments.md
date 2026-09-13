@@ -1,8 +1,8 @@
 # Research experiments
 
-The first experiment commands prepare inputs and check a benchmark for human
-review. They do not run a research agent, accept a finding, or mark a proposal
-human-reviewed. See the [active goal](goals/reproducible-research.md).
+The experiment commands prepare inputs, check a benchmark and retain operator
+curation decisions. They do not run a research agent or accept a finding.
+See the [active goal](goals/reproducible-research.md).
 
 ## Prepare the example
 
@@ -58,6 +58,69 @@ never reruns work. An interrupted controller's `running` receipt does not prove
 liveness. Inspect its recorded process and Docker resources before acting; there
 is no automatic replay or durable recovery implementation yet.
 
+## Curate the benchmark package
+
+Inspect the question, plan, task resources and verified control results together:
+
+```sh
+uv run rh experiment review .researchharness/experiments/prepared \
+  --check .researchharness/experiments/check-1 \
+  --store .researchharness/operator/curation.sqlite3
+```
+
+This is read-only, even when the curator database does not exist. It returns
+`pending_review`, the complete plan, control results, a `subject_sha256` binding
+the input contents and check artifacts, and the current review `head` (`none`
+initially). Read the underlying scripts and logs too; passing controls cannot
+establish whether a research question or benchmark is useful.
+
+After reviewing, a local operator can record a decision with the exact subject
+and head from that inspection. Replace the placeholders yourself:
+
+```sh
+uv run rh experiment review .researchharness/experiments/prepared \
+  --check .researchharness/experiments/check-1 \
+  --store .researchharness/operator/curation.sqlite3 \
+  --decision accept --subject REVIEWED_SUBJECT_SHA256 --after REVIEWED_HEAD \
+  --reason 'Why this question, task selection and evaluator are suitable'
+
+uv run rh experiment reviews meta-harness-coding-pilot \
+  --store .researchharness/operator/curation.sqlite3
+```
+
+Use `--decision reject` to retain a rejection and its reason. Acceptance requires
+matching, intact check artifacts and a recomputed positive/negative result matrix;
+a success flag alone is insufficient. Both decisions require the inspected subject
+and current head, so an edited package or a concurrent review forces another
+inspection. Each experiment has one current decision; reviewing a new version
+supersedes the previous decision while retaining its history. It never restores
+an older acceptance merely because someone selects the older files again.
+
+To withdraw an acceptance, use its review ID. Withdrawal still works if the
+original evidence files are missing or damaged:
+
+```sh
+uv run rh experiment withdraw meta-harness-coding-pilot \
+  --store .researchharness/operator/curation.sqlite3 \
+  --after CURRENT_REVIEW_ID --reason 'Why this acceptance is withdrawn'
+```
+
+The SQLite log must stay outside prepared/check directories and future worker
+mounts. The local OS account is the current trust boundary: the log records the
+process UID where available, not a caller-supplied reviewer identity. It cannot
+distinguish a person from automation with that same account. A networked curator
+interface still needs authenticated principals and access controls; do not expose
+these write methods as agent tools. A host writer can alter the database or hashes.
+
+Benchmark acceptance has a narrow scope: it does **not** authorize model spending,
+launch an experiment, accept a finding or change the proposal's saved metadata.
+`CuratorStore.require_accepted()` revalidates inputs, raw results and the latest
+decision for a future dispatcher. That prerequisite is implemented and tested;
+the Omnigent dispatcher and execution budget gate are not connected yet. Withdrawal
+does not cancel a running process. The CLI reports successful inspection/recording
+with exit code 0 even for pending/rejected packages; dispatchers must use the
+service prerequisite rather than interpreting that exit code as acceptance.
+
 ## What this establishes
 
 This is benchmark validation on a real task, not a measured agent baseline,
@@ -66,11 +129,11 @@ detect accidental edits; a person with host write access can replace the hashes.
 These are local operator commands for inspected task packages, not an authorization
 boundary for hostile task authors. Agent tools must not gain the same access.
 
-The proposal remains `pending_human_review` even when checks pass. The current
-commands cannot accept it. Humans still choose the direction, benchmark,
-evaluation criteria, environment, model/budget and accepted findings. Authenticated
-curator decisions, Omnigent delegation, computer-use evidence, experiment planning
-tools and model-backed execution remain required follow-up work.
+Prepared/check receipts remain `pending_human_review` when checks pass; only the
+separate curator log records an operator's decision. Humans still choose the
+direction, benchmark, evaluation criteria, environment, model/budget and accepted
+findings. Authenticated network curation, Omnigent delegation, computer-use evidence,
+experiment planning tools and model-backed execution remain follow-up work.
 
 The example preserves upstream test assertions and adds an explicit verifier
 image, artifact transfer and pinned dependency setup. Networking uses the upstream

@@ -56,6 +56,28 @@ def parser() -> argparse.ArgumentParser:
         "status", help="Inspect an existing check without rerunning"
     )
     experiment_status.add_argument("output", type=Path)
+    review = experiment_sub.add_parser(
+        "review", help="Inspect a benchmark package, or record an operator decision"
+    )
+    review.add_argument("prepared", type=Path)
+    review.add_argument("--check", type=Path, required=True)
+    review.add_argument(
+        "--store", type=Path, required=True, help="Operator curator SQLite database"
+    )
+    review.add_argument("--decision", choices=["accept", "reject"])
+    review.add_argument("--subject", help="Exact subject_sha256 from inspection")
+    review.add_argument("--after", help="Exact review head from inspection, or 'none'")
+    review.add_argument("--reason", help="Why this benchmark package is accepted or rejected")
+    reviews = experiment_sub.add_parser(
+        "reviews", help="Read the retained curator decision history"
+    )
+    reviews.add_argument("experiment_id")
+    reviews.add_argument("--store", type=Path, required=True)
+    withdraw = experiment_sub.add_parser("withdraw", help="Withdraw a current benchmark acceptance")
+    withdraw.add_argument("experiment_id")
+    withdraw.add_argument("--store", type=Path, required=True)
+    withdraw.add_argument("--after", required=True)
+    withdraw.add_argument("--reason", required=True)
     discovery = sub.add_parser(
         "discover", help="An agent discovers, probes, and proposes sources for a research question"
     )
@@ -304,6 +326,37 @@ def execute(args: argparse.Namespace) -> int:
 
         if args.experiment_command == "prepare":
             emit(prepare(args.manifest, args.checkout, args.out))
+            return 0
+        if args.experiment_command in {"review", "reviews", "withdraw"}:
+            from research_harness.experiments.curation import CuratorStore
+
+            curator = CuratorStore(args.store)
+            if args.experiment_command == "reviews":
+                emit(
+                    {
+                        "experiment_id": args.experiment_id,
+                        "reviews": curator.history(args.experiment_id),
+                    }
+                )
+            elif args.experiment_command == "withdraw":
+                emit(curator.withdraw(args.experiment_id, after=args.after, reason=args.reason))
+            elif args.decision:
+                if not all((args.subject, args.after, args.reason)):
+                    raise ValueError("A decision requires --subject, --after and --reason")
+                emit(
+                    curator.decide(
+                        args.prepared,
+                        args.check,
+                        decision=args.decision,
+                        subject=args.subject,
+                        after=args.after,
+                        reason=args.reason,
+                    )
+                )
+            else:
+                if any((args.subject, args.after, args.reason)):
+                    raise ValueError("Decision arguments require --decision")
+                emit(curator.inspect(args.prepared, args.check))
             return 0
         if args.experiment_command == "check":
             result = check(args.prepared, args.out, args.harbor, timeout=args.timeout)
