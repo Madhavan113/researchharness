@@ -61,10 +61,12 @@ alone does not establish the full active thread goal.
 
 The [experiment guide](../experiments.md) supplies a proposed task, benchmark
 controls, operator review and a real Omnigent/Docker execution fixture. Delegation
-now connects to the existing model budget and independent verifier. The authored
-fixture is not the planned Terminus-2 baseline or an editable agent program.
-Next: implement the full candidate-program interface and a runnable research
-baseline. Record provider access and a spending budget before any paid model run.
+now connects to the existing model budget and independent verifier. The editable
+Python-program interface adds a full model/tool loop inside the task container;
+its authored fixture is not the planned Terminus-2 baseline or a model measurement.
+Next: finish runtime validation of this interface, then implement the planned
+research baseline and search. Record provider access and a spending budget before
+any paid model run.
 
 ## Keep the scope small
 
@@ -80,6 +82,29 @@ The app goal controller now reports the user's research-workflow goal active.
 The earlier failed registration is historical; no old evaluation was marked complete.
 
 ## Current ownership
+
+September 13, `/root`, editable candidate-program task in progress on
+`feat/experiment-programs`. Intended files: `experiments/` execution, container
+program transport and Omnigent connector; focused tests, an executable example,
+the experiment guide and this tracker. A single Python candidate owns its full
+reasoning/tool loop inside the task container. Fixed-model requests cross a
+controller-owned transport; source, requests, failures and independent scores are
+retained. Validate with authored responses before paid runs. This establishes an
+editable execution interface, not the still-unmeasured Terminus-2 comparison or
+the complete research workflow.
+
+Implementation: `execution.run(candidate=Path(...))` freezes a single Python
+program, delegates its start through Omnigent and executes it inside the inspected
+Docker task container. A newline-delimited model transport retains requests and
+responses outside candidate access; fixed model settings and aggregate budget
+remain in the host gateway. Programs own local state/tools and stop the entire
+candidate container before the separate verifier copies its submission. Terminal
+validation binds the exact source and successful stop to the trial. The example
+loop uses two authored model calls in the integration fixture and is explicitly
+not Terminus-2. New CI controls exercise a working submission and a forged reward.
+Focused validation: 38 tests pass with the pinned Omnigent environment; Ruff,
+formatting and the evidence policy pass. Full ordinary tests and end-to-end
+program grading are running; record their final outcomes before handoff.
 
 September 13, `/root`, E2 execution integration in progress on
 `feat/experiment-execution`. Intended files: `experiments/` runtime/service code,
@@ -145,7 +170,7 @@ Rerun/recovery records are under `.researchharness/experiments/pytest-execution-
 and `runtime-recovery*/`. Ruff, formatting, local documentation links and the
 evidence-retention policy pass. No paid provider calls have been made.
 
-Remaining scope: a normal research run entry point, editable full agent programs,
+Remaining scope at the E2 checkpoint: a normal research run entry point, editable full agent programs,
 the curated/measured baseline, candidate search, independent reruns and accepted
 findings. Computer-use investigation, ideation and infrastructure proposals still
 need to connect to the same curated records. This fixed coding fixture does not

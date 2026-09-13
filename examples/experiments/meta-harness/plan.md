@@ -36,8 +36,9 @@ Both must reach the verifier without an environment/runtime exception. A green
 check establishes only that these controls separate on this setup.
 
 The separate Omnigent integration fixture uses a fixed supervisor/worker with
-scripted model responses. It verifies execution and isolation, not Terminus-2,
-a measured baseline or editable agent-program search.
+scripted model responses. Its `--program` variant delegates an editable Python
+agent's full model/tool loop inside the task container. These verify execution
+and isolation, not Terminus-2, a measured baseline or agent-program search.
 
 ## Infrastructure proposal and explicit adaptations
 
@@ -57,9 +58,10 @@ a measured baseline or editable agent-program search.
   dependencies. It leaves upstream test assertions and reference solution intact.
   These changes differ from the paper's environment and require review.
 - The execution adapter connects fixed Omnigent delegation to existing model-budget
-  controls and an isolated container command tool. Editable agent programs,
-  measured baseline/search results and durable interruption recovery remain
-  unfinished. No real model configuration or research spending is approved by this plan.
+  controls, an isolated container command tool and a full Python-program interface.
+  The example Python loop is not Terminus-2. Measured baseline/search results and
+  durable interruption recovery remain unfinished. No real model configuration
+  or research spending is approved by this plan.
 
 ## Human curation before research execution
 

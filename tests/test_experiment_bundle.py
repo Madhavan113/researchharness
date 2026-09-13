@@ -8,7 +8,8 @@ import pytest
 from research_harness.experiments.bundle import build_bundle
 
 
-def test_pinned_omnigent_accepts_bundle_without_host_os_or_arbitrary_spawn(tmp_path):
+@pytest.mark.parametrize("program", [False, True])
+def test_pinned_omnigent_accepts_bundle_without_host_os_or_arbitrary_spawn(tmp_path, program):
     python = os.environ.get("RH_TEST_OMNIGENT_PYTHON")
     if not python:
         if os.environ.get("RH_TEST_REQUIRE_RUNTIME") == "1":
@@ -18,6 +19,7 @@ def test_pinned_omnigent_accepts_bundle_without_host_os_or_arbitrary_spawn(tmp_p
         tmp_path / "bundle",
         name="experiment-fixture",
         model="gpt-5.4-mini",
+        program=program,
     )
     script = """
 import json, sys
@@ -26,6 +28,7 @@ from omnigent.spec import load
 from omnigent.policies.builtins.cel import cel_policy
 from research_harness.experiments.bundle import tool_policy
 spec = load(Path(sys.argv[1]), expand_env=False)
+program = sys.argv[2] == 'True'
 assert spec.executor.type == 'omnigent'
 assert len(spec.sub_agents) == 1
 worker = spec.sub_agents[0]
@@ -39,10 +42,11 @@ for agent in [spec, worker]:
 assert not spec.local_tools and not spec.mcp_servers and not worker.mcp_servers
 assert len(worker.local_tools) == 1
 connector = worker.local_tools[0]
-assert connector.name == 'workspace_execute'
-assert connector.path == 'research_harness.experiments.worker_tools.execute'
-policy = cel_policy(**tool_policy()['factory_params'])
-for name in ['workspace_execute', 'sys_session_send', 'sys_read_inbox']:
+expected = 'workspace_run_program' if program else 'workspace_execute'
+assert connector.name == expected
+assert connector.path == 'research_harness.experiments.worker_tools.' + ('run_program' if program else 'execute')
+policy = cel_policy(**tool_policy(program=program)['factory_params'])
+for name in [expected, 'sys_session_send', 'sys_read_inbox']:
     assert policy({'type': 'tool_call', 'data': {'name': name}})['result'] == 'ALLOW'
 for name in ['sys_os_shell', 'browser_navigate', 'sys_agent_download',
              'sys_scheduled_task_list', 'sys_agent_list', 'sys_call_async', 'sys_add_policy']:
@@ -50,7 +54,7 @@ for name in ['sys_os_shell', 'browser_navigate', 'sys_agent_download',
 print(json.dumps({'validated': True, 'worker': worker.name}))
 """
     result = subprocess.run(
-        [python, "-c", script, str(bundle)],
+        [python, "-c", script, str(bundle), str(program)],
         capture_output=True,
         text=True,
         timeout=30,

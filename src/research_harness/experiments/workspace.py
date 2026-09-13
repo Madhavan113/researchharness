@@ -22,12 +22,13 @@ OUTPUT_LIMIT = 65536
 
 
 class WorkspaceBridge:
-    def __init__(self, environment, output: Path, *, max_commands: int, timeout: int):
+    def __init__(self, environment, output: Path, *, max_commands: int, timeout: int, program=None):
         if type(max_commands) is not int or not 1 <= max_commands <= 100:
             raise ValueError("Choose between 1 and 100 workspace commands")
         if type(timeout) is not int or not 1 <= timeout <= 3600:
             raise ValueError("Workspace deadline must be between 1 and 3600 seconds")
         self.environment = environment
+        self.program = program
         self.output = output
         self.output.mkdir(parents=True, exist_ok=False)
         self.max_commands = max_commands
@@ -72,13 +73,20 @@ class WorkspaceBridge:
         self.thread.start()
 
     def execute(self, request: dict) -> dict:
-        if not isinstance(request, dict) or set(request) != {"id", "command", "timeout"}:
-            raise ValueError("Workspace requests require only id, command and timeout")
+        required = {"id"} if self.program else {"id", "command", "timeout"}
+        if not isinstance(request, dict) or set(request) != required:
+            raise ValueError(
+                "Workspace request fields must be exactly " + ", ".join(sorted(required))
+            )
         if not isinstance(request["id"], str) or str(UUID(request["id"])) != request["id"]:
             raise ValueError("Workspace request id must be a canonical UUID")
-        if not isinstance(request["command"], str) or not request["command"].strip():
+        if not self.program and (
+            not isinstance(request["command"], str) or not request["command"].strip()
+        ):
             raise ValueError("Workspace command must be nonempty")
-        if type(request["timeout"]) is not int or not 1 <= request["timeout"] <= 60:
+        if not self.program and (
+            type(request["timeout"]) is not int or not 1 <= request["timeout"] <= 60
+        ):
             raise ValueError("Command timeout must be between 1 and 60 seconds")
         with self.lock:
             if self.closed:
@@ -90,7 +98,7 @@ class WorkspaceBridge:
                     raise ValueError("Request id already belongs to another command")
                 return previous
             remaining = int(self.deadline - time.monotonic())
-            if remaining < 1 or self.count >= self.max_commands:
+            if remaining < 1 or self.count >= (1 if self.program else self.max_commands):
                 raise ValueError("Workspace execution limit reached")
             self.count += 1
             record = {
@@ -101,6 +109,17 @@ class WorkspaceBridge:
                 "status": "running",
             }
             write_json(path, record)
+            if self.program:
+                future = asyncio.run_coroutine_threadsafe(self.program(remaining), self.loop)
+                try:
+                    # The coroutine owns its deadline and bounded cleanup. Drain it
+                    # fully before grading; cancellation alone is not completion.
+                    record.update(status="completed", program=future.result())
+                except Exception as exc:
+                    record.update(status="error", error=str(exc), execution_outcome="unresolved")
+                record["finished_at"] = timestamp()
+                write_json(path, record)
+                return record
             future = asyncio.run_coroutine_threadsafe(
                 self.environment.exec(
                     request["command"], timeout_sec=min(request["timeout"], remaining)

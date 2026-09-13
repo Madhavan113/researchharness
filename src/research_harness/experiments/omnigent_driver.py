@@ -91,7 +91,7 @@ def run(config: dict) -> dict:
         session_id = created.json()["session_id"]
         bound = client.patch(f"/v1/sessions/{session_id}", json={"runner_id": server.runner_id})
         bound.raise_for_status()
-        policy = tool_policy()
+        policy = tool_policy(program=config.get("program", False))
         installed = client.post(f"/v1/sessions/{session_id}/policies", json=policy)
         installed.raise_for_status()
         write_json(output / "tool-policy.json", {"submitted": policy, "receipt": installed.json()})

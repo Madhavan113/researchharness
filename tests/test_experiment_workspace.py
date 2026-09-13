@@ -123,3 +123,40 @@ def test_closing_workspace_drains_admitted_execution(tmp_path):
             )
 
     asyncio.run(scenario())
+
+
+def test_program_endpoint_runs_frozen_program_once_and_disallows_commands(tmp_path):
+    async def scenario():
+        calls = []
+
+        async def program(remaining):
+            calls.append(remaining)
+            return {"status": "completed", "container_stopped": True}
+
+        bridge = WorkspaceBridge(
+            Environment(), tmp_path / "commands", max_commands=20, timeout=60, program=program
+        )
+        try:
+            async with httpx.AsyncClient(
+                trust_env=False,
+                headers={
+                    "Authorization": "Bearer " + bridge.key,
+                },
+            ) as client:
+                request = {"id": str(uuid4())}
+                denied = await client.post(
+                    bridge.url, json={**request, "command": "host code", "timeout": 5}
+                )
+                assert denied.status_code == 400
+                assert calls == []
+                first = await client.post(bridge.url, json=request)
+                assert first.json()["program"]["status"] == "completed"
+                repeated = await client.post(bridge.url, json=request)
+                assert repeated.json() == first.json()
+                new_id = await client.post(bridge.url, json={"id": str(uuid4())})
+                assert new_id.status_code == 400
+                assert len(calls) == 1
+        finally:
+            await bridge.close()
+
+    asyncio.run(scenario())

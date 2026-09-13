@@ -9,7 +9,7 @@ from pathlib import Path
 from research_harness.util import write_json
 
 
-def tool_policy() -> dict:
+def tool_policy(*, program: bool = False) -> dict:
     # Omnigent registers additional management/browser tools regardless of the
     # bundle. Install a root session policy before the first message; the pinned
     # runtime inherits it in children and evaluates it before tool dispatch.
@@ -19,7 +19,7 @@ def tool_policy() -> dict:
         "sys_session_get_history",
         "sys_session_get_info",
         "sys_read_inbox",
-        "workspace_execute",
+        "workspace_run_program" if program else "workspace_execute",
     ]
     import json
 
@@ -39,7 +39,7 @@ def tool_policy() -> dict:
     }
 
 
-def build_bundle(output: Path, *, name: str, model: str) -> Path:
+def build_bundle(output: Path, *, name: str, model: str, program: bool = False) -> Path:
     output.mkdir(parents=True, exist_ok=False)
     executor = {"harness": "openai-agents", "model": model, "max_iterations": 30}
     write_json(
@@ -63,15 +63,22 @@ def build_bundle(output: Path, *, name: str, model: str) -> Path:
                     "executor": executor,
                     "max_sessions": 1,
                     "prompt": (
-                        "Complete the task using workspace_execute in your assigned container. "
+                        "Execute the frozen candidate using workspace_run_program once. "
+                        "Report its execution receipt accurately. Only the external evaluator "
+                        "determines task success."
+                        if program
+                        else "Complete the task using workspace_execute in your assigned container. "
                         "Inspect and test your work. Report failures accurately. "
                         "Do not fabricate benchmark scores or modify evaluator output."
                     ),
                     "tools": {
-                        "workspace_execute": {
+                        ("workspace_run_program" if program else "workspace_execute"): {
                             "type": "function",
-                            "callable": "research_harness.experiments.worker_tools.execute",
-                            "description": "Run a command inside the assigned task container.",
+                            "callable": "research_harness.experiments.worker_tools."
+                            + ("run_program" if program else "execute"),
+                            "description": "Run the frozen candidate program."
+                            if program
+                            else "Run a command inside the assigned task container.",
                         }
                     },
                 }

@@ -85,6 +85,20 @@ jobs:
             --out "${RUNNER_TEMP}/experiment-forged-reward" --forged-reward \
             --harbor "${RUNNER_TEMP}/harbor/bin/harbor" \
             --omnigent-python "${RUNNER_TEMP}/omnigent/.venv/bin/python"
+      - name: Verify the editable program owns the model and tool loop
+        run: |
+          uv run --locked --extra mcp python examples/experiments/omnigent_runtime_fixture.py \
+            --fixture-inputs "${RUNNER_TEMP}/experiment-solution" --program \
+            --out "${RUNNER_TEMP}/experiment-program" \
+            --harbor "${RUNNER_TEMP}/harbor/bin/harbor" \
+            --omnigent-python "${RUNNER_TEMP}/omnigent/.venv/bin/python"
+      - name: Verify the program cannot replace independent grading with a forged reward
+        run: |
+          uv run --locked --extra mcp python examples/experiments/omnigent_runtime_fixture.py \
+            --fixture-inputs "${RUNNER_TEMP}/experiment-solution" --program --forged-reward \
+            --out "${RUNNER_TEMP}/experiment-program-forged" \
+            --harbor "${RUNNER_TEMP}/harbor/bin/harbor" \
+            --omnigent-python "${RUNNER_TEMP}/omnigent/.venv/bin/python"
       - name: Retain experiment diagnostics, including failed attempts
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -94,6 +108,8 @@ jobs:
           path: |
             ${{ runner.temp }}/experiment-solution/
             ${{ runner.temp }}/experiment-forged-reward/
+            ${{ runner.temp }}/experiment-program/
+            ${{ runner.temp }}/experiment-program-forged/
             !${{ runner.temp }}/experiment-*/execution/controller/*/runtime-data/**
             !${{ runner.temp }}/experiment-*/execution/controller/*/runtime-config/**
             !${{ runner.temp }}/experiment-*/execution/controller/*/workspace-connection.json

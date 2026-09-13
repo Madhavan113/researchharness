@@ -197,12 +197,56 @@ provider access, current pricing and spending authorization must be established
 separately. No provider is chosen implicitly. The reviewed provider policy does
 not yet cover Astra/max. There is no general `rh experiment run` command yet.
 
+## Edit the agent program
+
+Pass `candidate=Path("agent.py")` to the execution API to run a full Python agent
+program. Omnigent delegates to a worker whose only execution tool starts that
+frozen program once. The program runs in the task container and owns its prompts,
+conversation state, local retrieval, shell tools and control flow. It is never
+imported into the host controller. The
+[small coding agent](../examples/experiments/programs/python_loop.py) demonstrates
+a repeated model/tool loop using only Python's standard library. It is an example,
+not the proposed Terminus-2 baseline or a measured research result.
+
+The protocol is deliberately small:
+
+1. Read one JSON line from stdin: `protocol: 1`, the task `instruction` and fixed
+   `model` identity.
+2. Write a JSON model request followed by a newline to stdout and flush. Supply
+   `input`; optionally supply `instructions`, function `tools`, `tool_choice`
+   and `text`. Read one Responses JSON object back from stdin.
+3. Execute tools locally, update state and repeat. Exit zero when finished;
+   diagnostics go to stderr. The independent verifier determines the task score.
+
+The controller supplies model identity and response settings. Provider credentials,
+network access and evaluator files do not enter the candidate container. All
+program and orchestration calls share the same gateway budget/deadline. Programs
+cannot change these controls through a request. Local commands inside the program
+are subject to container resources and the program deadline, **not** the command
+count used by the older workspace-command interface. Candidate-authored command
+logs are observations, not a complete or tamper-proof system-call audit.
+
+Requests are limited to 1 MiB per line, responses to 8 MiB, the protocol transcript
+to 64 MiB and stderr to 1 MiB. Exceeding a limit fails the attempt. The controller
+stops the whole task container, including detached child processes, before Harbor
+copies the submission into the separate verifier. This currently relies on the
+pilot's single-file artifact transfer; additional task/collect-hook combinations
+need runtime validation. A failed or uncertain stop cannot produce a verified run.
+
+For an offline transport check, add `--program` to either fixture command above.
+Use a fresh output directory. Both variants run the same editable example; the
+authored responses either implement the task or attempt to forge its reward.
+Two model calls occur inside the program, separately from supervisor/worker calls.
+No live model performance is measured by this fixture.
+
 ## What a run retains and restricts
 
 | Evidence | Location inside an execution directory |
 | --- | --- |
 | Curated input/review binding, model settings, limits, score and usage | `execution.json`, `review.json` |
 | Frozen harness Python source, available project lockfiles and hashes | `source/`, `source-sha256.json` |
+| Frozen candidate source and its run identity | `candidate/agent.py`, `execution.json` |
+| Program source, observed model protocol, stderr, exit and stop records | `controller/<trial-id>/program/` |
 | Actual Python/package versions for controller, Harbor and Omnigent | `dependencies.json`, per-trial dependency records |
 | Supervisor/worker IDs, exported conversation items, events and tool policy | `controller/<trial-id>/runtime/` |
 | Container command inputs, timestamps, exit codes and bounded output | `controller/<trial-id>/commands/` |
@@ -214,7 +258,7 @@ not yet cover Astra/max. There is no general `rh experiment run` command yet.
 run. Source imports do not write bytecode into the frozen snapshot. Failed attempts
 remain separate. Runtime databases/configuration and the private loopback connection
 file are retained locally but excluded from exported evidence. Hosted runtime CI
-also runs both fixtures and keeps exported diagnostics for 14 days.
+also runs the command and program fixtures and keeps exported diagnostics for 14 days.
 
 The adapter removes **all host mounts** from both task and verifier containers.
 Harbor 0.23.0's default Docker environment mounts verifier output in the task
