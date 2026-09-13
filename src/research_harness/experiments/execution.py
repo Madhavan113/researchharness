@@ -294,6 +294,13 @@ def run(
                     "omnigent_python": str(omnigent_python.absolute()),
                     "max_commands": max_commands,
                     "candidate": str(output / "candidate/agent.py") if candidate_sha256 else None,
+                    "model_contract": {
+                        "input_admission_tokens": budget.ledger.rates.max_input_tokens_per_request,
+                        "max_output_tokens": budget.settings.max_output_tokens,
+                        "input_usd_per_million": str(budget.ledger.rates.input_usd_per_million),
+                        "output_usd_per_million": str(budget.ledger.rates.output_usd_per_million),
+                        "cost_semantics": "controller rate card; cached input charged at full input rate",
+                    },
                     "execution_timeout": min(budget.settings.deadline_seconds, 3600),
                 },
             }

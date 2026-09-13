@@ -210,8 +210,9 @@ not the proposed Terminus-2 baseline or a measured research result.
 
 The protocol is deliberately small:
 
-1. Read one JSON line from stdin: `protocol: 1`, the task `instruction` and fixed
-   `model` identity.
+1. Read one JSON line from stdin: `protocol: 1`, the task `instruction`, fixed
+   `model` identity and `model_contract` with the controller's input/output bounds
+   and rate card. This metadata grants no ability to change the controls.
 2. Write a JSON model request followed by a newline to stdout and flush. Supply
    `input`; optionally supply `instructions`, function `tools`, `tool_choice`
    and `text`. Read one Responses JSON object back from stdin.
@@ -242,6 +243,48 @@ Use a fresh output directory. Both variants run the same editable example; the
 authored responses either implement the task or attempt to forge its reward.
 Two model calls occur inside the program, separately from supervisor/worker calls.
 No live model performance is measured by this fixture.
+
+## Export the Terminus-2 baseline
+
+The exporter reads Harbor 0.23.0's complete Terminus-2 source and three prompts,
+verifies their pinned hashes and produces one editable program plus its license
+and provenance. The upstream terminal loop, parsers, context management and
+completion confirmation are retained. A small adapter supplies model calls and
+local container operations. This is a baseline integration; candidate search and
+measured results remain unfinished.
+
+```sh
+uv run python examples/experiments/terminus_baseline.py \
+  --harbor-python .researchharness/runtimes/harbor/bin/python \
+  --out .researchharness/experiments/terminus-proposal
+
+uv run rh experiment prepare \
+  .researchharness/experiments/terminus-proposal/proposal/experiment.json \
+  --checkout .researchharness/terminal-bench-2 \
+  --out .researchharness/experiments/terminus-prepared
+```
+
+The first command exports `candidate/agent.py`, `candidate/LICENSE` and
+`candidate/baseline.json`, and creates a proposal with the required task-image
+dependencies. The proposal plan includes the exact baseline hashes. These commands
+do not execute or accept the proposal. Follow the check and curator workflow above
+for the new prepared directory; changing the environment requires its own review.
+
+The [baseline notes](../examples/experiments/terminus/README.md) record transport,
+context, dependency and image-reproducibility limitations. Harbor 0.23.0 is our
+explicit version choice, not a verified historical paper pin. The
+[paper](https://arxiv.org/html/2603.28052v1#S4.SS3) starts from both Terminus-2 and
+Terminus-KIRA; its [published optimized artifact](https://github.com/stanford-iris-lab/meta-harness-tbench2-artifact)
+builds on KIRA. This pilot currently supplies only the Terminus-2 starting point.
+
+For scripted runtime validation, run the same fixture with `--terminus`, a new
+`--out` directory and `--checkout` instead of old fixture inputs. It creates an
+explicit synthetic fixture, checks the new image, and delegates the exported
+program through Omnigent. The authored responses exercise a persistent tmux shell
+across turns and the native completion confirmation. For its negative control,
+use `--terminus --forged-reward --fixture-inputs PATH_TO_TERMINUS_FIXTURE` and another
+new output directory. The controller must grade that attempt independently as 0.
+Neither control measures a real model or authorizes research spending.
 
 ## What a run retains and restricts
 

@@ -37,8 +37,11 @@ check establishes only that these controls separate on this setup.
 
 The separate Omnigent integration fixture uses a fixed supervisor/worker with
 scripted model responses. Its `--program` variant delegates an editable Python
-agent's full model/tool loop inside the task container. These verify execution
-and isolation, not Terminus-2, a measured baseline or agent-program search.
+agent's full model/tool loop inside the task container. A separate `--terminus`
+variant exports Harbor 0.23.0's native Terminus-2 loop with a controller transport
+adapter and a proposed dependency image. Its scripted controls exercise that loop;
+they do not measure baseline quality or agent-program search. See
+`docs/experiments.md` in the source checkout for export and runtime commands.
 
 ## Infrastructure proposal and explicit adaptations
 

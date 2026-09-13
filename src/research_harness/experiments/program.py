@@ -63,11 +63,21 @@ async def model_response(request: dict, *, model: str) -> dict:
     return result
 
 
-async def exchange(process, instruction: str, model: str, output: Path, call_model) -> int:
+async def exchange(
+    process,
+    instruction: str,
+    model: str,
+    output: Path,
+    call_model,
+    *,
+    model_contract: dict | None = None,
+) -> int:
     """Bound pipe buffering and retain observed traffic outside candidate access."""
     trace_bytes = 0
     calls = 0
     initial = {"protocol": 1, "instruction": instruction, "model": model}
+    if model_contract is not None:
+        initial["model_contract"] = model_contract
 
     def record(direction, payload):
         nonlocal trace_bytes
@@ -115,7 +125,14 @@ async def exchange(process, instruction: str, model: str, output: Path, call_mod
 
 
 async def run_program(
-    environment, candidate: Path, instruction: str, model: str, output: Path, *, timeout: int
+    environment,
+    candidate: Path,
+    instruction: str,
+    model: str,
+    output: Path,
+    *,
+    timeout: int,
+    model_contract: dict | None = None,
 ) -> dict:
     output.mkdir(parents=True, exist_ok=False)
     source = read_program(candidate)
@@ -149,7 +166,9 @@ async def run_program(
             async def call_model(request):
                 return await model_response(request, model=model)
 
-            report["model_calls"] = await exchange(process, instruction, model, output, call_model)
+            report["model_calls"] = await exchange(
+                process, instruction, model, output, call_model, model_contract=model_contract
+            )
             report.update(status="completed", exit_code=process.returncode)
     except BaseException as exc:
         report.update(status="error", error=repr(exc))

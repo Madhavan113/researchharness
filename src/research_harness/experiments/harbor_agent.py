@@ -32,6 +32,7 @@ class OmnigentAgent(BaseAgent):
         max_commands: int = 20,
         execution_timeout: int = 300,
         candidate: str | None = None,
+        model_contract: dict | None = None,
         **kwargs,
     ):
         super().__init__(*args, **kwargs)
@@ -40,6 +41,7 @@ class OmnigentAgent(BaseAgent):
         self.max_commands = max_commands
         self.execution_timeout = execution_timeout
         self.candidate = Path(candidate) if candidate else None
+        self.model_contract = model_contract
         if self.controller_root.is_relative_to(self.logs_dir.resolve()):
             raise ValueError("Controller records must be outside candidate agent logs")
 
@@ -78,6 +80,7 @@ class OmnigentAgent(BaseAgent):
                 self.model_name,
                 output / "program",
                 timeout=remaining,
+                model_contract=self.model_contract,
             )
 
         bridge = WorkspaceBridge(
